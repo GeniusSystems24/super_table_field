@@ -35,11 +35,13 @@ class AutoSuggestionsBoxController<T> extends ChangeNotifier {
         _ownsText = textController == null,
         text = textController ?? TextEditingController(text: initialValue?.label ?? initialText ?? '') {
     _selected = initialValue;
+    _committed = initialValue;
+    _committedText = initialValue?.label ?? initialText;
     if (initialSelected != null) _selectedItems.addAll(initialSelected);
     text.addListener(_onTextChanged);
     _lastText = text.text;
     // Seed the initial (empty-query) result set so opening shows everything.
-    _run(text.text, immediate: true);
+    _run(_queryString(), immediate: true);
   }
 
   AutoSuggestionsSource<T> _source;
@@ -70,8 +72,12 @@ class AutoSuggestionsBoxController<T> extends ChangeNotifier {
   int _highlighted = -1;
   bool _open = false;
   bool _loading = false;
+  bool _loadingMore = false;
   Object? _error;
   AutoSuggestion<T>? _selected;
+  AutoSuggestion<T>? _committed; // last committed selection (for restore-on-blur)
+  String? _committedText; // last committed field text (null = never committed)
+  String _activeQuery = ''; // the effective (prefix-to-caret) query in force
 
   int _seq = 0; // race guard for async
   Timer? _debounceTimer;
@@ -81,6 +87,11 @@ class AutoSuggestionsBoxController<T> extends ChangeNotifier {
 
   // ── reads ──────────────────────────────────────────────────
   String get query => text.text;
+
+  /// The **effective** query used for matching/highlighting: the field text from
+  /// the first character up to the caret (requirement: search is anchored to the
+  /// start and ends at the cursor, ignoring anything typed after the caret).
+  String get effectiveQuery => _activeQuery;
   List<AutoSuggestion<T>> get results => _results;
   bool get hasResults => _results.isNotEmpty;
   int get highlightedIndex => _highlighted;
@@ -88,10 +99,26 @@ class AutoSuggestionsBoxController<T> extends ChangeNotifier {
       (_highlighted >= 0 && _highlighted < _results.length) ? _results[_highlighted] : null;
   bool get isOpen => _open;
   bool get isLoading => _loading;
+
+  /// True while a progressive source's remote `loadMore` is in flight (local
+  /// rows are already shown). Drives the "loading more" indicator above the list.
+  bool get isLoadingMore => _loadingMore;
   Object? get error => _error;
+
+  /// The field text from the start to the current caret position.
+  String _queryString() {
+    final full = text.text;
+    final sel = text.selection;
+    final caret = sel.isValid && sel.extentOffset >= 0 ? sel.extentOffset.clamp(0, full.length) : full.length;
+    return full.substring(0, caret);
+  }
 
   /// The last committed suggestion (null after a free-text commit or clear).
   AutoSuggestion<T>? get selected => _selected;
+
+  /// The last *committed* selection — the value restored on blur if the user
+  /// typed without picking. Null when nothing has ever been committed.
+  AutoSuggestion<T>? get committed => _committed;
 
   /// The committed typed value when free-text is allowed and no row matched.
   T? get value => _selected?.value;
@@ -162,7 +189,7 @@ class AutoSuggestionsBoxController<T> extends ChangeNotifier {
     if (_open) return;
     _open = true;
     // Re-run so a stale list (or first open) is fresh; highlight first row.
-    _run(text.text, immediate: true);
+    _run(_queryString(), immediate: true);
     notifyListeners();
   }
 
@@ -184,7 +211,7 @@ class AutoSuggestionsBoxController<T> extends ChangeNotifier {
     // Typing invalidates a prior committed selection (until re-picked).
     if (_selected != null && _selected!.label != text.text) _selected = null;
     if (!_open) _open = true;
-    _run(text.text);
+    _run(_queryString());
   }
 
   /// Programmatically set the field text without triggering a query churn loop.
@@ -200,11 +227,13 @@ class AutoSuggestionsBoxController<T> extends ChangeNotifier {
 
   void _run(String raw, {bool immediate = false}) {
     _debounceTimer?.cancel();
+    _activeQuery = raw;
     final q = raw.trim();
     if (q.length < minChars) {
       _results = const [];
       _highlighted = -1;
       _loading = false;
+      _loadingMore = false;
       notifyListeners();
       return;
     }
@@ -219,9 +248,44 @@ class AutoSuggestionsBoxController<T> extends ChangeNotifier {
       notifyListeners();
     }
 
+    // Two-phase (progressive) source: show local rows now, stream remote in.
+    final prog = _source.progressive(raw);
+    if (prog != null) {
+      deliver(prog.items);
+      if (prog.loadMore != null) {
+        _loadingMore = true;
+        notifyListeners();
+        final loadMore = prog.loadMore!;
+        void fire() {
+          loadMore().then((list) {
+            if (mySeq != _seq) return;
+            _results = list.length > maxResults ? list.sublist(0, maxResults) : list;
+            if (_highlighted >= _results.length) _highlighted = _results.isEmpty ? -1 : 0;
+            _loadingMore = false;
+            _error = null;
+            notifyListeners();
+          }).catchError((Object e) {
+            if (mySeq != _seq) return;
+            _loadingMore = false; // keep the local rows already shown
+            notifyListeners();
+          });
+        }
+
+        if (immediate || debounce == Duration.zero) {
+          fire();
+        } else {
+          _debounceTimer = Timer(debounce, fire);
+        }
+      } else {
+        _loadingMore = false;
+      }
+      return;
+    }
+
     final result = _source.query(raw);
     if (result is Future<List<AutoSuggestion<T>>>) {
       _loading = true;
+      _loadingMore = false;
       notifyListeners();
       void fire() {
         result.then(deliver).catchError((Object e) {
@@ -240,12 +304,13 @@ class AutoSuggestionsBoxController<T> extends ChangeNotifier {
         _debounceTimer = Timer(debounce, fire);
       }
     } else {
+      _loadingMore = false;
       deliver(result);
     }
   }
 
   /// Force a re-query of the current text (e.g. after the source changed).
-  void refresh() => _run(text.text, immediate: true);
+  void refresh() => _run(_queryString(), immediate: true);
 
   // ── keyboard navigation ────────────────────────────────────
   /// Move the highlight by [delta] rows, skipping disabled entries, wrapping at
@@ -278,6 +343,8 @@ class AutoSuggestionsBoxController<T> extends ChangeNotifier {
   /// and closes the overlay. Returns the committed suggestion.
   AutoSuggestion<T> select(AutoSuggestion<T> item) {
     _selected = item;
+    _committed = item;
+    _committedText = item.label;
     setText(item.label);
     _open = false;
     _highlighted = -1;
@@ -293,10 +360,31 @@ class AutoSuggestionsBoxController<T> extends ChangeNotifier {
     return null;
   }
 
+  /// Accept the current free text as the committed baseline (call after a
+  /// free-text Enter submit) so a later blur won't revert it.
+  void acceptFreeText() {
+    _selected = null;
+    _committed = null;
+    _committedText = text.text;
+  }
+
+  /// Revert the field to the last committed value — used on blur when the user
+  /// typed but didn't pick. No-op when nothing was ever committed ("unless null").
+  void restoreCommitted() {
+    if (_committedText == null) return; // never committed → leave the field as-is
+    _selected = _committed;
+    if (text.text != _committedText) setText(_committedText!);
+    _highlighted = -1;
+    _loadingMore = false;
+    notifyListeners();
+  }
+
   /// Clear the field, selection and results.
   void clear() {
     setText('');
     _selected = null;
+    _committed = null;
+    _committedText = '';
     _results = const [];
     _highlighted = -1;
     _error = null;

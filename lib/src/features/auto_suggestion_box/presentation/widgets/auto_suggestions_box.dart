@@ -118,8 +118,23 @@ class AutoSuggestionsBox<T> extends StatefulWidget {
   /// `Scrollable.ensureVisible`. Set false to opt out.
   final bool scrollOnFocus;
 
+  /// When the field loses focus without a fresh pick, restore the last
+  /// committed value (revert any unconfirmed typing). No-op if nothing was ever
+  /// committed. Disable to keep free-typed text on blur.
+  final bool restoreOnBlur;
+
+  /// Enable the **Advanced Search View**: pressing Ctrl/⌘+F while the field is
+  /// focused opens a larger modal search surface over the same results.
+  final bool advancedSearch;
+
+  /// Custom builder for the advanced-search surface (defaults to a built-in
+  /// dialog). Receives the live controller; commit via `controller.select(...)`.
+  final Widget Function(BuildContext, AutoSuggestionsBoxController<T>)?
+      advancedSearchBuilder;
+
   /// Custom row renderer (overrides the default label/description/icon row).
-  final Widget Function(BuildContext, AutoSuggestion<T>, bool highlighted)? itemBuilder;
+  final Widget Function(BuildContext, AutoSuggestion<T>, bool highlighted)?
+      itemBuilder;
 
   /// Shown inside the overlay when a non-empty query has no matches.
   final Widget Function(BuildContext, String query)? emptyBuilder;
@@ -159,6 +174,9 @@ class AutoSuggestionsBox<T> extends StatefulWidget {
     this.onTabNext,
     this.onTabPrev,
     this.scrollOnFocus = true,
+    this.restoreOnBlur = true,
+    this.advancedSearch = false,
+    this.advancedSearchBuilder,
     this.itemBuilder,
     this.emptyBuilder,
     this.loadingBuilder,
@@ -184,7 +202,9 @@ class _AutoSuggestionsBoxState<T> extends State<AutoSuggestionsBox<T>> {
   // it into view using real geometry (group headers / variable heights included).
   final GlobalKey _hlRowKey = GlobalKey();
   Timer? _blurTimer; // delays close-on-blur so a row tap can complete first
-  bool _suppressReopen = false; // skip openOnFocus once (after a pick re-focuses)
+  bool _suppressReopen =
+      false; // skip openOnFocus once (after a pick re-focuses)
+  bool _advancedOpen = false; // the advanced-search dialog is showing
 
   @override
   void initState() {
@@ -199,7 +219,8 @@ class _AutoSuggestionsBoxState<T> extends State<AutoSuggestionsBox<T>> {
   }
 
   AutoSuggestionsBoxController<T> _buildController() {
-    final src = widget.source ?? SuggestionSources.list<T>(widget.items ?? const []);
+    final src =
+        widget.source ?? SuggestionSources.list<T>(widget.items ?? const []);
     return AutoSuggestionsBoxController<T>(
       source: src,
       multiSelect: widget.multiSelect,
@@ -217,12 +238,22 @@ class _AutoSuggestionsBoxState<T> extends State<AutoSuggestionsBox<T>> {
       }
       if (widget.scrollOnFocus) _scrollIntoView();
     } else {
+      if (_advancedOpen)
+        return; // focus moved into the advanced dialog — ignore
       // Delay the close so a mouse click on a row (which blurs the field on
       // pointer-down) still lands its tap on pointer-up. A row tap calls
       // _pick → requestFocus, which cancels this timer.
       _blurTimer?.cancel();
       _blurTimer = Timer(const Duration(milliseconds: 200), () {
-        if (mounted && !_focus.hasFocus) _c.close();
+        if (!mounted || _focus.hasFocus) return;
+        _c.close();
+        // Left without picking: revert unconfirmed typing to the committed value
+        // (or clear the multi-select search box).
+        if (widget.multiSelect) {
+          _c.setText('');
+        } else if (widget.restoreOnBlur) {
+          _c.restoreCommitted();
+        }
       });
     }
   }
@@ -309,7 +340,8 @@ class _AutoSuggestionsBoxState<T> extends State<AutoSuggestionsBox<T>> {
   @override
   void didUpdateWidget(covariant AutoSuggestionsBox<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.controller != oldWidget.controller && widget.controller != null) {
+    if (widget.controller != oldWidget.controller &&
+        widget.controller != null) {
       _c.removeListener(_onModel);
       if (_ownsController) _c.dispose();
       _c = widget.controller!;
@@ -331,7 +363,18 @@ class _AutoSuggestionsBoxState<T> extends State<AutoSuggestionsBox<T>> {
 
   // ── keyboard ──
   KeyEventResult _onKey(FocusNode node, KeyEvent e) {
-    if (e is! KeyDownEvent && e is! KeyRepeatEvent) return KeyEventResult.ignored;
+    if (e is! KeyDownEvent && e is! KeyRepeatEvent)
+      return KeyEventResult.ignored;
+    // Ctrl/⌘+F → open the advanced search surface.
+    if (e.logicalKey == LogicalKeyboardKey.keyF &&
+        (HardwareKeyboard.instance.isControlPressed ||
+            HardwareKeyboard.instance.isMetaPressed)) {
+      if (widget.advancedSearch) {
+        _openAdvanced();
+        return KeyEventResult.handled;
+      }
+      return KeyEventResult.ignored;
+    }
     switch (e.logicalKey) {
       case LogicalKeyboardKey.arrowDown:
         _c.moveHighlight(1);
@@ -345,6 +388,7 @@ class _AutoSuggestionsBoxState<T> extends State<AutoSuggestionsBox<T>> {
         if (h != null && h.enabled) {
           _choose(h);
         } else if (_c.allowFreeText && !widget.multiSelect) {
+          _c.acceptFreeText(); // make the typed text the committed baseline
           widget.onSubmitted?.call(_c.query);
           _c.close();
         }
@@ -376,6 +420,28 @@ class _AutoSuggestionsBoxState<T> extends State<AutoSuggestionsBox<T>> {
 
   void _pick(AutoSuggestion<T> s) => _choose(s);
 
+  /// Open the Advanced Search surface (Ctrl/⌘+F). Reuses the live controller so
+  /// a pick made there commits straight back into the field.
+  Future<void> _openAdvanced() async {
+    if (_advancedOpen) return;
+    _advancedOpen = true;
+    _c.open();
+    await showDialog<void>(
+      context: context,
+      barrierColor: Colors.black.withOpacity(0.55),
+      builder: (ctx) =>
+          widget.advancedSearchBuilder?.call(ctx, _c) ??
+          Scaffold(
+            appBar: AppBar(),
+          ),
+    );
+    _advancedOpen = false;
+    if (mounted) {
+      _suppressReopen = true; // don't auto-pop the inline overlay on refocus
+      _focus.requestFocus();
+    }
+  }
+
   /// Unified selection entry point for both tap and Enter. In multi-select it
   /// toggles membership and keeps the overlay open; otherwise it commits the
   /// value and closes. Always returns focus to the field.
@@ -390,7 +456,8 @@ class _AutoSuggestionsBoxState<T> extends State<AutoSuggestionsBox<T>> {
     } else {
       _c.select(s); // writes the label + closes the overlay
       widget.onSelected?.call(s);
-      if (!_focus.hasFocus) _suppressReopen = true; // a mouse pick will re-focus
+      if (!_focus.hasFocus)
+        _suppressReopen = true; // a mouse pick will re-focus
       _focus.requestFocus();
     }
   }
@@ -409,7 +476,11 @@ class _AutoSuggestionsBoxState<T> extends State<AutoSuggestionsBox<T>> {
             Padding(
               padding: const EdgeInsets.only(bottom: 6, left: 2),
               child: Text(widget.label!,
-                  style: TextStyle(fontFamily: AutoSuggestionsBoxThemeData.bodyFont, fontSize: 12.5, fontWeight: FontWeight.w600, color: t.fg2)),
+                  style: TextStyle(
+                      fontFamily: AutoSuggestionsBoxThemeData.bodyFont,
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w600,
+                      color: t.fg2)),
             ),
           ],
           CompositedTransformTarget(
@@ -431,12 +502,19 @@ class _AutoSuggestionsBoxState<T> extends State<AutoSuggestionsBox<T>> {
     final leading = widget.leading ??
         (bare
             ? const SizedBox.shrink()
-            : Icon(Icons.search_rounded, size: 18, color: focused ? AutoSuggestionsBoxThemeData.accent : t.fg3));
-    final hasLeading = !(leading is SizedBox && leading.width == 0 && leading.height == 0);
+            : Icon(Icons.search_rounded,
+                size: 18,
+                color: focused ? AutoSuggestionsBoxThemeData.accent : t.fg3));
+    final hasLeading =
+        !(leading is SizedBox && leading.width == 0 && leading.height == 0);
     final hasText = _c.query.isNotEmpty;
     final minH = widget.fieldHeight ?? AutoSuggestionsBoxThemeData.fieldHeight;
     final baseStyle = (widget.textStyle ??
-            TextStyle(fontFamily: AutoSuggestionsBoxThemeData.bodyFont, fontSize: 14, color: t.fg1, height: 1.2))
+            TextStyle(
+                fontFamily: AutoSuggestionsBoxThemeData.bodyFont,
+                fontSize: 14,
+                color: t.fg1,
+                height: 1.2))
         .copyWith(color: t.fg1);
     return Focus(
       onKeyEvent: _onKey,
@@ -456,23 +534,32 @@ class _AutoSuggestionsBoxState<T> extends State<AutoSuggestionsBox<T>> {
         decoration: InputDecoration(
           isDense: true,
           filled: true,
-          fillColor: bare ? Colors.transparent : (focused ? t.fieldBgFocus : t.fieldBg),
+          fillColor: bare
+              ? Colors.transparent
+              : (focused ? t.fieldBgFocus : t.fieldBg),
           hintText: widget.hintText,
-          hintStyle: baseStyle.copyWith(color: t.fg3, fontWeight: FontWeight.w400),
+          hintStyle:
+              baseStyle.copyWith(color: t.fg3, fontWeight: FontWeight.w400),
           constraints: BoxConstraints(minHeight: minH),
           contentPadding: bare
               ? const EdgeInsets.symmetric(horizontal: 9, vertical: 9)
               : const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
           prefixIcon: hasLeading
-              ? Padding(padding: const EdgeInsetsDirectional.only(start: 11, end: 8), child: leading)
+              ? Padding(
+                  padding: const EdgeInsetsDirectional.only(start: 11, end: 8),
+                  child: leading)
               : null,
-          prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
+          prefixIconConstraints:
+              const BoxConstraints(minWidth: 0, minHeight: 0),
           suffixIcon: _buildSuffix(t, hasText),
-          suffixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
+          suffixIconConstraints:
+              const BoxConstraints(minWidth: 0, minHeight: 0),
           border: bare ? InputBorder.none : _border(t.border),
           enabledBorder: bare ? InputBorder.none : _border(t.border),
-          focusedBorder: bare ? InputBorder.none : _border(t.borderFocus, width: 1.6),
-          disabledBorder: bare ? InputBorder.none : _border(t.border.withOpacity(0.5)),
+          focusedBorder:
+              bare ? InputBorder.none : _border(t.borderFocus, width: 1.6),
+          disabledBorder:
+              bare ? InputBorder.none : _border(t.border.withOpacity(0.5)),
         ),
       ),
     );
@@ -492,7 +579,11 @@ class _AutoSuggestionsBoxState<T> extends State<AutoSuggestionsBox<T>> {
           ),
           child: Text(
             '${_c.selectedItems.length}',
-            style: const TextStyle(fontFamily: AutoSuggestionsBoxThemeData.bodyFont, fontSize: 11.5, fontWeight: FontWeight.w700, color: Colors.white),
+            style: const TextStyle(
+                fontFamily: AutoSuggestionsBoxThemeData.bodyFont,
+                fontSize: 11.5,
+                fontWeight: FontWeight.w700,
+                color: Colors.white),
           ),
         ),
       ));
@@ -500,7 +591,11 @@ class _AutoSuggestionsBoxState<T> extends State<AutoSuggestionsBox<T>> {
     if (_c.isLoading) {
       children.add(const Padding(
         padding: EdgeInsetsDirectional.only(end: 4),
-        child: SizedBox(width: 15, height: 15, child: CircularProgressIndicator(strokeWidth: 2, color: AutoSuggestionsBoxThemeData.accent)),
+        child: SizedBox(
+            width: 15,
+            height: 15,
+            child: CircularProgressIndicator(
+                strokeWidth: 2, color: AutoSuggestionsBoxThemeData.accent)),
       ));
     }
     if (widget.clearButton && hasText) {
@@ -530,27 +625,32 @@ class _AutoSuggestionsBoxState<T> extends State<AutoSuggestionsBox<T>> {
     );
   }
 
-  OutlineInputBorder _border(Color c, {double width = 1.2}) => OutlineInputBorder(
-        borderRadius: BorderRadius.circular(AutoSuggestionsBoxThemeData.radiusMd),
+  OutlineInputBorder _border(Color c, {double width = 1.2}) =>
+      OutlineInputBorder(
+        borderRadius:
+            BorderRadius.circular(AutoSuggestionsBoxThemeData.radiusMd),
         borderSide: BorderSide(color: c, width: width),
       );
 
   // ── overlay ──
   Widget _buildOverlay(BuildContext ctx, AutoSuggestionsBoxThemeData t) {
     final box = _fieldKey.currentContext?.findRenderObject() as RenderBox?;
-    final fieldSize = box?.size ?? const Size(280, AutoSuggestionsBoxThemeData.fieldHeight);
+    final fieldSize =
+        box?.size ?? const Size(280, AutoSuggestionsBoxThemeData.fieldHeight);
     final fieldW = widget.width ?? fieldSize.width;
 
     // Decide flip: place above when there isn't room below.
     final media = MediaQuery.of(ctx);
     final fieldTopLeft = box?.localToGlobal(Offset.zero) ?? Offset.zero;
-    final spaceBelow = media.size.height - (fieldTopLeft.dy + fieldSize.height) - media.viewInsets.bottom;
+    final spaceBelow = media.size.height -
+        (fieldTopLeft.dy + fieldSize.height) -
+        media.viewInsets.bottom;
     final desired = _overlayHeight(t);
     final flipUp = spaceBelow < desired + 16 && fieldTopLeft.dy > spaceBelow;
 
     final followerAnchor = flipUp ? Alignment.bottomLeft : Alignment.topLeft;
     final targetAnchor = flipUp ? Alignment.topLeft : Alignment.bottomLeft;
-    final gap = AutoSuggestionsBoxThemeData.overlayGap;
+    const gap = AutoSuggestionsBoxThemeData.overlayGap;
 
     return Stack(children: [
       // tap-outside scrim to dismiss
@@ -569,7 +669,8 @@ class _AutoSuggestionsBoxState<T> extends State<AutoSuggestionsBox<T>> {
         child: Align(
           alignment: flipUp ? Alignment.bottomLeft : Alignment.topLeft,
           child: AutoSuggestionsPanel<T>(
-            width: fieldW.clamp(180.0, AutoSuggestionsBoxThemeData.overlayMaxWidth),
+            width: fieldW.clamp(
+                180.0, AutoSuggestionsBoxThemeData.overlayMaxWidth),
             theme: t,
             controller: _c,
             scroll: _scroll,
@@ -591,7 +692,8 @@ class _AutoSuggestionsBoxState<T> extends State<AutoSuggestionsBox<T>> {
 
   double _overlayHeight(AutoSuggestionsBoxThemeData t) {
     final rows = _c.results.length.clamp(0, widget.maxVisibleRows);
-    return (rows == 0 ? 56 : rows * AutoSuggestionsBoxThemeData.rowHeight + 10).toDouble();
+    return (rows == 0 ? 56 : rows * AutoSuggestionsBoxThemeData.rowHeight + 10)
+        .toDouble();
   }
 }
 
@@ -634,7 +736,7 @@ class AutoSuggestionsPanel<T> extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = theme;
     final results = controller.results;
-    final q = controller.query;
+    final q = controller.effectiveQuery;
     final maxH = maxVisibleRows * AutoSuggestionsBoxThemeData.rowHeight + 10;
 
     Widget body;
@@ -647,12 +749,16 @@ class AutoSuggestionsPanel<T> extends StatelessWidget {
               const SizedBox(
                 width: 15,
                 height: 15,
-                child: CircularProgressIndicator(strokeWidth: 2, color: AutoSuggestionsBoxThemeData.accent),
+                child: CircularProgressIndicator(
+                    strokeWidth: 2, color: AutoSuggestionsBoxThemeData.accent),
               ),
               const SizedBox(width: 10),
               Text(
                 q.trim().isEmpty ? 'Loading…' : 'Searching “$q”…',
-                style: TextStyle(fontFamily: AutoSuggestionsBoxThemeData.bodyFont, fontSize: 13, color: t.fg2),
+                style: TextStyle(
+                    fontFamily: AutoSuggestionsBoxThemeData.bodyFont,
+                    fontSize: 13,
+                    color: t.fg2),
               ),
             ]),
           );
@@ -666,7 +772,10 @@ class AutoSuggestionsPanel<T> extends StatelessWidget {
               Flexible(
                 child: Text(
                   q.trim().isEmpty ? 'Type to search' : 'No matches for “$q”',
-                  style: TextStyle(fontFamily: AutoSuggestionsBoxThemeData.bodyFont, fontSize: 13, color: t.fg2),
+                  style: TextStyle(
+                      fontFamily: AutoSuggestionsBoxThemeData.bodyFont,
+                      fontSize: 13,
+                      color: t.fg2),
                 ),
               ),
             ]),
@@ -674,45 +783,88 @@ class AutoSuggestionsPanel<T> extends StatelessWidget {
     } else {
       body = ConstrainedBox(
         constraints: BoxConstraints(maxHeight: maxH.toDouble()),
-        child: Scrollbar(
-          controller: scroll,
-          child: ListView.builder(
-            controller: scroll,
-            padding: const EdgeInsets.symmetric(vertical: 5),
-            shrinkWrap: true,
-            itemCount: results.length,
-            itemBuilder: (ctx, i) {
-              final s = results[i];
-              final isHl = controller.isHighlighted(i);
-              final showGroup = s.group != null && (i == 0 || results[i - 1].group != s.group);
-              final row = _Row<T>(
-                key: isHl ? hlKey : null,
-                theme: t,
-                suggestion: s,
-                query: q,
-                highlighted: isHl,
-                highlightMatch: highlightMatch,
-                highlightMatches: highlightMatches,
-                custom: itemBuilder,
-                multiSelect: multiSelect,
-                selected: multiSelect && controller.isSelectedValue(s.value),
-                onTap: () => onPick(s),
-                onHover: () => onHover(i),
-              );
-              if (!showGroup) return row;
-              return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                Padding(
-                  padding: EdgeInsetsDirectional.fromSTEB(14, i == 0 ? 4 : 9, 14, 5),
-                  child: Text(
-                    s.group!.toUpperCase(),
-                    style: TextStyle(
-                        fontFamily: AutoSuggestionsBoxThemeData.bodyFont, fontSize: 10.5, fontWeight: FontWeight.w700, letterSpacing: 0.7, color: t.groupFg),
-                  ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Progressive remote fetch in flight: a thin indicator ABOVE the
+            // already-visible local rows.
+            if (controller.isLoadingMore)
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                decoration: BoxDecoration(
+                  color: t.accentWash(0.06),
+                  border: Border(bottom: BorderSide(color: t.border)),
                 ),
-                row,
-              ]);
-            },
-          ),
+                child: Row(children: [
+                  const SizedBox(
+                    width: 13,
+                    height: 13,
+                    child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: AutoSuggestionsBoxThemeData.accent),
+                  ),
+                  const SizedBox(width: 9),
+                  Text('Loading more from server…',
+                      style: TextStyle(
+                          fontFamily: AutoSuggestionsBoxThemeData.bodyFont,
+                          fontSize: 11.5,
+                          color: t.fg2)),
+                ]),
+              ),
+            Flexible(
+              child: Scrollbar(
+                controller: scroll,
+                child: ListView.builder(
+                  controller: scroll,
+                  padding: const EdgeInsets.symmetric(vertical: 5),
+                  shrinkWrap: true,
+                  itemCount: results.length,
+                  itemBuilder: (ctx, i) {
+                    final s = results[i];
+                    final isHl = controller.isHighlighted(i);
+                    final showGroup = s.group != null &&
+                        (i == 0 || results[i - 1].group != s.group);
+                    final row = _Row<T>(
+                      key: isHl ? hlKey : null,
+                      theme: t,
+                      suggestion: s,
+                      query: q,
+                      highlighted: isHl,
+                      highlightMatch: highlightMatch,
+                      highlightMatches: highlightMatches,
+                      custom: itemBuilder,
+                      multiSelect: multiSelect,
+                      selected:
+                          multiSelect && controller.isSelectedValue(s.value),
+                      onTap: () => onPick(s),
+                      onHover: () => onHover(i),
+                    );
+                    if (!showGroup) return row;
+                    return Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Padding(
+                            padding: EdgeInsetsDirectional.fromSTEB(
+                                14, i == 0 ? 4 : 9, 14, 5),
+                            child: Text(
+                              s.group!.toUpperCase(),
+                              style: TextStyle(
+                                  fontFamily:
+                                      AutoSuggestionsBoxThemeData.bodyFont,
+                                  fontSize: 10.5,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 0.7,
+                                  color: t.groupFg),
+                            ),
+                          ),
+                          row,
+                        ]);
+                  },
+                ),
+              ),
+            ),
+          ],
         ),
       );
     }
@@ -723,7 +875,8 @@ class AutoSuggestionsPanel<T> extends StatelessWidget {
         width: width,
         decoration: BoxDecoration(
           color: t.overlayBg,
-          borderRadius: BorderRadius.circular(AutoSuggestionsBoxThemeData.radiusLg),
+          borderRadius:
+              BorderRadius.circular(AutoSuggestionsBoxThemeData.radiusLg),
           border: Border.all(color: t.border),
           boxShadow: AutoSuggestionsBoxThemeData.overlayShadow,
         ),
@@ -768,11 +921,18 @@ class _Row<T> extends StatelessWidget {
         height: 18,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: selected ? AutoSuggestionsBoxThemeData.accent : Colors.transparent,
-          border: Border.all(color: selected ? AutoSuggestionsBoxThemeData.accent : t.fg3, width: 1.6),
-          borderRadius: BorderRadius.circular(AutoSuggestionsBoxThemeData.radiusSm),
+          color: selected
+              ? AutoSuggestionsBoxThemeData.accent
+              : Colors.transparent,
+          border: Border.all(
+              color: selected ? AutoSuggestionsBoxThemeData.accent : t.fg3,
+              width: 1.6),
+          borderRadius:
+              BorderRadius.circular(AutoSuggestionsBoxThemeData.radiusSm),
         ),
-        child: selected ? const Icon(Icons.check_rounded, size: 13, color: Colors.white) : null,
+        child: selected
+            ? const Icon(Icons.check_rounded, size: 13, color: Colors.white)
+            : null,
       );
 
   @override
@@ -784,7 +944,10 @@ class _Row<T> extends StatelessWidget {
     final inner = custom?.call(context, s, highlighted) ??
         Row(children: [
           if (s.icon != null) ...[
-            Icon(s.icon, size: 17, color: highlighted ? AutoSuggestionsBoxThemeData.accent : t.fg3),
+            Icon(s.icon,
+                size: 17,
+                color:
+                    highlighted ? AutoSuggestionsBoxThemeData.accent : t.fg3),
             const SizedBox(width: 10),
           ],
           Expanded(
@@ -809,7 +972,11 @@ class _Row<T> extends StatelessWidget {
                   Text(s.description!,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontFamily: AutoSuggestionsBoxThemeData.bodyFont, fontSize: 11.5, height: 1.2, color: t.fg2)),
+                      style: TextStyle(
+                          fontFamily: AutoSuggestionsBoxThemeData.bodyFont,
+                          fontSize: 11.5,
+                          height: 1.2,
+                          color: t.fg2)),
                 ],
               ],
             ),
@@ -845,7 +1012,9 @@ class _Row<T> extends StatelessWidget {
                 : (selected ? t.accentWash(0.06) : Colors.transparent),
             border: BorderDirectional(
               start: BorderSide(
-                color: (highlighted || selected) && enabled ? AutoSuggestionsBoxThemeData.accent : Colors.transparent,
+                color: (highlighted || selected) && enabled
+                    ? AutoSuggestionsBoxThemeData.accent
+                    : Colors.transparent,
                 width: 2.5,
               ),
             ),
@@ -863,7 +1032,11 @@ class _IconBtn extends StatefulWidget {
   final Color color;
   final Color hoverColor;
   final VoidCallback onTap;
-  const _IconBtn({required this.icon, required this.color, required this.hoverColor, required this.onTap});
+  const _IconBtn(
+      {required this.icon,
+      required this.color,
+      required this.hoverColor,
+      required this.onTap});
   @override
   State<_IconBtn> createState() => _IconBtnState();
 }
@@ -880,7 +1053,8 @@ class _IconBtnState extends State<_IconBtn> {
         onTap: widget.onTap,
         child: Padding(
           padding: const EdgeInsets.all(4),
-          child: Icon(widget.icon, size: 17, color: _h ? widget.hoverColor : widget.color),
+          child: Icon(widget.icon,
+              size: 17, color: _h ? widget.hoverColor : widget.color),
         ),
       ),
     );

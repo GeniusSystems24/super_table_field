@@ -12,6 +12,7 @@
 import 'dart:async';
 
 import '../entities/auto_suggestion.dart';
+import '../entities/suggestions_query_result.dart';
 
 /// Produces suggestions for a query. Implement in the data layer (or subclass
 /// for custom behaviour); construct via the `SuggestionSources` factory facade.
@@ -24,4 +25,10 @@ abstract class AutoSuggestionsSource<T> {
 
   /// Whether results arrive asynchronously (drives the loading spinner).
   bool get isAsync => false;
+
+  /// Optional two-phase resolution: return the items available *now* plus an
+  /// optional remote `loadMore` thunk (see [SuggestionsQueryResult]). Return
+  /// null (the default) to use the single-phase [query] instead. Sources that
+  /// want "show local instantly, fetch remote when local is thin" override this.
+  SuggestionsQueryResult<T>? progressive(String query) => null;
 }

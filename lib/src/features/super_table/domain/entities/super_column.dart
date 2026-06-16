@@ -71,6 +71,13 @@ class SuperColumn {
   /// Whether the column can be sorted (header menu / click).
   final bool sortable;
 
+  /// Whether the column may be grouped (header menu “Group by” + row menu).
+  /// Opt out per column to keep grouping meaningful (readable mode only).
+  final bool groupable;
+
+  /// Whether the readable-mode per-column filter renders for this column.
+  final bool filterable;
+
   /// Marks a required field (red asterisk + validation).
   final bool required;
 
@@ -121,6 +128,8 @@ class SuperColumn {
     this.agg = SuperAgg.none,
     this.editable,
     this.sortable = true,
+    this.groupable = true,
+    this.filterable = true,
     this.required = false,
     this.mono = false,
     this.colorSign = false,
@@ -164,6 +173,8 @@ class SuperColumn {
         agg: agg ?? this.agg,
         editable: editable,
         sortable: sortable,
+        groupable: groupable,
+        filterable: filterable,
         required: required,
         mono: mono,
         colorSign: colorSign ?? this.colorSign,

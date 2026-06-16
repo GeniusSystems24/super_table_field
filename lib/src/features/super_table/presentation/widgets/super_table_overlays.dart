@@ -15,6 +15,10 @@ import 'package:flutter/material.dart';
 import 'super_table_skin.dart';
 
 /// A single popup-menu entry.
+///
+/// Set [children] to make this entry a **submenu**: tapping it expands a nested,
+/// indented group of entries in place (a tree menu) instead of firing [onTap].
+/// Submenus may nest arbitrarily deep.
 class SuperMenuEntry {
   final IconData? icon;
   final String label;
@@ -24,6 +28,12 @@ class SuperMenuEntry {
   final bool disabled;
   final bool separatorBefore;
   final VoidCallback onTap;
+
+  /// Child entries. When non-empty this row becomes an expandable submenu.
+  final List<SuperMenuEntry> children;
+
+  /// For a submenu row: start expanded.
+  final bool expanded;
   const SuperMenuEntry({
     this.icon,
     required this.label,
@@ -32,8 +42,13 @@ class SuperMenuEntry {
     this.checked = false,
     this.disabled = false,
     this.separatorBefore = false,
-    required this.onTap,
+    this.children = const [],
+    this.expanded = false,
+    this.onTap = _noop,
   });
+
+  bool get hasChildren => children.isNotEmpty;
+  static void _noop() {}
 }
 
 /// Shows a floating menu at [globalPos], flipping to stay on screen.
@@ -63,16 +78,67 @@ Future<void> showSuperMenu(
         left: left,
         top: top,
         width: width,
-        child: _MenuPanel(skin: skin, entries: entries),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: size.height - top - 8),
+          child: _MenuPanel(skin: skin, entries: entries),
+        ),
       ),
     ]),
   );
 }
 
-class _MenuPanel extends StatelessWidget {
+class _MenuPanel extends StatefulWidget {
   final SuperTableSkin skin;
   final List<SuperMenuEntry> entries;
   const _MenuPanel({required this.skin, required this.entries});
+
+  @override
+  State<_MenuPanel> createState() => _MenuPanelState();
+}
+
+class _MenuPanelState extends State<_MenuPanel> {
+  /// Expansion state for submenu rows, keyed by identity.
+  final Set<SuperMenuEntry> _open = {};
+
+  @override
+  void initState() {
+    super.initState();
+    void seed(List<SuperMenuEntry> es) {
+      for (final e in es) {
+        if (e.hasChildren) {
+          if (e.expanded) _open.add(e);
+          seed(e.children);
+        }
+      }
+    }
+    seed(widget.entries);
+  }
+
+  void _toggle(SuperMenuEntry e) =>
+      setState(() => _open.contains(e) ? _open.remove(e) : _open.add(e));
+
+  List<Widget> _rows(List<SuperMenuEntry> entries, int depth) {
+    final out = <Widget>[];
+    for (final e in entries) {
+      if (e.separatorBefore) {
+        out.add(Container(
+            height: 1,
+            margin: EdgeInsetsDirectional.only(start: 4.0 + depth * 14, end: 4, top: 5, bottom: 5),
+            color: widget.skin.border));
+      }
+      out.add(_MenuRow(
+        skin: widget.skin,
+        entry: e,
+        depth: depth,
+        expanded: _open.contains(e),
+        onToggle: () => _toggle(e),
+      ));
+      if (e.hasChildren && _open.contains(e)) {
+        out.addAll(_rows(e.children, depth + 1));
+      }
+    }
+    return out;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -81,20 +147,16 @@ class _MenuPanel extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(5),
         decoration: BoxDecoration(
-          color: skin.surface,
-          border: Border.all(color: skin.borderStrong),
+          color: widget.skin.surface,
+          border: Border.all(color: widget.skin.borderStrong),
           borderRadius: BorderRadius.circular(9),
-          boxShadow: skin.popShadow,
+          boxShadow: widget.skin.popShadow,
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            for (final e in entries) ...[
-              if (e.separatorBefore)
-                Container(height: 1, margin: const EdgeInsets.fromLTRB(4, 5, 4, 5), color: skin.border),
-              _MenuRow(skin: skin, entry: e),
-            ],
-          ],
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: _rows(widget.entries, 0),
+          ),
         ),
       ),
     );
@@ -104,7 +166,16 @@ class _MenuPanel extends StatelessWidget {
 class _MenuRow extends StatefulWidget {
   final SuperTableSkin skin;
   final SuperMenuEntry entry;
-  const _MenuRow({required this.skin, required this.entry});
+  final int depth;
+  final bool expanded;
+  final VoidCallback onToggle;
+  const _MenuRow({
+    required this.skin,
+    required this.entry,
+    this.depth = 0,
+    this.expanded = false,
+    required this.onToggle,
+  });
   @override
   State<_MenuRow> createState() => _MenuRowState();
 }
@@ -124,18 +195,30 @@ class _MenuRowState extends State<_MenuRow> {
         onTap: e.disabled
             ? null
             : () {
-                Navigator.of(context).pop();
-                e.onTap();
+                if (e.hasChildren) {
+                  widget.onToggle();
+                } else {
+                  Navigator.of(context).pop();
+                  e.onTap();
+                }
               },
         child: Container(
           height: 34,
-          padding: const EdgeInsets.symmetric(horizontal: 10),
+          padding: EdgeInsetsDirectional.only(start: 10.0 + widget.depth * 14, end: 10),
           decoration: BoxDecoration(
             color: !e.disabled && _h ? (e.danger ? s.tint(s.danger, 0.12) : s.hover) : Colors.transparent,
             borderRadius: BorderRadius.circular(6),
           ),
           child: Row(children: [
-            SizedBox(width: 16, child: e.icon != null ? Icon(e.icon, size: 15, color: fg) : null),
+            SizedBox(
+                width: 16,
+                child: e.hasChildren
+                    ? AnimatedRotation(
+                        turns: widget.expanded ? 0.25 : 0.0,
+                        duration: const Duration(milliseconds: 140),
+                        child: Icon(Icons.chevron_right_rounded, size: 16, color: s.fg3),
+                      )
+                    : (e.icon != null ? Icon(e.icon, size: 15, color: fg) : null)),
             const SizedBox(width: 10),
             Expanded(
               child: Text(e.label,

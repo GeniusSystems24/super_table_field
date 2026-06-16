@@ -17,6 +17,7 @@ import 'dart:async';
 
 import '../../domain/entities/auto_suggestion.dart';
 import '../../domain/entities/match_strategy.dart';
+import '../../domain/entities/suggestions_query_result.dart';
 import '../../domain/repositories/suggestions_source.dart';
 
 /// Factory facade for the built-in suggestion sources. Construct sources here;
@@ -28,7 +29,8 @@ abstract final class SuggestionSources {
     AutoSuggestionMatch match = AutoSuggestionMatch.contains,
     bool caseSensitive = false,
   }) =>
-      ListSuggestionsSource<T>(items, match: match, caseSensitive: caseSensitive);
+      ListSuggestionsSource<T>(items,
+          match: match, caseSensitive: caseSensitive);
 
   /// A static source over plain strings (value == label).
   static AutoSuggestionsSource<String> strings(
@@ -63,7 +65,31 @@ abstract final class SuggestionSources {
     int remoteMinChars = 1,
     bool caseSensitive = false,
   }) =>
-      HybridSuggestionsSource<T>(
+      RemoteFallbackSuggestionsSource<T>(
+        initialItems: initialItems,
+        fetch: fetch,
+        match: match,
+        remoteThreshold: remoteThreshold,
+        remoteMinChars: remoteMinChars,
+        caseSensitive: caseSensitive,
+      );
+
+  /// Local-first with a **progressive remote fallback**: filter [initialItems]
+  /// locally and show them instantly; when the local match count is
+  /// [remoteThreshold] **or fewer** (and the query is at least [remoteMinChars]
+  /// long), also fetch from [fetch] and merge the remote rows in afterwards,
+  /// de-duplicated by value. Unlike [hybrid], the local rows are shown
+  /// immediately and a "loading more" indicator sits above them while the
+  /// remote call runs — the list never blanks behind a spinner.
+  static AutoSuggestionsSource<T> remoteFallback<T>({
+    required List<AutoSuggestion<T>> initialItems,
+    required Future<List<AutoSuggestion<T>>> Function(String query) fetch,
+    AutoSuggestionMatch match = AutoSuggestionMatch.contains,
+    int remoteThreshold = 5,
+    int remoteMinChars = 1,
+    bool caseSensitive = false,
+  }) =>
+      RemoteFallbackSuggestionsSource<T>(
         initialItems: initialItems,
         fetch: fetch,
         match: match,
@@ -90,7 +116,8 @@ class ListSuggestionsSource<T> extends AutoSuggestionsSource<T> {
     if (q.isEmpty) return List<AutoSuggestion<T>>.of(items);
     final out = <AutoSuggestion<T>>[];
     for (final s in items) {
-      final hay = caseSensitive ? ([s.label, ...s.keywords].join(' ')) : s.haystack;
+      final hay =
+          caseSensitive ? ([s.label, ...s.keywords].join(' ')) : s.haystack;
       if (AutoSuggestionMatching.test(hay, q, match)) out.add(s);
     }
     // Stable, relevance-ish ordering: prefix hits first, then by match index.
@@ -143,7 +170,8 @@ class HybridSuggestionsSource<T> extends AutoSuggestionsSource<T> {
     if (q.isEmpty) return List<AutoSuggestion<T>>.of(initialItems);
     final out = <AutoSuggestion<T>>[];
     for (final s in initialItems) {
-      final hay = caseSensitive ? ([s.label, ...s.keywords].join(' ')) : s.haystack;
+      final hay =
+          caseSensitive ? ([s.label, ...s.keywords].join(' ')) : s.haystack;
       if (AutoSuggestionMatching.test(hay, q, match)) out.add(s);
     }
     return out;
@@ -166,5 +194,74 @@ class HybridSuggestionsSource<T> extends AutoSuggestionsSource<T> {
       }
       return merged;
     }).catchError((Object _) => local); // network failed → degrade to local
+  }
+}
+
+/// Local-first source with a **progressive** remote fallback (see
+/// [SuggestionSources.remoteFallback]). Resolves via [progressive] so the box
+/// shows local rows instantly and streams remote rows in behind a top spinner.
+class RemoteFallbackSuggestionsSource<T> extends AutoSuggestionsSource<T> {
+  final List<AutoSuggestion<T>> initialItems;
+  final Future<List<AutoSuggestion<T>>> Function(String query) fetch;
+  final AutoSuggestionMatch match;
+  final int remoteThreshold;
+  final int remoteMinChars;
+  final bool caseSensitive;
+
+  const RemoteFallbackSuggestionsSource({
+    required this.initialItems,
+    required this.fetch,
+    this.match = AutoSuggestionMatch.contains,
+    this.remoteThreshold = 5,
+    this.remoteMinChars = 1,
+    this.caseSensitive = false,
+  });
+
+  @override
+  bool get isAsync => true;
+
+  List<AutoSuggestion<T>> _local(String query) {
+    final q = caseSensitive ? query.trim() : query.trim().toLowerCase();
+    if (q.isEmpty) return List<AutoSuggestion<T>>.of(initialItems);
+    final out = <AutoSuggestion<T>>[];
+    for (final s in initialItems) {
+      final hay =
+          caseSensitive ? ([s.label, ...s.keywords].join(' ')) : s.haystack;
+      if (AutoSuggestionMatching.test(hay, q, match)) out.add(s);
+    }
+    return out;
+  }
+
+  // Single-phase fallback (used if a caller ignores [progressive]).
+  @override
+  FutureOr<List<AutoSuggestion<T>>> query(String query) {
+    final r = progressive(query);
+    if (r.loadMore == null) return r.items;
+    return r.loadMore!()
+        .then((remote) => _merge(r.items, remote))
+        .catchError((Object _) => r.items);
+  }
+
+  @override
+  SuggestionsQueryResult<T> progressive(String query) {
+    final local = _local(query);
+    final q = query.trim();
+    final wantRemote =
+        local.length <= remoteThreshold && q.length >= remoteMinChars;
+    if (!wantRemote) return SuggestionsQueryResult<T>.complete(local);
+    return SuggestionsQueryResult<T>(
+      items: local,
+      loadMore: () => fetch(query).then((remote) => _merge(local, remote)),
+    );
+  }
+
+  List<AutoSuggestion<T>> _merge(
+      List<AutoSuggestion<T>> local, List<AutoSuggestion<T>> remote) {
+    final seen = <T>{for (final s in local) s.value};
+    final merged = <AutoSuggestion<T>>[...local];
+    for (final r in remote) {
+      if (seen.add(r.value)) merged.add(r);
+    }
+    return merged;
   }
 }

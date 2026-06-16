@@ -286,10 +286,11 @@ class _SuperComboEditorState extends State<_SuperComboEditor> {
         onChanged: widget.onChanged,
         onSelected: (s) {
           widget.onChanged(s.value);
-          // Pick behaves like Enter: commit and step down to the next row.
-          widget.onCommit(override: s.value, dr: 1, dc: 0);
+          // Pick commits in place and KEEPS the cell selected (no move). A
+          // second Enter (handled by the table) then steps down a row.
+          widget.onCommit(override: s.value, dr: 0, dc: 0);
         },
-        onSubmitted: (raw) => widget.onCommit(override: raw, dr: 1, dc: 0), // free-text Enter
+        onSubmitted: (raw) => widget.onCommit(override: raw, dr: 0, dc: 0), // free-text Enter → commit & stay
         onEscape: widget.onCancel,
         onTabNext: () => widget.onCommit(override: _box.query, dr: 0, dc: 1),
         onTabPrev: () => widget.onCommit(override: _box.query, dr: 0, dc: -1),
@@ -381,6 +382,11 @@ class _SuperCellEditorState extends State<SuperCellEditor> {
         content = _OptionList(
           options: col.opts ?? const [],
           selected: widget.value,
+          keyboard: true,
+          onCancel: () {
+            _closePopup();
+            widget.onCancel();
+          },
           builder: (o) => SuperPill(text: o, color: SuperColumnLogic.toneFor(col, o) ?? SuperTableSkin.of(context).fg3, dot: col.dot),
           onPick: (o) {
             _closePopup();
@@ -392,6 +398,11 @@ class _SuperCellEditorState extends State<SuperCellEditor> {
         content = _OptionList(
           options: SuperColumnLogic.timeOptions,
           selected: widget.value,
+          keyboard: true,
+          onCancel: () {
+            _closePopup();
+            widget.onCancel();
+          },
           builder: (o) => Text(o, style: TextStyle(fontFamily: SuperTokensFonts.mono, fontSize: 12.5, color: SuperTableSkin.of(context).fg1)),
           onPick: (o) {
             _closePopup();
@@ -631,45 +642,126 @@ class _SuperCellEditorState extends State<SuperCellEditor> {
 }
 
 // ── popup option list (enum / combo / time) ──
-class _OptionList extends StatelessWidget {
+class _OptionList extends StatefulWidget {
   final List<String> options;
   final String selected;
   final Widget Function(String) builder;
   final ValueChanged<String> onPick;
-  const _OptionList({required this.options, required this.selected, required this.builder, required this.onPick});
+
+  /// When true the list autofocuses and supports ↑/↓ to move + Enter to pick +
+  /// Esc to cancel (used by the enum dropdown and time list).
+  final bool keyboard;
+  final VoidCallback? onCancel;
+  const _OptionList({
+    required this.options,
+    required this.selected,
+    required this.builder,
+    required this.onPick,
+    this.keyboard = false,
+    this.onCancel,
+  });
+
+  @override
+  State<_OptionList> createState() => _OptionListState();
+}
+
+class _OptionListState extends State<_OptionList> {
+  late int _hi;
+  final _scroll = ScrollController();
+  static const double _rowH = 38;
+
+  @override
+  void initState() {
+    super.initState();
+    final i = widget.options.indexOf(widget.selected);
+    _hi = i >= 0 ? i : 0;
+  }
+
+  @override
+  void dispose() {
+    _scroll.dispose();
+    super.dispose();
+  }
+
+  void _move(int d) {
+    if (widget.options.isEmpty) return;
+    setState(() => _hi = (_hi + d).clamp(0, widget.options.length - 1));
+    if (_scroll.hasClients) {
+      final target = (_hi * _rowH);
+      final vpH = _scroll.position.viewportDimension;
+      if (target < _scroll.offset) {
+        _scroll.jumpTo(target);
+      } else if (target + _rowH > _scroll.offset + vpH) {
+        _scroll.jumpTo((target + _rowH - vpH).clamp(0.0, _scroll.position.maxScrollExtent));
+      }
+    }
+  }
+
+  KeyEventResult _onKey(FocusNode n, KeyEvent e) {
+    if (e is! KeyDownEvent && e is! KeyRepeatEvent) return KeyEventResult.ignored;
+    final k = e.logicalKey;
+    if (k == LogicalKeyboardKey.arrowDown) {
+      _move(1);
+      return KeyEventResult.handled;
+    }
+    if (k == LogicalKeyboardKey.arrowUp) {
+      _move(-1);
+      return KeyEventResult.handled;
+    }
+    if (k == LogicalKeyboardKey.enter || k == LogicalKeyboardKey.numpadEnter) {
+      if (_hi >= 0 && _hi < widget.options.length) widget.onPick(widget.options[_hi]);
+      return KeyEventResult.handled;
+    }
+    if (k == LogicalKeyboardKey.escape) {
+      widget.onCancel?.call();
+      return KeyEventResult.handled;
+    }
+    if (k == LogicalKeyboardKey.tab) {
+      // Don't let Tab leave the popup; treat as commit of the highlighted value.
+      if (_hi >= 0 && _hi < widget.options.length) widget.onPick(widget.options[_hi]);
+      return KeyEventResult.handled;
+    }
+    return KeyEventResult.ignored;
+  }
 
   @override
   Widget build(BuildContext context) {
     final skin = SuperTableSkin.of(context);
-    return ConstrainedBox(
+    final list = ConstrainedBox(
       constraints: const BoxConstraints(maxHeight: 240),
       child: SingleChildScrollView(
+        controller: _scroll,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            for (final o in options)
+            for (var i = 0; i < widget.options.length; i++)
               _PopRow(
                 skin: skin,
-                selected: o == selected,
-                onTap: () => onPick(o),
+                selected: widget.options[i] == widget.selected,
+                highlighted: widget.keyboard && i == _hi,
+                onTap: () => widget.onPick(widget.options[i]),
                 child: Row(children: [
-                  Expanded(child: builder(o)),
-                  if (o == selected) Icon(Icons.check_rounded, size: 14, color: skin.accent),
+                  Expanded(child: widget.builder(widget.options[i])),
+                  if (widget.options[i] == widget.selected)
+                    Icon(Icons.check_rounded, size: 14, color: skin.accent),
                 ]),
               ),
           ],
         ),
       ),
     );
+    if (!widget.keyboard) return list;
+    return Focus(autofocus: true, onKeyEvent: _onKey, child: list);
   }
 }
 
 class _PopRow extends StatefulWidget {
   final SuperTableSkin skin;
   final bool selected;
+  final bool highlighted;
   final VoidCallback onTap;
   final Widget child;
-  const _PopRow({required this.skin, required this.selected, required this.onTap, required this.child});
+  const _PopRow({required this.skin, required this.selected, this.highlighted = false, required this.onTap, required this.child});
   @override
   State<_PopRow> createState() => _PopRowState();
 }
@@ -679,6 +771,7 @@ class _PopRowState extends State<_PopRow> {
   @override
   Widget build(BuildContext context) {
     final s = widget.skin;
+    final lit = _h || widget.highlighted;
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       onEnter: (_) => setState(() => _h = true),
@@ -688,7 +781,7 @@ class _PopRowState extends State<_PopRow> {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 7),
           decoration: BoxDecoration(
-            color: _h ? s.hover : (widget.selected ? s.accentWash(0.12) : Colors.transparent),
+            color: lit ? s.hover : (widget.selected ? s.accentWash(0.12) : Colors.transparent),
             borderRadius: BorderRadius.circular(6),
           ),
           child: widget.child,

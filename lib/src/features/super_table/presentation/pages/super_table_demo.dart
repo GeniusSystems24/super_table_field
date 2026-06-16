@@ -15,7 +15,6 @@ import '../../domain/entities/super_column.dart';
 import '../../domain/entities/super_table_state.dart';
 import '../controllers/super_table_controller.dart';
 import '../widgets/super_table.dart';
-import '../widgets/super_table_overlays.dart';
 
 class SuperTableDemo extends StatefulWidget {
   const SuperTableDemo({super.key});
@@ -32,20 +31,8 @@ class _SuperTableDemoState extends State<SuperTableDemo> {
   String? _toast;
 
   static final List<SuperColumn> _columns = [
-    const SuperColumn(
-        key: 'sku',
-        label: 'SKU',
-        type: SuperColumnType.text,
-        width: 130,
-        mono: true,
-        pin: SuperPin.left),
-    const SuperColumn(
-        key: 'item',
-        label: 'Item',
-        type: SuperColumnType.text,
-        width: 210,
-        arKey: 'item_ar',
-        required: true),
+    const SuperColumn(key: 'sku', label: 'SKU', type: SuperColumnType.text, width: 130, mono: true, pin: SuperPin.left),
+    const SuperColumn(key: 'item', label: 'Item', type: SuperColumnType.text, width: 210, arKey: 'item_ar', required: true),
     const SuperColumn(
         key: 'cat',
         label: 'Category',
@@ -58,29 +45,13 @@ class _SuperTableDemoState extends State<SuperTableDemo> {
         type: SuperColumnType.enumeration,
         width: 130,
         opts: ['In Stock', 'Low Stock', 'Out of Stock', 'Discontinued']),
-    const SuperColumn(
-        key: 'qty',
-        label: 'Qty',
-        type: SuperColumnType.number,
-        width: 90,
-        align: SuperAlign.end,
-        agg: SuperAgg.sum),
+    const SuperColumn(key: 'qty', label: 'Qty', type: SuperColumnType.number, width: 90, align: SuperAlign.end, agg: SuperAgg.sum),
     const SuperColumn(
         key: 'unit',
         label: 'Unit',
         type: SuperColumnType.combo,
         width: 130,
-        opts: [
-          'each',
-          'box',
-          'pallet',
-          'kg',
-          'tonne',
-          'litre',
-          'metre',
-          'roll',
-          'sheet'
-        ]),
+        opts: ['each', 'box', 'pallet', 'kg', 'tonne', 'litre', 'metre', 'roll', 'sheet']),
     const SuperColumn(
         key: 'price',
         label: 'Unit Price',
@@ -96,145 +67,24 @@ class _SuperTableDemoState extends State<SuperTableDemo> {
       width: 140,
       align: SuperAlign.end,
       agg: SuperAgg.sum,
-      compute: (r) =>
-          (r['qty'] is num ? r['qty'] as num : 0) *
-          (r['price'] is num ? r['price'] as num : 0),
+      compute: (r) => (r['qty'] is num ? r['qty'] as num : 0) * (r['price'] is num ? r['price'] as num : 0),
       format: (v, r) => '${(v as num).toStringAsFixed(2)} SAR',
     ),
-    const SuperColumn(
-        key: 'fill',
-        label: 'Fill',
-        type: SuperColumnType.progress,
-        width: 130,
-        max: 100),
-    const SuperColumn(
-        key: 'received',
-        label: 'Received',
-        type: SuperColumnType.date,
-        width: 130),
-    const SuperColumn(
-        key: 'tag', label: 'Tag', type: SuperColumnType.color, width: 110),
-    const SuperColumn(
-        key: 'active',
-        label: 'Active',
-        type: SuperColumnType.checkbox,
-        width: 80,
-        align: SuperAlign.center),
+    const SuperColumn(key: 'fill', label: 'Fill', type: SuperColumnType.progress, width: 130, max: 100),
+    const SuperColumn(key: 'received', label: 'Received', type: SuperColumnType.date, width: 130),
+    const SuperColumn(key: 'tag', label: 'Tag', type: SuperColumnType.color, width: 110),
+    const SuperColumn(key: 'active', label: 'Active', type: SuperColumnType.checkbox, width: 80, align: SuperAlign.center),
   ];
 
   static List<SuperRow> _seed() => [
-        {
-          'sku': 'INV-SB-200',
-          'item': 'Steel Beam 200mm',
-          'item_ar': 'عارضة فولاذية ٢٠٠ مم',
-          'cat': 'Raw Material',
-          'status': 'In Stock',
-          'qty': 120,
-          'unit': 'each',
-          'price': 340.0,
-          'fill': 82,
-          'received': '2026-02-12',
-          'tag': '#4A7CFF',
-          'active': true
-        },
-        {
-          'sku': 'INV-CM-050',
-          'item': 'Concrete Mix 50kg',
-          'item_ar': 'خلطة خرسانة ٥٠ كجم',
-          'cat': 'Consumable',
-          'status': 'Low Stock',
-          'qty': 38,
-          'unit': 'box',
-          'price': 18.5,
-          'fill': 24,
-          'received': '2026-03-01',
-          'tag': '#E0A23B',
-          'active': true
-        },
-        {
-          'sku': 'INV-RB-012',
-          'item': 'Rebar Bundle 12mm',
-          'item_ar': 'حزمة حديد تسليح ١٢ مم',
-          'cat': 'Component',
-          'status': 'In Stock',
-          'qty': 64,
-          'unit': 'pallet',
-          'price': 96.75,
-          'fill': 58,
-          'received': '2026-01-20',
-          'tag': '#1DB88A',
-          'active': true
-        },
-        {
-          'sku': 'INV-WP-018',
-          'item': 'Waterproof Membrane',
-          'item_ar': 'غشاء عازل للماء',
-          'cat': 'Finished Good',
-          'status': 'Out of Stock',
-          'qty': 0,
-          'unit': 'roll',
-          'price': 220.0,
-          'fill': 0,
-          'received': '2025-12-08',
-          'tag': '#EF4444',
-          'active': false
-        },
-        {
-          'sku': 'INV-AL-040',
-          'item': 'Aluminium Sheet 4mm',
-          'item_ar': 'صفيحة ألمنيوم ٤ مم',
-          'cat': 'Raw Material',
-          'status': 'In Stock',
-          'qty': 210,
-          'unit': 'sheet',
-          'price': 154.25,
-          'fill': 91,
-          'received': '2026-02-28',
-          'tag': '#8B5CF6',
-          'active': true
-        },
-        {
-          'sku': 'INV-PV-025',
-          'item': 'PVC Pipe 25mm',
-          'item_ar': 'أنبوب بي في سي ٢٥ مم',
-          'cat': 'Component',
-          'status': 'Low Stock',
-          'qty': 47,
-          'unit': 'metre',
-          'price': 12.4,
-          'fill': 31,
-          'received': '2026-03-09',
-          'tag': '#06B6D4',
-          'active': true
-        },
-        {
-          'sku': 'INV-GL-006',
-          'item': 'Tempered Glass 6mm',
-          'item_ar': 'زجاج مقسّى ٦ مم',
-          'cat': 'Finished Good',
-          'status': 'In Stock',
-          'qty': 88,
-          'unit': 'sheet',
-          'price': 410.0,
-          'fill': 67,
-          'received': '2026-01-15',
-          'tag': '#EC4899',
-          'active': true
-        },
-        {
-          'sku': 'INV-NL-100',
-          'item': 'Galvanized Nails 100mm',
-          'item_ar': 'مسامير مجلفنة ١٠٠ مم',
-          'cat': 'Consumable',
-          'status': 'Discontinued',
-          'qty': 12,
-          'unit': 'box',
-          'price': 4.8,
-          'fill': 8,
-          'received': '2025-11-30',
-          'tag': '#8C92A4',
-          'active': false
-        },
+        {'sku': 'INV-SB-200', 'item': 'Steel Beam 200mm', 'item_ar': 'عارضة فولاذية ٢٠٠ مم', 'cat': 'Raw Material', 'status': 'In Stock', 'qty': 120, 'unit': 'each', 'price': 340.0, 'fill': 82, 'received': '2026-02-12', 'tag': '#4A7CFF', 'active': true},
+        {'sku': 'INV-CM-050', 'item': 'Concrete Mix 50kg', 'item_ar': 'خلطة خرسانة ٥٠ كجم', 'cat': 'Consumable', 'status': 'Low Stock', 'qty': 38, 'unit': 'box', 'price': 18.5, 'fill': 24, 'received': '2026-03-01', 'tag': '#E0A23B', 'active': true},
+        {'sku': 'INV-RB-012', 'item': 'Rebar Bundle 12mm', 'item_ar': 'حزمة حديد تسليح ١٢ مم', 'cat': 'Component', 'status': 'In Stock', 'qty': 64, 'unit': 'pallet', 'price': 96.75, 'fill': 58, 'received': '2026-01-20', 'tag': '#1DB88A', 'active': true},
+        {'sku': 'INV-WP-018', 'item': 'Waterproof Membrane', 'item_ar': 'غشاء عازل للماء', 'cat': 'Finished Good', 'status': 'Out of Stock', 'qty': 0, 'unit': 'roll', 'price': 220.0, 'fill': 0, 'received': '2025-12-08', 'tag': '#EF4444', 'active': false},
+        {'sku': 'INV-AL-040', 'item': 'Aluminium Sheet 4mm', 'item_ar': 'صفيحة ألمنيوم ٤ مم', 'cat': 'Raw Material', 'status': 'In Stock', 'qty': 210, 'unit': 'sheet', 'price': 154.25, 'fill': 91, 'received': '2026-02-28', 'tag': '#8B5CF6', 'active': true},
+        {'sku': 'INV-PV-025', 'item': 'PVC Pipe 25mm', 'item_ar': 'أنبوب بي في سي ٢٥ مم', 'cat': 'Component', 'status': 'Low Stock', 'qty': 47, 'unit': 'metre', 'price': 12.4, 'fill': 31, 'received': '2026-03-09', 'tag': '#06B6D4', 'active': true},
+        {'sku': 'INV-GL-006', 'item': 'Tempered Glass 6mm', 'item_ar': 'زجاج مقسّى ٦ مم', 'cat': 'Finished Good', 'status': 'In Stock', 'qty': 88, 'unit': 'sheet', 'price': 410.0, 'fill': 67, 'received': '2026-01-15', 'tag': '#EC4899', 'active': true},
+        {'sku': 'INV-NL-100', 'item': 'Galvanized Nails 100mm', 'item_ar': 'مسامير مجلفنة ١٠٠ مم', 'cat': 'Consumable', 'status': 'Discontinued', 'qty': 12, 'unit': 'box', 'price': 4.8, 'fill': 8, 'received': '2025-11-30', 'tag': '#8C92A4', 'active': false},
       ];
 
   @override
@@ -287,11 +137,9 @@ class _SuperTableDemoState extends State<SuperTableDemo> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Text('SUPER TABLE • UNIFIED DATA GRID',
-                      style: SuperText.eyebrow
-                          .copyWith(color: SuperTokens.accent)),
+                      style: SuperText.eyebrow.copyWith(color: SuperTokens.accent)),
                   const SizedBox(height: SuperTokens.space2),
-                  Text('Issue Inventory',
-                      style: SuperText.h1.copyWith(color: t.fg1)),
+                  Text('Issue Inventory', style: SuperText.h1.copyWith(color: t.fg1)),
                   const SizedBox(height: SuperTokens.space6),
                   _toolbar(t),
                   const SizedBox(height: SuperTokens.space4),
@@ -303,16 +151,14 @@ class _SuperTableDemoState extends State<SuperTableDemo> {
                     Align(
                       alignment: AlignmentDirectional.centerStart,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 8),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         decoration: BoxDecoration(
                           color: t.surface,
                           border: Border.all(color: t.borderStrong),
                           borderRadius: BorderRadius.circular(8),
                           boxShadow: t.cardShadow,
                         ),
-                        child: Text(_toast!,
-                            style: SuperText.caption.copyWith(color: t.fg1)),
+                        child: Text(_toast!, style: SuperText.caption.copyWith(color: t.fg1)),
                       ),
                     ),
                   ],
@@ -332,44 +178,20 @@ class _SuperTableDemoState extends State<SuperTableDemo> {
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
         _seg('Mode', [
-          (
-            'Readable',
-            _mode == SuperTableMode.readable,
-            () {
-              _mode = SuperTableMode.readable;
-              _rebuild();
-            }
-          ),
-          (
-            'Editable',
-            _mode == SuperTableMode.editable,
-            () {
-              _mode = SuperTableMode.editable;
-              _rebuild();
-            }
-          ),
+          ('Readable', _mode == SuperTableMode.readable, () {
+            _mode = SuperTableMode.readable;
+            _rebuild();
+          }),
+          ('Editable', _mode == SuperTableMode.editable, () {
+            _mode = SuperTableMode.editable;
+            _rebuild();
+          }),
         ]),
         _seg('Select', [
-          (
-            'Cell',
-            _selMode == SuperSelectionMode.singleCell,
-            () => _setSel(SuperSelectionMode.singleCell)
-          ),
-          (
-            'Cells',
-            _selMode == SuperSelectionMode.multiCells,
-            () => _setSel(SuperSelectionMode.multiCells)
-          ),
-          (
-            'Row',
-            _selMode == SuperSelectionMode.singleRow,
-            () => _setSel(SuperSelectionMode.singleRow)
-          ),
-          (
-            'Rows',
-            _selMode == SuperSelectionMode.multiRows,
-            () => _setSel(SuperSelectionMode.multiRows)
-          ),
+          ('Cell', _selMode == SuperSelectionMode.singleCell, () => _setSel(SuperSelectionMode.singleCell)),
+          ('Cells', _selMode == SuperSelectionMode.multiCells, () => _setSel(SuperSelectionMode.multiCells)),
+          ('Row', _selMode == SuperSelectionMode.singleRow, () => _setSel(SuperSelectionMode.singleRow)),
+          ('Rows', _selMode == SuperSelectionMode.multiRows, () => _setSel(SuperSelectionMode.multiRows)),
         ]),
         _toggle(t, 'Group by category', _grouped, () {
           setState(() => _grouped = !_grouped);
@@ -405,16 +227,14 @@ class _SuperTableDemoState extends State<SuperTableDemo> {
             GestureDetector(
               onTap: o.$3,
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
                 decoration: BoxDecoration(
                   color: o.$2 ? SuperTokens.accent : Colors.transparent,
                   borderRadius: BorderRadius.circular(5),
                 ),
                 child: Text(o.$1,
                     style: SuperText.caption.copyWith(
-                        color: o.$2 ? Colors.white : t.fg2,
-                        fontWeight: FontWeight.w600)),
+                        color: o.$2 ? Colors.white : t.fg2, fontWeight: FontWeight.w600)),
               ),
             ),
         ]),
@@ -434,17 +254,10 @@ class _SuperTableDemoState extends State<SuperTableDemo> {
           borderRadius: BorderRadius.circular(6),
         ),
         child: Row(mainAxisSize: MainAxisSize.min, children: [
-          Icon(
-              on
-                  ? Icons.check_box_rounded
-                  : Icons.check_box_outline_blank_rounded,
-              size: 15,
-              color: on ? SuperTokens.accent : t.fg3),
+          Icon(on ? Icons.check_box_rounded : Icons.check_box_outline_blank_rounded,
+              size: 15, color: on ? SuperTokens.accent : t.fg3),
           const SizedBox(width: 7),
-          Text(label,
-              style: SuperText.caption.copyWith(
-                  color: on ? SuperTokens.accent : t.fg2,
-                  fontWeight: FontWeight.w600)),
+          Text(label, style: SuperText.caption.copyWith(color: on ? SuperTokens.accent : t.fg2, fontWeight: FontWeight.w600)),
         ]),
       ),
     );

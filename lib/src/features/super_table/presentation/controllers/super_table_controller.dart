@@ -84,7 +84,14 @@ class SuperTableController extends ChangeNotifier {
   SuperCell _anchor = const SuperCell(0, 0);
   final Set<String> _extraCells = {}; // discrete "r:c"
   Set<int> _selRows = {0};
+  final Set<int> _rowBand = {}; // full-row highlight from row-number clicks (any mode)
   bool _focused = false;
+
+  /// After a combo/enum cell commits via Enter and stays put, the next Enter
+  /// should advance to the row below instead of re-opening the editor.
+  bool _advanceOnEnter = false;
+  bool get advanceOnEnter => _advanceOnEnter;
+  void clearAdvanceOnEnter() => _advanceOnEnter = false;
 
   // ── editing state ──
   SuperCell? _editCell;
@@ -462,15 +469,55 @@ class SuperTableController extends ChangeNotifier {
 
   /// Whether a body cell is visually selected under the current mode.
   bool isCellSelected(int r, int c) {
+    if (_rowBand.contains(r)) return true;
     if (rowMode) return _selRows.contains(r);
     if (_selectionMode == SuperSelectionMode.singleCell) return false;
     return _inRange(r, c) || _extraCells.contains('$r:$c');
+  }
+
+  /// Full-row highlight set produced by clicking the row-number gutter. Honored
+  /// in every selection mode (including singleCell, which otherwise shows none).
+  Set<int> get rowBand => _rowBand;
+
+  /// Select the whole row [r] from a row-number gutter click. In row modes this
+  /// is normal row selection; in cell modes it lights the entire row band and
+  /// parks the cursor on the first column.
+  void selectGutterRow(int r, {bool shift = false, bool meta = false}) {
+    _advanceOnEnter = false;
+    if (rowMode) {
+      _rowBand.clear();
+      pick(r, 0, shift: shift, meta: meta);
+      return;
+    }
+    if (meta && multiSel) {
+      if (_rowBand.contains(r)) {
+        _rowBand.remove(r);
+      } else {
+        _rowBand.add(r);
+      }
+    } else if (shift && multiSel) {
+      final lo = _min(_sel.r, r);
+      final hi = _max(_sel.r, r);
+      _rowBand
+        ..clear()
+        ..addAll([for (var i = lo; i <= hi; i++) i]);
+    } else {
+      _rowBand
+        ..clear()
+        ..add(r);
+    }
+    _extraCells.clear();
+    _sel = SuperCell(r, _sel.c.clamp(0, nCols == 0 ? 0 : nCols - 1));
+    _anchor = _sel;
+    notifyListeners();
   }
 
   bool get hasRange => _anchor.r != _sel.r || _anchor.c != _sel.c;
 
   /// Unified pointer selection honoring [shift] (range) / [meta] (discrete).
   void pick(int r, int c, {bool shift = false, bool meta = false}) {
+    _rowBand.clear();
+    _advanceOnEnter = false;
     if (rowMode) {
       if (_selectionMode == SuperSelectionMode.singleRow) {
         _selRows = {r};
@@ -554,6 +601,8 @@ class SuperTableController extends ChangeNotifier {
 
   // ── cursor movement ──
   void setCursor(SuperCell t, {bool extend = false}) {
+    _rowBand.clear();
+    _advanceOnEnter = false;
     final n = nRows;
     t = SuperCell(t.r.clamp(0, n == 0 ? 0 : n - 1), t.c.clamp(0, nCols == 0 ? 0 : nCols - 1));
     _sel = t;
@@ -702,6 +751,7 @@ class SuperTableController extends ChangeNotifier {
     _committing = true;
     final ec = _editCell;
     var next = _rows;
+    var armAdvance = false;
     if (ec != null) {
       final col = ec.c < cols.length ? cols[ec.c] : null;
       final entry = ec.r < view.length ? view[ec.r] : null;
@@ -712,8 +762,13 @@ class SuperTableController extends ChangeNotifier {
             if (i == entry.sourceIndex) {..._rows[i], col.key: val} else _rows[i]
         ];
       }
+      // A combo/enum cell committed in place (no cursor move) arms the next
+      // Enter to step down instead of re-opening the editor.
+      armAdvance = move == null &&
+          (col?.type == SuperColumnType.combo || col?.type == SuperColumnType.enumeration);
     }
     _editCell = null;
+    _advanceOnEnter = armAdvance;
     final baseR = ec?.r ?? _sel.r;
     final baseC = ec?.c ?? _sel.c;
     if (move != null) {
