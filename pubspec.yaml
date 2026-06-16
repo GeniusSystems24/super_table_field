@@ -1,0 +1,54 @@
+name: super_table_field
+description: >
+  Super Table Field — a GeniusLink design-system Flutter package pairing the
+  unified SuperTable data grid (readable/editable, 13 column types, 4 selection
+  modes, search, multi-level grouping, totals, pagination, JSON/TSV clipboard,
+  undo/redo) with the AutoSuggestionsBox typeahead. In editable mode, `combo`
+  columns are edited through the real AutoSuggestionsBox. Light/dark + LTR/RTL.
+publish_to: "none"
+version: 0.2.0
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+  flutter: ">=3.10.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/logo-mark.png
+    - assets/logo-mark-white.png
+  # Drop brand .ttf files under assets/fonts/ to match the design system exactly.
+  # Families: Manrope (display) · Inter (body) · JetBrainsMono (mono) · NotoNaskhArabic
+  #
+  # fonts:
+  #   - family: Manrope
+  #     fonts:
+  #       - asset: assets/fonts/Manrope-Regular.ttf
+  #       - asset: assets/fonts/Manrope-SemiBold.ttf
+  #         weight: 600
+  #       - asset: assets/fonts/Manrope-Bold.ttf
+  #         weight: 700
+  #   - family: Inter
+  #     fonts:
+  #       - asset: assets/fonts/Inter-Regular.ttf
+  #       - asset: assets/fonts/Inter-Medium.ttf
+  #         weight: 500
+  #       - asset: assets/fonts/Inter-SemiBold.ttf
+  #         weight: 600
+  #       - asset: assets/fonts/Inter-Bold.ttf
+  #         weight: 700
+  #   - family: JetBrainsMono
+  #     fonts:
+  #       - asset: assets/fonts/JetBrainsMono-Regular.ttf
+  #   - family: NotoNaskhArabic
+  #     fonts:
+  #       - asset: assets/fonts/NotoNaskhArabic-Regular.ttf
