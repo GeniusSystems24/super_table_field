@@ -53,7 +53,7 @@ class _SuperTableDemoState extends State<SuperTableDemo> {
   late final SuperTableController _c;
 
   // ── toolbar toggles ──
-  SuperTableMode _mode = SuperTableMode.readable;
+  SuperTableMode _mode = SuperTableMode.editable;
   SuperSelectionMode _selMode = SuperSelectionMode.singleCell;
   SuperPagination _pagination = SuperPagination.loadMore;
   bool _groupedByCat = false;
