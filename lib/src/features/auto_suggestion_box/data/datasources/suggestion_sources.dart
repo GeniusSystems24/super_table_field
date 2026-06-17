@@ -29,8 +29,7 @@ abstract final class SuggestionSources {
     AutoSuggestionMatch match = AutoSuggestionMatch.contains,
     bool caseSensitive = false,
   }) =>
-      ListSuggestionsSource<T>(items,
-          match: match, caseSensitive: caseSensitive);
+      ListSuggestionsSource<T>(items, match: match, caseSensitive: caseSensitive);
 
   /// A static source over plain strings (value == label).
   static AutoSuggestionsSource<String> strings(
@@ -116,8 +115,7 @@ class ListSuggestionsSource<T> extends AutoSuggestionsSource<T> {
     if (q.isEmpty) return List<AutoSuggestion<T>>.of(items);
     final out = <AutoSuggestion<T>>[];
     for (final s in items) {
-      final hay =
-          caseSensitive ? ([s.label, ...s.keywords].join(' ')) : s.haystack;
+      final hay = caseSensitive ? ([s.label, ...s.keywords].join(' ')) : s.haystack;
       if (AutoSuggestionMatching.test(hay, q, match)) out.add(s);
     }
     // Stable, relevance-ish ordering: prefix hits first, then by match index.
@@ -170,8 +168,7 @@ class HybridSuggestionsSource<T> extends AutoSuggestionsSource<T> {
     if (q.isEmpty) return List<AutoSuggestion<T>>.of(initialItems);
     final out = <AutoSuggestion<T>>[];
     for (final s in initialItems) {
-      final hay =
-          caseSensitive ? ([s.label, ...s.keywords].join(' ')) : s.haystack;
+      final hay = caseSensitive ? ([s.label, ...s.keywords].join(' ')) : s.haystack;
       if (AutoSuggestionMatching.test(hay, q, match)) out.add(s);
     }
     return out;
@@ -225,8 +222,7 @@ class RemoteFallbackSuggestionsSource<T> extends AutoSuggestionsSource<T> {
     if (q.isEmpty) return List<AutoSuggestion<T>>.of(initialItems);
     final out = <AutoSuggestion<T>>[];
     for (final s in initialItems) {
-      final hay =
-          caseSensitive ? ([s.label, ...s.keywords].join(' ')) : s.haystack;
+      final hay = caseSensitive ? ([s.label, ...s.keywords].join(' ')) : s.haystack;
       if (AutoSuggestionMatching.test(hay, q, match)) out.add(s);
     }
     return out;
@@ -237,17 +233,14 @@ class RemoteFallbackSuggestionsSource<T> extends AutoSuggestionsSource<T> {
   FutureOr<List<AutoSuggestion<T>>> query(String query) {
     final r = progressive(query);
     if (r.loadMore == null) return r.items;
-    return r.loadMore!()
-        .then((remote) => _merge(r.items, remote))
-        .catchError((Object _) => r.items);
+    return r.loadMore!().then((remote) => _merge(r.items, remote)).catchError((Object _) => r.items);
   }
 
   @override
   SuggestionsQueryResult<T> progressive(String query) {
     final local = _local(query);
     final q = query.trim();
-    final wantRemote =
-        local.length <= remoteThreshold && q.length >= remoteMinChars;
+    final wantRemote = local.length <= remoteThreshold && q.length >= remoteMinChars;
     if (!wantRemote) return SuggestionsQueryResult<T>.complete(local);
     return SuggestionsQueryResult<T>(
       items: local,
@@ -255,8 +248,7 @@ class RemoteFallbackSuggestionsSource<T> extends AutoSuggestionsSource<T> {
     );
   }
 
-  List<AutoSuggestion<T>> _merge(
-      List<AutoSuggestion<T>> local, List<AutoSuggestion<T>> remote) {
+  List<AutoSuggestion<T>> _merge(List<AutoSuggestion<T>> local, List<AutoSuggestion<T>> remote) {
     final seen = <T>{for (final s in local) s.value};
     final merged = <AutoSuggestion<T>>[...local];
     for (final r in remote) {

@@ -1,17 +1,15 @@
 // ============================================================
 // features/auto_suggestion_box/presentation/pages/auto_suggestion_box_demo.dart
 // ------------------------------------------------------------
-// A self-contained gallery page for the AutoSuggestionsBox: a static list
-// source with grouped rows + descriptions, a multi-select variant, a fuzzy
-// match strategy, progressive remote fallback, and the advanced-search surface.
-//
-// NEW in the latest commit:
-//   • SuggestionSources.remoteFallback — local-first with progressive remote
-//     fallback (shows local rows instantly, streams remote rows in behind a
-//     "loading more" indicator).
-//   • Advanced Search (Ctrl/⌘+F) — opens a larger modal search surface.
-//   • restoreOnBlur — reverts unconfirmed typing to the last committed value.
-//   • effectiveQuery — search is anchored to the caret position.
+// A self-contained gallery page for the AutoSuggestionsBox. Demonstrates:
+//   1. single-select, grouped, highlighted (static list)
+//   2. multi-select
+//   3. fuzzy match over plain strings
+//   4. progressive REMOTE FALLBACK — local rows show instantly, and when the
+//      local match count is small a simulated network call streams more in
+//      behind a "loading more" indicator
+//   5. ADVANCED SEARCH (Ctrl/⌘+F) — a modal search surface over a large dataset
+// Used by the example app and as a visual reference.
 // ============================================================
 
 import 'package:flutter/material.dart';
@@ -20,7 +18,6 @@ import '../../../../core/core.dart';
 import '../../data/datasources/suggestion_sources.dart';
 import '../../domain/entities/auto_suggestion.dart';
 import '../../domain/entities/match_strategy.dart';
-import '../controllers/auto_suggestions_box_controller.dart';
 import '../widgets/auto_suggestions_box.dart';
 
 class AutoSuggestionBoxDemo extends StatefulWidget {
@@ -43,14 +40,36 @@ class _AutoSuggestionBoxDemoState extends State<AutoSuggestionBoxDemo> {
     const AutoSuggestion(value: '5200', label: 'Salaries & Wages', description: '5200 · Expenses', group: 'Expenses', icon: Icons.badge_outlined),
   ];
 
-  /// Simulated remote fetch for the progressive fallback demo.
+  // A handful of "local" vendors held in memory; the long tail lives "on the
+  // server" and is fetched only when the local matches run thin.
+  static final List<AutoSuggestion<String>> _localVendors = [
+    const AutoSuggestion(value: 'V-001', label: 'Al-Faisal Trading', description: 'Local · Riyadh', icon: Icons.storefront_outlined),
+    const AutoSuggestion(value: 'V-002', label: 'Najd Logistics', description: 'Local · Riyadh', icon: Icons.local_shipping_outlined),
+    const AutoSuggestion(value: 'V-003', label: 'Gulf Steel Co.', description: 'Local · Dammam', icon: Icons.factory_outlined),
+  ];
+
+  static const List<String> _remoteVendors = [
+    'Arabian Cement Partners', 'Desert Rose Supplies', 'Eastern Hardware LLC',
+    'Falcon Freight Services', 'Granite & Marble Hub', 'Horizon Electricals',
+    'Ibn Sina Pharma Dist.', 'Jeddah Port Clearing', 'Kingdom Office Supplies',
+    'Levant Timber Imports', 'Madinah Glassworks', 'Northern Pipes & Fittings',
+  ];
+
+  // A larger directory for the advanced-search example.
+  static final List<AutoSuggestion<String>> _directory = [
+    for (var i = 0; i < _remoteVendors.length; i++)
+      AutoSuggestion(value: 'D-${i + 1}', label: _remoteVendors[i], description: 'Directory entry', icon: Icons.business_outlined),
+    ..._localVendors,
+  ];
+
   Future<List<AutoSuggestion<String>>> _fetchRemote(String query) async {
-    await Future.delayed(const Duration(milliseconds: 1200));
-    final q = query.toLowerCase();
+    await Future<void>.delayed(const Duration(milliseconds: 650)); // simulate latency
+    final q = query.trim().toLowerCase();
     return [
-      AutoSuggestion(value: 'REM-001', label: 'Remote: $query Result A', description: 'Fetched from server', group: 'Remote'),
-      AutoSuggestion(value: 'REM-002', label: 'Remote: $query Result B', description: 'Fetched from server', group: 'Remote'),
-    ].where((s) => s.label.toLowerCase().contains(q) || q.isEmpty).toList();
+      for (final name in _remoteVendors)
+        if (name.toLowerCase().contains(q))
+          AutoSuggestion(value: 'R-$name', label: name, description: 'Server · remote', icon: Icons.cloud_outlined),
+    ];
   }
 
   @override
@@ -71,11 +90,9 @@ class _AutoSuggestionBoxDemoState extends State<AutoSuggestionBoxDemo> {
                       style: SuperText.eyebrow.copyWith(color: SuperTokens.accent)),
                   const SizedBox(height: SuperTokens.space2),
                   Text('Account Lookup', style: SuperText.h1.copyWith(color: t.fg1)),
-                  const SizedBox(height: SuperTokens.space2),
-                  _hints(t),
                   const SizedBox(height: SuperTokens.space8),
 
-                  // Single-select, grouped, with highlight.
+                  // 1 — Single-select, grouped, with highlight.
                   SectionCard(
                     title: 'Post To Account',
                     subtitle: 'Search the chart of accounts by name or code',
@@ -88,7 +105,7 @@ class _AutoSuggestionBoxDemoState extends State<AutoSuggestionBoxDemo> {
                   ),
                   const SizedBox(height: SuperTokens.space8),
 
-                  // Multi-select.
+                  // 2 — Multi-select.
                   SectionCard(
                     title: 'Tag Cost Centers',
                     subtitle: 'Assign one or more cost centers to this entry',
@@ -101,7 +118,7 @@ class _AutoSuggestionBoxDemoState extends State<AutoSuggestionBoxDemo> {
                   ),
                   const SizedBox(height: SuperTokens.space8),
 
-                  // Fuzzy strategy over plain strings.
+                  // 3 — Fuzzy strategy over plain strings.
                   SectionCard(
                     title: 'Quick Filter',
                     subtitle: 'Fuzzy match — type loosely',
@@ -117,47 +134,34 @@ class _AutoSuggestionBoxDemoState extends State<AutoSuggestionBoxDemo> {
                   ),
                   const SizedBox(height: SuperTokens.space8),
 
-                  // Progressive remote fallback — shows local rows instantly,
-                  // then streams remote rows in with a "loading more" indicator.
+                  // 4 — Progressive remote fallback.
                   SectionCard(
-                    title: 'Progressive Remote Fallback',
-                    subtitle: 'Local-first; remote results merge in when local ≤ 5 matches',
-                    marker: SuperMarker.notes,
-                    child: AutoSuggestionsBox<String>(
-                      source: SuggestionSources.remoteFallback(
-                        initialItems: _accounts,
-                        fetch: _fetchRemote,
-                        remoteThreshold: 5,
-                      ),
-                      
-                      hintText: 'Type to trigger remote fallback…',
-                    ),
-                  ),
-                  const SizedBox(height: SuperTokens.space8),
-
-                  // Advanced search surface (Ctrl/⌘+F).
-                  SectionCard(
-                    title: 'Advanced Search',
-                    subtitle: 'Press Ctrl/⌘+F while focused to open the advanced surface',
+                    title: 'Select Vendor',
+                    subtitle: 'Local vendors show instantly; the server is queried only when local matches are few',
                     marker: SuperMarker.identity,
                     child: AutoSuggestionsBox<String>(
-                      items: _accounts,
-                      advancedSearch: true,
-                      advancedSearchBuilder: _buildAdvancedSearch,
-                      hintText: 'Focus here, then press Ctrl/⌘+F',
+                      source: SuggestionSources.remoteFallback<String>(
+                        initialItems: _localVendors,
+                        fetch: _fetchRemote,
+                        remoteThreshold: 3, // fetch when ≤ 3 local matches
+                        remoteMinChars: 1,
+                      ),
+                      hintText: 'e.g. cement, freight, glass…',
+                      onSelected: (s) {},
                     ),
                   ),
                   const SizedBox(height: SuperTokens.space8),
 
-                  // restoreOnBlur demo — type without picking, then tab/blur away.
+                  // 5 — Advanced search (Ctrl/⌘+F).
                   SectionCard(
-                    title: 'Restore on Blur',
-                    subtitle: 'Type freely; blur reverts to the last committed value',
+                    title: 'Vendor Directory',
+                    subtitle: 'Focus the field and press Ctrl / ⌘ + F to open Advanced Search',
                     marker: SuperMarker.ledger,
                     child: AutoSuggestionsBox<String>(
-                      items: _accounts,
-                      restoreOnBlur: true,
-                      hintText: 'Pick an account, then type and blur…',
+                      items: _directory,
+                      advancedSearch: true,
+                      hintText: 'Search the directory…  (⌘F)',
+                      onSelected: (s) {},
                     ),
                   ),
                 ],
@@ -166,72 +170,6 @@ class _AutoSuggestionBoxDemoState extends State<AutoSuggestionBoxDemo> {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _hints(SuperThemeData t) {
-    return Wrap(
-      spacing: SuperTokens.space3,
-      runSpacing: SuperTokens.space2,
-      children: [
-        _hintChip(t, Icons.cloud_sync_outlined, 'Remote fallback with progressive loading'),
-        _hintChip(t, Icons.keyboard_command_key, 'Ctrl/⌘+F → Advanced Search'),
-        _hintChip(t, Icons.restore, 'restoreOnBlur reverts unconfirmed typing'),
-        _hintChip(t, Icons.format_list_bulleted, 'Grouped suggestions with icons & descriptions'),
-      ],
-    );
-  }
-
-  Widget _hintChip(SuperThemeData t, IconData icon, String text) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        color: t.surface,
-        border: Border.all(color: t.border),
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Row(mainAxisSize: MainAxisSize.min, children: [
-        Icon(icon, size: 13, color: t.fg3),
-        const SizedBox(width: 6),
-        Text(text, style: SuperText.caption.copyWith(color: t.fg2)),
-      ]),
-    );
-  }
-
-  /// A simple advanced-search dialog. Reuses the live controller so any pick
-  /// made here commits straight back into the inline field.
-  Widget _buildAdvancedSearch(BuildContext context, AutoSuggestionsBoxController<String> controller) {
-    final t = Theme.of(context).extension<SuperThemeData>()!;
-    return AlertDialog(
-      backgroundColor: t.surface,
-      surfaceTintColor: Colors.transparent,
-      title: Text('Advanced Search', style: SuperText.heading.copyWith(color: t.fg1)),
-      content: SizedBox(
-        width: 420,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              'The same controller is wired here — pick an item and it commits back to the field.',
-              style: SuperText.caption.copyWith(color: t.fg3),
-            ),
-            const SizedBox(height: SuperTokens.space4),
-            // Re-use the same controller in a bare inline box.
-            AutoSuggestionsBox<String>(
-              controller: controller,
-              bare: true,
-              hintText: 'Search accounts…',
-            ),
-          ],
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: Text('Close', style: TextStyle(color: t.fg2)),
-        ),
-      ],
     );
   }
 }

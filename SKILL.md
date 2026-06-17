@@ -103,24 +103,44 @@ Keyboard model inside the editor:
 
 - type → filter options live
 - `↑`/`↓` → move highlight
-- `Enter` / click → pick highlighted option, commit, move down
-- free text + `Enter` → commit typed value (combo allows free text), move down
+- `Enter` / click → pick highlighted option, **commit in place** (cell stays selected)
+- `Enter` again → step down to the next row
+- free text + `Enter` → commit typed value (combo allows free text), stay in place
 - `Tab` / `Shift+Tab` → commit, move to next / previous cell
 - `Esc` → cancel
+
+`enumeration` cells behave the same (arrow keys navigate the dropdown), minus
+free text.
 
 The box renders in `bare` mode and its theme is derived from the live
 `SuperTableSkin`, so it always matches the grid in light/dark.
 
-## Per-column filters
+## Per-column filters (readable mode)
 
-A filter row renders beneath the header by default (`SuperTable(columnFilters: false)`
-to hide it). The control per column is automatic: `combo`/`enumeration` → value
-dropdown (`All` + `opts`), `checkbox` → tri-state (`All`/`Checked`/`Unchecked`),
-others → a contains text field, `color` → none. Filters AND together and with
-the global search; the filter icon in the row-number gutter clears all. Drive
-them from the controller to persist or restore a filter set:
+A filter row renders beneath the header in **readable mode** by default
+(`SuperTable(columnFilters: false)` to hide it; it never shows while editing).
+The control per column is automatic: `combo`/`enumeration` → value dropdown
+(`All` + `opts`), `checkbox` → tri-state (`All`/`Checked`/`Unchecked`), others →
+a full-bleed contains text field, `color` → none. A column can opt out with
+`filterable: false`. Filters AND together and with the global search; the gutter
+filter icon clears all. Drive from the controller to persist/restore a set:
 `setColumnFilter(key, value)` (blank clears), `columnFilter(key)`,
 `hasColumnFilters`, `activeColumnFilters`, `clearColumnFilters()`.
+
+## Grouping & the row context menu (readable mode)
+
+Group by any column whose `groupable` is true (default). Right-click a row for a
+**Group by ▸** submenu, or toggle from the controller: `toggleGroup(key)`,
+`groupKeys`. Customise the row menu with `SuperTable(rowMenuBuilder:)` — it
+receives `(SuperRowMenuContext ctx, List<SuperMenuEntry> defaults)` and returns
+the entries to show. Give a `SuperMenuEntry` a `children:` list to make it an
+expandable **tree** node (nests to any depth). Return `[]` to suppress the menu.
+
+## Row-number gutter
+
+`SuperTable(numbered: true)` (default) shows the `#` gutter. It is **frozen**
+during horizontal scroll and **clicking a row number selects the whole row**
+(`Shift`/`⌘`-click extend or toggle).
 
 ## AutoSuggestionsBox (standalone)
 
@@ -142,9 +162,21 @@ AutoSuggestionsBox<String>(
 );
 ```
 
-Suggestion sources: `SuggestionSources.list(...)` (static), `.fuzzy(...)`
-(fuzzy-ranked), `.async(...)` (debounced remote lookup). For remote data prefer
-`.async` so typing debounces network calls.
+Suggestion sources: `SuggestionSources.list(...)` / `.strings(...)` (static),
+`.fuzzy(...)` (fuzzy-ranked), `.async(...)` (debounced remote), and
+`.remoteFallback(...)` (local-first progressive). Prefer **`remoteFallback`** for
+“mostly local, occasionally remote” data: it shows local matches instantly and
+only calls `fetch` when local matches ≤ `remoteThreshold`, merging remote rows
+in behind a *loading more* indicator (`controller.isLoadingMore`). Use `.async`
+for purely-remote search.
+
+More behaviour to know:
+- **Advanced search**: `advancedSearch: true` opens a modal search surface on
+  `Ctrl`/`⌘`+`F` (override with `advancedSearchBuilder`).
+- **Restore on blur**: leaving without picking reverts unconfirmed typing to the
+  last committed value (unless none); disable with `restoreOnBlur: false`.
+- **Caret-anchored query**: matching uses text from the start to the caret
+  (`controller.effectiveQuery`).
 
 Embedding tip: set `bare: true`, pass a `fieldHeight`, and provide `onEscape` /
 `onTabNext` / `onTabPrev` when you place the box inside a cell or compact toolbar
@@ -167,5 +199,8 @@ behavior in `domain/usecases/super_column_logic.dart` and render in
   undo/redo and skips a rebuild.
 - Using `enumeration` when you meant `combo` (or vice versa): `combo` permits
   free text, `enumeration` is a closed set.
-- Expecting the combo editor in `readable` mode — editing only happens in
-  `SuperTableMode.editable`.
+- Expecting the combo editor — or filters / grouping — in the wrong mode:
+  editing happens only in `SuperTableMode.editable`; per-column filters and
+  grouping affordances show only in `SuperTableMode.readable`.
+- Placing `SuperTable` in an unbounded-height parent → it scrolls internally and
+  needs bounded height (`Expanded`/`Flexible`/`maxHeight:`).

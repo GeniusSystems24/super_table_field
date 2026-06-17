@@ -9,6 +9,7 @@
 // Domain
 export 'domain/entities/auto_suggestion.dart';
 export 'domain/entities/match_strategy.dart';
+export 'domain/entities/suggestions_query_result.dart';
 export 'domain/repositories/suggestions_source.dart';
 export 'domain/usecases/query_suggestions.dart';
 

@@ -5,8 +5,8 @@
 // AutoSuggestionsBoxThemeData extensions (so both components theme light/dark in
 // parity), exposes a global Light/Dark + LTR/RTL toggle, and lists the two
 // shipped demos:
-//   • SuperTable — the unified grid with rowMenuBuilder, submenus, column
-//     filters, pinned gutter, and combo keyboard navigation.
+//   • SuperTable — the unified grid. Switch to Editable and double-click the
+//     "Unit" cell: it is a `combo` column edited through the AutoSuggestionsBox.
 //   • Auto Suggestion Box — the typeahead on its own.
 // ============================================================
 
@@ -84,18 +84,10 @@ class _Launcher extends StatelessWidget {
   final VoidCallback onToggleDir;
 
   static final List<_Demo> _demos = [
-    _Demo(
-      'Super Table',
-      'Editable/readable grid · 15 column types · row menus · submenus · grouping · filters · pagination · combo ⇒ AutoSuggestionsBox',
-      Icons.grid_on_outlined,
-      (_) => const SuperTableDemo(),
-    ),
-    _Demo(
-      'Auto Suggestion Box',
-      'Typeahead · groups · multi-select · fuzzy · remote fallback · advanced search · restoreOnBlur',
-      Icons.manage_search_outlined,
-      (_) => const AutoSuggestionBoxDemo(),
-    ),
+    _Demo('Super Table', 'Editable/readable grid · 13 column types · combo ⇒ AutoSuggestionsBox',
+        Icons.grid_on_outlined, (_) => const SuperTableDemo()),
+    _Demo('Auto Suggestion Box', 'Typeahead · groups · multi-select · fuzzy',
+        Icons.manage_search_outlined, (_) => const AutoSuggestionBoxDemo()),
   ];
 
   @override
@@ -177,7 +169,7 @@ class _DemoCard extends StatelessWidget {
                 height: 44,
                 decoration: BoxDecoration(
                   color: Color.alphaBlend(
-                      SuperTokens.accent.withValues(alpha: 0.14), t.surface),
+                      SuperTokens.accent.withOpacity(0.14), t.surface),
                   borderRadius: BorderRadius.circular(SuperTokens.radiusControl),
                 ),
                 child: Icon(demo.icon, size: 22, color: SuperTokens.accent),
