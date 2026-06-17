@@ -1,23 +1,21 @@
 // ============================================================
 // features/super_table/presentation/widgets/super_cell.dart
 // ------------------------------------------------------------
-// The per-cell display renderer + type-specific inline editors for the unified
-// SuperTable — a 1:1 port of the React column-type render/editor pairs:
-//   text (+ bilingual), number/currency (sign-colored mono), enum pill,
-//   progress bar, color swatch, date (mono), time (mono), link, bool tick,
-//   readonly (lock), computed (ƒ). Editors: text/number inputs, a dropdown
-//   popup, a combo (text + suggestions), a mini-calendar, a time list, and a
-//   color-swatch grid. Display is pure; editors drive the controller's draft.
+// The per-cell display renderer + type-specific inline editors for SuperTable
+// 0.4.0. Reads the generic [SuperRow] / [SuperCell] model. Display is pure
+// (with optional conditional-style overrides handed in by the grid); editors
+// drive the controller's draft + commit.
+//
+// `combo` cells are edited through the design-system-native AutoSuggestionsBox.
+// In 0.4.0 the box's source + controller can be supplied per-cell by the
+// column's `sourceController` / `cellController` builders and are rebuilt
+// whenever the row's `fingerPrint` changes (cached on the SuperTableController).
 // ============================================================
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../../auto_suggestion_box/auto_suggestion_box.dart';
-import '../../domain/entities/super_column.dart';
-import '../../domain/usecases/super_column_logic.dart';
-import 'super_table_overlays.dart';
-import 'super_table_skin.dart';
+import '../../../../../super_table_field.dart';
 
 /// A small status/enum pill (mirrors the DS Pill).
 class SuperPill extends StatelessWidget {
@@ -42,48 +40,52 @@ class SuperPill extends StatelessWidget {
   }
 }
 
-/// Renders the read display of a cell value for [col].
+/// Renders the read display of a cell value for [col]. [fg]/[weight] are
+/// conditional-style overrides resolved by the grid (row + cell styles).
 class SuperCellDisplay extends StatelessWidget {
   final SuperColumn col;
   final SuperRow row;
-  const SuperCellDisplay({super.key, required this.col, required this.row});
+  final Color? fg;
+  final FontWeight? weight;
+  const SuperCellDisplay({super.key, required this.col, required this.row, this.fg, this.weight});
 
   @override
   Widget build(BuildContext context) {
     final skin = SuperTableSkin.of(context);
     final v = col.rawValue(row);
-    final mono = TextStyle(fontFamily: SuperTokensFonts.mono, fontSize: 12.5, color: skin.fg1);
-    final body = TextStyle(fontFamily: SuperTokensFonts.body, fontSize: 12.5, color: skin.fg1);
+    final baseColor = fg ?? skin.fg1;
+    final mono = TextStyle(fontFamily: SuperTokensFonts.mono, fontSize: 12.5, color: baseColor, fontWeight: weight);
+    final body = TextStyle(fontFamily: SuperTokensFonts.body, fontSize: 12.5, color: baseColor, fontWeight: weight);
 
     switch (col.type) {
       case SuperColumnType.text:
-        final ar = col.arKey != null ? row[col.arKey] : null;
-        if (ar != null && '$ar'.isNotEmpty) {
+      case SuperColumnType.custom:
+        final ar = SuperColumnLogic.arText(col, row);
+        if (ar.isNotEmpty) {
           return Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('$v', maxLines: 1, overflow: TextOverflow.ellipsis, style: body),
+              Text('${v ?? ''}', maxLines: 1, overflow: TextOverflow.ellipsis, style: body),
               Directionality(
                 textDirection: TextDirection.rtl,
-                child: Text('$ar',
+                child: Text(ar,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontFamily: SuperTokensFonts.arabic, fontSize: 11.5, color: skin.fg3)),
+                    style: TextStyle(fontFamily: SuperTokensFonts.arabic, fontSize: 11.5, color: fg ?? skin.fg3)),
               ),
             ],
           );
         }
-        return Text('$v', maxLines: 1, overflow: TextOverflow.ellipsis, style: col.mono ? mono : body);
+        return Text('${v ?? ''}', maxLines: 1, overflow: TextOverflow.ellipsis, style: col.mono ? mono : body);
 
       case SuperColumnType.number:
       case SuperColumnType.currency:
         final n = SuperColumnLogic.numVal(v);
         final neg = n < 0;
         final isCur = col.type == SuperColumnType.currency;
-        final color = col.colorSign
-            ? (neg ? skin.danger : (n > 0 ? skin.success : skin.fg3))
-            : skin.fg1;
+        final color = fg ??
+            (col.colorSign ? (neg ? skin.danger : (n > 0 ? skin.success : skin.fg3)) : skin.fg1);
         final sign = neg ? '−' : (col.colorSign && n > 0 ? '+' : '');
         final prefix = col.prefix ?? (isCur ? r'$' : '');
         final txt = '$sign$prefix${SuperColumnLogic.fmtNum(n, col)}${col.suffix != null ? (isCur ? ' ${col.suffix}' : col.suffix) : ''}';
@@ -91,15 +93,16 @@ class SuperCellDisplay extends StatelessWidget {
 
       case SuperColumnType.enumeration:
         if (v == null || '$v'.isEmpty) return const SizedBox.shrink();
-        final tone = SuperColumnLogic.toneFor(col, '$v') ?? skin.fg3;
-        return SuperPill(text: '$v', color: tone, dot: col.dot);
+        final disp = SuperColumnLogic.displayOf(col, v);
+        final tone = fg ?? SuperColumnLogic.toneFor(col, disp) ?? skin.fg3;
+        return SuperPill(text: disp, color: tone, dot: col.dot);
 
       case SuperColumnType.combo:
-        return Text('$v', maxLines: 1, overflow: TextOverflow.ellipsis, style: col.mono ? mono : body);
+        return Text(SuperColumnLogic.displayOf(col, v), maxLines: 1, overflow: TextOverflow.ellipsis, style: col.mono ? mono : body);
 
       case SuperColumnType.progress:
-        final max = (col.max ?? 1).toDouble();
-        final frac = (SuperColumnLogic.numVal(v) / max).clamp(0.0, 1.0);
+        final max = (col.max ?? 100).toDouble();
+        final frac = (SuperColumnLogic.numVal(v) / (max == 0 ? 1 : max)).clamp(0.0, 1.0);
         final pct = (frac * 100).round();
         final tone = pct >= 90 ? skin.danger : (pct >= 70 ? skin.warning : skin.accent);
         return Row(children: [
@@ -115,33 +118,34 @@ class SuperCellDisplay extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          Text('$pct%', style: mono.copyWith(fontSize: 11, color: skin.fg3)),
+          Text('$pct%', style: mono.copyWith(fontSize: 11, color: fg ?? skin.fg3)),
         ]);
 
       case SuperColumnType.color:
+        final hex = SuperColumnLogic.colorHex(col, v);
         return Row(children: [
           Container(
             width: 16,
             height: 16,
             decoration: BoxDecoration(
-              color: _parseHex('$v') ?? skin.inputBg,
+              color: _parseHex(hex) ?? skin.inputBg,
               borderRadius: BorderRadius.circular(4),
               border: Border.all(color: const Color(0x40000000)),
             ),
           ),
           const SizedBox(width: 8),
-          Text('$v', style: mono.copyWith(fontSize: 12)),
+          Text(hex, style: mono.copyWith(fontSize: 12)),
         ]);
 
       case SuperColumnType.date:
       case SuperColumnType.time:
-        return Text('$v', maxLines: 1, overflow: TextOverflow.ellipsis, style: mono);
+        return Text('${v ?? ''}', maxLines: 1, overflow: TextOverflow.ellipsis, style: mono);
 
       case SuperColumnType.link:
-        return Text('$v',
+        return Text('${v ?? ''}',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: mono.copyWith(color: skin.accent, decoration: TextDecoration.underline));
+            style: mono.copyWith(color: fg ?? skin.accent, decoration: TextDecoration.underline));
 
       case SuperColumnType.checkbox:
         final on = v == true || v == 'true' || v == 'Yes' || v == 1;
@@ -152,7 +156,7 @@ class SuperCellDisplay extends StatelessWidget {
         return Row(mainAxisSize: MainAxisSize.min, children: [
           Icon(Icons.lock_outline_rounded, size: 12, color: skin.fg4),
           const SizedBox(width: 6),
-          Flexible(child: Text(txt, maxLines: 1, overflow: TextOverflow.ellipsis, style: (col.mono ? mono : body).copyWith(color: skin.fg2))),
+          Flexible(child: Text(txt, maxLines: 1, overflow: TextOverflow.ellipsis, style: (col.mono ? mono : body).copyWith(color: fg ?? skin.fg2))),
         ]);
 
       case SuperColumnType.computed:
@@ -168,25 +172,19 @@ class SuperCellDisplay extends StatelessWidget {
 }
 
 Color? _parseHex(String s) {
-  final m = RegExp(r'^#([0-9a-fA-F]{6})$').firstMatch(s.trim());
+  final m = RegExp(r'^#?([0-9a-fA-F]{6})$').firstMatch(s.trim());
   if (m == null) return null;
   return Color(int.parse('FF${m.group(1)}', radix: 16));
 }
 
 // ============================================================
-// Combo cell editor — embeds the design-system-native AutoSuggestionsBox.
-// ------------------------------------------------------------
-// A thin bridge, not a second editing model: the table still owns the edit
-// session (draft + commit + cursor) on its SuperTableController. The box's own
-// controller shares a private draft TextEditingController so:
-//   • the seeded cell value shows immediately,
-//   • every keystroke flows back through [onChanged] (→ controller.setDraft),
-//   • picking a suggestion commits + moves down (like Enter),
-//   • free-text Enter commits + moves down; Esc cancels; Tab moves sideways.
-// The box renders in `bare` mode so it sits flush inside the cell, and its
-// ThemeExtension is mapped from the live SuperTableSkin so the overlay matches.
+// Combo cell editor — embeds the AutoSuggestionsBox, with per-cell source +
+// controller (rebuildable on fingerPrint change), cached on the table
+// controller's combo registries.
 // ============================================================
 class _SuperComboEditor extends StatefulWidget {
+  final SuperTableController controller;
+  final SuperRow row;
   final SuperColumn col;
   final String value;
   final double height;
@@ -195,6 +193,8 @@ class _SuperComboEditor extends StatefulWidget {
   final void Function({Object? override, int dr, int dc}) onCommit;
   final VoidCallback onCancel;
   const _SuperComboEditor({
+    required this.controller,
+    required this.row,
     required this.col,
     required this.value,
     required this.height,
@@ -211,19 +211,15 @@ class _SuperComboEditor extends StatefulWidget {
 class _SuperComboEditorState extends State<_SuperComboEditor> {
   late final TextEditingController _text = TextEditingController(text: widget.value);
   late final FocusNode _focus = FocusNode(debugLabel: 'SuperCombo');
-  late final AutoSuggestionsBoxController<String> _box = AutoSuggestionsBoxController<String>(
-    source: SuggestionSources.list<String>(
-      [for (final o in widget.col.opts ?? const <String>[]) AutoSuggestion<String>(value: o, label: o)],
-    ),
-    textController: _text, // share this editor's draft text
-    allowFreeText: true,
-  );
+  late AutoSuggestionsBoxController _box;
+  bool _ownsBox = false;
+
+  SuperComboColumn? get _combo => widget.col is SuperComboColumn ? widget.col as SuperComboColumn : null;
 
   @override
   void initState() {
     super.initState();
-    // After layout, focus the field, select the seeded value (so typing
-    // replaces it), then open the suggestions — deterministic, no autofocus race.
+    _resolveBox();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       _focus.requestFocus();
@@ -234,16 +230,59 @@ class _SuperComboEditorState extends State<_SuperComboEditor> {
     });
   }
 
+  /// Build (or reuse) the box source + controller for this cell. Honors the
+  /// column's rebuildable `sourceController` / `cellController` builders and the
+  /// row's fingerPrint (cached on the table controller).
+  void _resolveBox() {
+    final c = widget.controller;
+    final col = _combo;
+    final reuse = !c.comboNeedsRebuild(widget.row, widget.col.key);
+    if (reuse) {
+      final cached = c.comboControllerFor(widget.row, widget.col.key);
+      if (cached != null) {
+        _box = cached;
+        _ownsBox = false;
+        return;
+      }
+    }
+
+    // Build a source: explicit sourceController ▸ static values ▸ empty.
+    // Typed as <dynamic> so any SuperComboColumn<T> source slots in.
+    AutoSuggestionsSource source;
+    if (col?.sourceController != null) {
+      source = col!.sourceController!(context, c, widget.row, widget.row.cells[widget.col.key]!);
+    } else {
+      final opts = widget.col.opts ?? const <String>[];
+      final ovals = widget.col.optValues;
+      source = SuggestionSources.list<dynamic>([
+        for (var i = 0; i < opts.length; i++)
+          AutoSuggestion<dynamic>(value: ovals != null && i < ovals.length ? ovals[i] : opts[i], label: opts[i]),
+      ]);
+    }
+
+    // Build a controller: explicit cellController ▸ default sharing our text.
+    if (col?.cellController != null) {
+      _box = col!.cellController!(context, c, widget.row, widget.row.cells[widget.col.key]!);
+      _ownsBox = false;
+    } else {
+      _box = AutoSuggestionsBoxController<dynamic>(
+        source: source,
+        textController: _text,
+        allowFreeText: col?.allowFreeText ?? true,
+      );
+      _ownsBox = true;
+    }
+    c.registerCombo(widget.row, widget.col.key, source: source, controller: _box);
+  }
+
   @override
   void dispose() {
-    _box.dispose(); // won't dispose the shared text controller…
+    if (_ownsBox) _box.dispose();
     _focus.dispose();
-    _text.dispose(); // …so we dispose it here (we own it)
+    _text.dispose();
     super.dispose();
   }
 
-  /// Map the live SuperTable skin onto the box's ThemeExtension so its field +
-  /// overlay match the surrounding grid in either theme.
   AutoSuggestionsBoxThemeData _boxTheme(SuperTableSkin skin) {
     final base = skin.isDark ? AutoSuggestionsBoxThemeData.dark : AutoSuggestionsBoxThemeData.light;
     return base.copyWith(
@@ -263,20 +302,28 @@ class _SuperComboEditorState extends State<_SuperComboEditor> {
   @override
   Widget build(BuildContext context) {
     final skin = SuperTableSkin.of(context);
+    final col = _combo;
     final opts = widget.col.opts ?? const <String>[];
     return Theme(
       data: Theme.of(context).copyWith(extensions: [_boxTheme(skin)]),
-      child: AutoSuggestionsBox<String>(
+      child: AutoSuggestionsBox(
         controller: _box,
-        focusNode: _focus, // deterministic focus shared with this editor
+        focusNode: _focus,
         bare: true,
         autofocus: true,
         openOnFocus: true,
-        scrollOnFocus: false, // the table owns cell scrolling
-        clearButton: false,
+        scrollOnFocus: false,
+        clearButton: col?.clearButton ?? false,
         fieldHeight: widget.height,
-        maxVisibleRows: 7,
-        hintText: opts.isEmpty ? 'Type a value\u2026' : 'Type or pick\u2026',
+        maxVisibleRows: col?.maxVisibleRows ?? 7,
+        highlightMatches: col?.highlightMatch ?? true,
+        advancedSearch: col?.advancedSearch ?? false,
+        advancedSearchBuilder: col?.advancedSearchBuilder,
+        itemBuilder: col?.itemBuilder,
+        loadingBuilder: col?.loadingBuilder,
+        emptyBuilder: col?.emptyBuilder,
+        leading: col?.leading,
+        hintText: col?.hintText ?? (opts.isEmpty ? 'Type a value\u2026' : 'Type or pick\u2026'),
         textStyle: TextStyle(
           fontFamily: widget.col.mono ? SuperTokensFonts.mono : SuperTokensFonts.body,
           fontSize: 13,
@@ -285,12 +332,14 @@ class _SuperComboEditorState extends State<_SuperComboEditor> {
         ),
         onChanged: widget.onChanged,
         onSelected: (s) {
-          widget.onChanged(s.value);
-          // Pick commits in place and KEEPS the cell selected (no move). A
-          // second Enter (handled by the table) then steps down a row.
+          col?.onSelected?.call(s);
+          widget.onChanged('${s.value}');
           widget.onCommit(override: s.value, dr: 0, dc: 0);
         },
-        onSubmitted: (raw) => widget.onCommit(override: raw, dr: 0, dc: 0), // free-text Enter → commit & stay
+        onSubmitted: (raw) {
+          col?.onSubmitted?.call(raw);
+          widget.onCommit(override: raw, dr: 0, dc: 0);
+        },
         onEscape: widget.onCancel,
         onTabNext: () => widget.onCommit(override: _box.query, dr: 0, dc: 1),
         onTabPrev: () => widget.onCommit(override: _box.query, dr: 0, dc: -1),
@@ -302,6 +351,7 @@ class _SuperComboEditorState extends State<_SuperComboEditor> {
 /// The inline editor for an editing cell. Routes to a type-specific editor and
 /// reports value changes / commit / cancel up to the host.
 class SuperCellEditor extends StatefulWidget {
+  final SuperTableController controller;
   final SuperColumn col;
   final SuperRow row;
   final String value;
@@ -309,12 +359,10 @@ class SuperCellEditor extends StatefulWidget {
   final void Function({Object? override, int dr, int dc}) onCommit;
   final VoidCallback onCancel;
   final bool rtl;
-
-  /// The editing cell's height — handed to the combo editor's AutoSuggestionsBox
-  /// so its field matches the row height (comfortable 40 / compact 32).
   final double height;
   const SuperCellEditor({
     super.key,
+    required this.controller,
     required this.col,
     required this.row,
     required this.value,
@@ -339,7 +387,6 @@ class _SuperCellEditorState extends State<SuperCellEditor> {
   void initState() {
     super.initState();
     final t = widget.col.type;
-    // Pure-popup editors (enum) open immediately; text-ish editors autofocus.
     if (t == SuperColumnType.enumeration) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _openPopup());
     } else if (t != SuperColumnType.checkbox && t != SuperColumnType.combo) {
@@ -358,9 +405,7 @@ class _SuperCellEditorState extends State<SuperCellEditor> {
     super.dispose();
   }
 
-  void _set(String v) {
-    widget.onChanged(v);
-  }
+  void _set(String v) => widget.onChanged(v);
 
   void _maskedSet(String v, String Function(String) mask) {
     final m = mask(v);
@@ -373,6 +418,17 @@ class _SuperCellEditorState extends State<SuperCellEditor> {
     _popup = null;
   }
 
+  /// Map an enum display string back to its raw option value.
+  Object? _enumValueFor(String display) {
+    final col = widget.col;
+    final ov = col.optValues, opts = col.opts;
+    if (ov != null && opts != null) {
+      final i = opts.indexOf(display);
+      if (i >= 0) return ov[i];
+    }
+    return display;
+  }
+
   void _openPopup() {
     if (_popup != null) return;
     final col = widget.col;
@@ -381,7 +437,7 @@ class _SuperCellEditorState extends State<SuperCellEditor> {
       case SuperColumnType.enumeration:
         content = _OptionList(
           options: col.opts ?? const [],
-          selected: widget.value,
+          selected: SuperColumnLogic.displayOf(col, _enumDraftValue()),
           keyboard: true,
           onCancel: () {
             _closePopup();
@@ -390,7 +446,7 @@ class _SuperCellEditorState extends State<SuperCellEditor> {
           builder: (o) => SuperPill(text: o, color: SuperColumnLogic.toneFor(col, o) ?? SuperTableSkin.of(context).fg3, dot: col.dot),
           onPick: (o) {
             _closePopup();
-            widget.onCommit(override: o);
+            widget.onCommit(override: _enumValueFor(o));
           },
         );
         break;
@@ -421,10 +477,10 @@ class _SuperCellEditorState extends State<SuperCellEditor> {
         break;
       case SuperColumnType.color:
         content = _SwatchGrid(
-          value: widget.value,
-          onPick: (c) {
+          value: SuperColumnLogic.colorHex(col, _ctrl.text),
+          onPick: (hex) {
             _closePopup();
-            widget.onCommit(override: c);
+            widget.onCommit(override: SuperColumnLogic.colorFromHex(col, hex));
           },
         );
         break;
@@ -435,7 +491,7 @@ class _SuperCellEditorState extends State<SuperCellEditor> {
     final width = switch (col.type) {
       SuperColumnType.date => 252.0,
       SuperColumnType.color => 184.0,
-      _ => (widthGuess()).clamp(160.0, 320.0),
+      _ => 200.0,
     };
     _popup = OverlayEntry(
       builder: (ctx) => Stack(children: [
@@ -469,17 +525,17 @@ class _SuperCellEditorState extends State<SuperCellEditor> {
     Overlay.of(context).insert(_popup!);
   }
 
-  double widthGuess() => 200;
+  Object? _enumDraftValue() => _enumValueFor(widget.value);
 
   @override
   Widget build(BuildContext context) {
     final skin = SuperTableSkin.of(context);
     final col = widget.col;
 
-    // combo: edited through the design-system-native AutoSuggestionsBox
-    // (type to filter · ↑/↓ to move · Enter/click to pick · free-text commit).
     if (col.type == SuperColumnType.combo) {
       return _SuperComboEditor(
+        controller: widget.controller,
+        row: widget.row,
         col: col,
         value: widget.value,
         height: widget.height,
@@ -498,11 +554,10 @@ class _SuperCellEditorState extends State<SuperCellEditor> {
       color: skin.fg1,
     );
 
-    // bool: a centered toggle button (no text field)
     if (col.type == SuperColumnType.checkbox) {
-      final on = widget.value == 'true' || widget.value == 'Yes' || widget.value == '1' || widget.value == 'true';
+      final on = widget.value == 'true' || widget.value == 'Yes' || widget.value == '1';
       return GestureDetector(
-        onTap: () => widget.onCommit(override: on ? 'false' : 'true'),
+        onTap: () => widget.onCommit(override: !on),
         child: Container(
           color: skin.surface,
           alignment: Alignment.center,
@@ -529,7 +584,7 @@ class _SuperCellEditorState extends State<SuperCellEditor> {
                 height: 18,
                 margin: const EdgeInsets.symmetric(horizontal: 7),
                 decoration: BoxDecoration(
-                  color: _parseHex(widget.value) ?? skin.inputBg,
+                  color: _parseHex(SuperColumnLogic.colorHex(col, _ctrl.text)) ?? skin.inputBg,
                   borderRadius: BorderRadius.circular(4),
                   border: Border.all(color: const Color(0x40000000)),
                 ),
@@ -569,13 +624,7 @@ class _SuperCellEditorState extends State<SuperCellEditor> {
           ),
           if (showTrigger)
             GestureDetector(
-              onTap: () {
-                if (_popup != null) {
-                  _closePopup();
-                } else {
-                  _openPopup();
-                }
-              },
+              onTap: () => _popup != null ? _closePopup() : _openPopup(),
               child: Container(
                 width: 26,
                 height: 26,
@@ -606,9 +655,7 @@ class _SuperCellEditorState extends State<SuperCellEditor> {
         SuperColumnType.date => 'YYYY-MM-DD',
         SuperColumnType.time => 'HH:mm',
         SuperColumnType.color => '#RRGGBB',
-        _ => (col.min != null || col.max != null)
-            ? '${col.min ?? '−∞'}…${col.max ?? '∞'}'
-            : null,
+        _ => (col.min != null || col.max != null) ? '${col.min ?? '−∞'}…${col.max ?? '∞'}' : null,
       };
 
   void _onKey(KeyEvent e) {
@@ -627,7 +674,6 @@ class _SuperCellEditorState extends State<SuperCellEditor> {
 
   void _commitClamped({required int dr, required int dc}) {
     _closePopup();
-    // numeric: clamp on commit
     if (widget.col.type.isNumeric) {
       final s = _ctrl.text.trim();
       if (s.isEmpty) {
@@ -641,15 +687,12 @@ class _SuperCellEditorState extends State<SuperCellEditor> {
   }
 }
 
-// ── popup option list (enum / combo / time) ──
+// ── popup option list (enum / time) ──
 class _OptionList extends StatefulWidget {
   final List<String> options;
   final String selected;
   final Widget Function(String) builder;
   final ValueChanged<String> onPick;
-
-  /// When true the list autofocuses and supports ↑/↓ to move + Enter to pick +
-  /// Esc to cancel (used by the enum dropdown and time list).
   final bool keyboard;
   final VoidCallback? onCancel;
   const _OptionList({
@@ -717,7 +760,6 @@ class _OptionListState extends State<_OptionList> {
       return KeyEventResult.handled;
     }
     if (k == LogicalKeyboardKey.tab) {
-      // Don't let Tab leave the popup; treat as commit of the highlighted value.
       if (_hi >= 0 && _hi < widget.options.length) widget.onPick(widget.options[_hi]);
       return KeyEventResult.handled;
     }
@@ -742,8 +784,7 @@ class _OptionListState extends State<_OptionList> {
                 onTap: () => widget.onPick(widget.options[i]),
                 child: Row(children: [
                   Expanded(child: widget.builder(widget.options[i])),
-                  if (widget.options[i] == widget.selected)
-                    Icon(Icons.check_rounded, size: 14, color: skin.accent),
+                  if (widget.options[i] == widget.selected) Icon(Icons.check_rounded, size: 14, color: skin.accent),
                 ]),
               ),
           ],
@@ -877,7 +918,7 @@ class _MiniCalendarState extends State<_MiniCalendar> {
   Widget build(BuildContext context) {
     final skin = SuperTableSkin.of(context);
     final days = DateTime(_y, _m + 1, 0).day;
-    final startDow = DateTime(_y, _m, 1).weekday % 7; // Sun=0
+    final startDow = DateTime(_y, _m, 1).weekday % 7;
     final now = DateTime.now();
     final todayIso = '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
     final cells = <int?>[for (var i = 0; i < startDow; i++) null, for (var d = 1; d <= days; d++) d];

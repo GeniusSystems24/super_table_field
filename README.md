@@ -4,25 +4,35 @@
 
 A **GeniusLink design-system** Flutter package that pairs two production components and wires them together:
 
-- **`SuperTable`** — a keyboard-first data grid with `readable` and `editable` modes, 13 column types, per-column filters, multi-level grouping, totals, pagination, clipboard, and undo/redo.
+- **`SuperTable<R>`** — a generic, keyboard-first data grid with `readable` and `editable` modes, a typed column hierarchy, per-column **and** advanced (cross-column) filtering, conditional row/cell styling, multi-level grouping, totals, pagination, clipboard, and undo/redo.
 - **`AutoSuggestionsBox`** — a typeahead / combobox field with local + remote sources, fuzzy matching, multi-select, free-text, and an advanced-search overlay.
 
 In editable mode, the table's `combo` columns are edited **through the real `AutoSuggestionsBox`** — one keyboard model, one look, no duplicate combobox.
 
-Light + dark themes, full LTR + RTL. Faithful Dart ports of the React `super-table` and `auto-suggestion-box` tools.
+Light + dark themes, full LTR + RTL.
+
+## What's new in 0.4.0
+
+- **Generic `SuperTable<R>`** — each row wraps a host-owned, typed backing `value` of type `R` **plus** an editable `cells` map.
+- **Typed column hierarchy** — `SuperTextColumn`, `SuperNumberColumn<T>`, `SuperCurrencyColumn`, `SuperEnumerationColumn<T>`, `SuperComboColumn<T>`, `SuperProgressColumn<T>`, `SuperColorColumn<T>`, `SuperDateColumn`, `SuperTimeColumn`, `SuperLinkColumn`, `SuperCheckboxColumn`, `SuperComputedColumn<T>` — with `SuperColumn<T>` still available as a flexible base.
+- **`onChange` + `validator`** per column (editable mode).
+- **Advanced filter** — a cross-column filter editor with a badge in the gutter header; column filters and the advanced filter are mutually exclusive.
+- **Programmatic everything** — switch mode, drive filters (and read them back as JSON), and select cells/rows from the controller.
+- **Conditional styling** — `SuperRowStyle` (row-level) and `CellStyle` (cell-level) maps.
+
+See the [CHANGELOG](CHANGELOG.md) for the full list and migration notes.
 
 ## Features
 
-- ✅ **Two modes, one grid** — flip `SuperTableController(mode: …)` between `readable` and `editable`.
-- ✅ **13 column types** — `text`, `number`, `currency`, `percent`, `combo`, `enumeration`, `checkbox`, `date`, `time`, `color`, `progress`, `tag`, `rating`.
-- ✅ **Per-column filters** (readable mode) — auto-typed control per column, full-bleed in the header.
-- ✅ **Sticky row-number gutter** — frozen during horizontal scroll; click to select the whole row.
-- ✅ **Grouping & aggregates** — group by any `groupable` column, with `sum`/`avg`/`min`/`max`/`count` totals.
-- ✅ **Tree row context menu** — flexible builder with nested submenus.
-- ✅ **Combo ⇄ AutoSuggestionsBox** — filter, arrow-navigate, pick, free-text, Tab traversal.
-- ✅ **Progressive remote sources** — show local rows instantly, stream remote in behind a spinner.
-- ✅ **Advanced search overlay** — `Ctrl`/`⌘`+`F` opens a modal search surface.
-- ✅ **Theming** — `ThemeExtension`-based; light/dark in parity; LTR/RTL mirrored.
+- ✅ **Two modes, one grid** — flip a `SuperTableController` between `readable` and `editable` at runtime (`setMode` / `toggleMode`).
+- ✅ **Typed columns** — a dedicated class per type, each exposing only the knobs that make sense for it, plus shared `onChange` / `validator` / `styles` hooks.
+- ✅ **Generic rows** — `SuperRow<R>` carries your domain object as `value` and the grid's editable view as `cells`.
+- ✅ **Filtering** — per-column filters, an advanced cross-column editor, sync/async/stream filter option sources, programmatic get/set, and a JSON filter state.
+- ✅ **Conditional styling** — row styles win over cell styles; first matching condition applies.
+- ✅ **Sticky row-number gutter** — frozen during horizontal scroll; click to select the whole row without moving the edit cursor.
+- ✅ **Grouping & aggregates**, **totals**, **pagination** (pages / infinite / load-more).
+- ✅ **Combo ⇄ AutoSuggestionsBox** — with per-cell, rebuildable sources/controllers driven by the row `fingerPrint`.
+- ✅ **Clipboard** (JSON / TSV), **undo/redo**, **keyboard-first** with an `onKey` escape hatch.
 
 ## Getting started
 
@@ -34,7 +44,7 @@ dependencies:
     path: ../super_table_field   # or a git / hosted ref
 ```
 
-Register **both** `ThemeExtension`s on your `ThemeData` (omitting them leaves components unstyled):
+Register **both** `ThemeExtension`s on your `ThemeData`:
 
 ```dart
 import 'package:super_table_field/super_table_field.dart';
@@ -53,203 +63,260 @@ MaterialApp(
 
 > **Fonts** — the design system uses Manrope (display), Inter (body), JetBrains Mono (numerics) and Noto Naskh Arabic. Drop the `.ttf` files under `assets/fonts/` and uncomment the `fonts:` block in `pubspec.yaml`; otherwise platform defaults are used.
 
-## Usage
+## Core concepts
 
-### SuperTable with a combo column
+### `SuperRow<R>` — backing value + cells
 
-`SuperTable` needs a **bounded height** — wrap it in `Expanded`/`Flexible`, or pass `maxHeight:`.
+A row wraps a host-owned, typed `value` (your domain model) **and** an editable `cells` map (the grid's view). Editing a cell mutates `cells['key'].value`; a column's `write` hook can push that back into `value`.
 
 ```dart
-final controller = SuperTableController(
+// Map-backed (the common path) — `value` IS the map, cells mirror its entries:
+final row = SuperRow.map({'sku': 'INV-001', 'qty': 12, 'unit': 'box'});
+
+// Typed-model-backed:
+final product = Product(sku: 'INV-001', qty: 12);
+final typed = SuperRow<Product>.of(product, {'sku': product.sku, 'qty': product.qty});
+
+row['qty'];            // 12     (cell read)
+row['qty'] = 20;       // set a cell
+row.fingerPrint;       // rebuild token (see SuperComboColumn)
+row.randomFingerPrint(); // force per-row editor resources to rebuild
+```
+
+### `SuperTable<R>` needs a bounded height
+
+Wrap it in `Expanded` / `Flexible`, or pass `maxHeight:`.
+
+```dart
+final controller = SuperTableController<Map<String, dynamic>>(
   mode: SuperTableMode.editable,
-  columns: const [
-    SuperColumn(key: 'sku',  label: 'SKU',  type: SuperColumnType.text, width: 130, mono: true),
-    SuperColumn(key: 'qty',  label: 'Qty',  type: SuperColumnType.number, width: 90,
-                align: SuperAlign.end, agg: SuperAgg.sum),
-
-    // combo → edited through AutoSuggestionsBox in editable mode
-    SuperColumn(key: 'unit', label: 'Unit', type: SuperColumnType.combo, width: 130,
-                opts: ['each', 'box', 'pallet', 'kg', 'tonne']),
-
-    SuperColumn(key: 'price', label: 'Price', type: SuperColumnType.currency, width: 120,
-                align: SuperAlign.end, agg: SuperAgg.sum),
+  addRowEnabled: true,
+  emptyRowValue: () => <String, dynamic>{},
+  columns: [
+    SuperTextColumn(key: 'sku', label: 'SKU', width: 130, mono: true),
+    SuperNumberColumn<int>(key: 'qty', label: 'Qty', width: 90, agg: SuperAgg.sum),
+    SuperComboColumn<String>(key: 'unit', label: 'Unit', width: 130,
+        values: const ['each', 'box', 'pallet', 'kg', 'tonne']),
+    SuperCurrencyColumn(key: 'price', label: 'Price', width: 120, agg: SuperAgg.sum),
   ],
   rows: [
-    {'sku': 'INV-SB-200', 'qty': 120, 'unit': 'each', 'price': 340.0},
-    {'sku': 'INV-CM-050', 'qty': 38,  'unit': 'box',  'price': 18.5},
+    SuperRow.map({'sku': 'INV-SB-200', 'qty': 120, 'unit': 'each', 'price': 340.0}),
+    SuperRow.map({'sku': 'INV-CM-050', 'qty': 38,  'unit': 'box',  'price': 18.5}),
   ],
 );
 
-Expanded(child: SuperTable(controller: controller));
+Expanded(child: SuperTable<Map<String, dynamic>>(controller: controller));
 ```
 
-**Editing a combo cell** (double-click, or `Enter`):
+## Columns
+
+Each type is a class. Reach for `SuperColumn<T>` directly only for bespoke/custom columns.
+
+| Class | Cell type | Notes |
+|---|---|---|
+| `SuperTextColumn` | `String` | `arKey:` adds a bilingual Arabic sub-line |
+| `SuperNumberColumn<T extends num>` | `T` | `min` / `max` / `decimals` / `colorSign` |
+| `SuperCurrencyColumn` | `num` | `symbol` / `code`, `FilterItem` filters |
+| `SuperEnumerationColumn<T>` | `T` | strict dropdown; `values` + `display` |
+| `SuperComboColumn<T>` | `T` | edited via `AutoSuggestionsBox` |
+| `SuperProgressColumn<T extends num>` | `T` | 0…`max` bar |
+| `SuperColorColumn<T>` | hex / int / `Color` | `valueMode:` |
+| `SuperDateColumn` | `String` | masked `YYYY-MM-DD` + calendar |
+| `SuperTimeColumn` | `String` | masked `HH:mm` |
+| `SuperLinkColumn` | `String` | `onOpen` |
+| `SuperCheckboxColumn` | `bool` | |
+| `SuperComputedColumn<T>` | derived | `compute` + `format` |
+
+### `onChange` and `validator` (editable mode)
+
+```dart
+SuperNumberColumn<num>(
+  key: 'debit',
+  label: 'Debit',
+  // Pre-commit gate: may mutate sibling cells / the row fingerPrint.
+  // Return true to accept the new value, false to reject it.
+  onChange: (context, controller, row, cell, previousValue, newValue) {
+    if (newValue > 0) row['credit'] = 0; // clear the credit on this row
+    return newValue >= 0;
+  },
+  // Return an error code/message (or null when valid). Drives the cell badge.
+  validator: (context, controller, row, cell, value) =>
+      value < 0 ? 'Must be ≥ 0' : null,
+);
+```
+
+### Conditional cell styles
+
+```dart
+SuperNumberColumn<int>(
+  key: 'progress', label: 'Progress',
+  styles: {
+    (context, controller, row, cell) => (cell.value as num) >= 100:
+        const CellStyle(foreground: Color(0xFF1DB88A), fontWeight: FontWeight.w700),
+    (context, controller, row, cell) => (cell.value as num) == 0:
+        const CellStyle(foreground: Color(0xFFEF4444)),
+  },
+);
+```
+
+## Conditional row styles
+
+Pass a `styles:` map to `SuperTable`. **Row styles take priority over cell styles**; the first matching condition wins.
+
+```dart
+SuperTable<Map<String, dynamic>>(
+  controller: c,
+  styles: {
+    (context, controller, row) => row['status'] == 'Out of Stock':
+        const SuperRowStyle(background: Color(0x14EF4444), accentBar: Color(0xFFEF4444)),
+    (context, controller, row) => row['active'] == false:
+        const SuperRowStyle(foreground: Color(0xFF8C92A4)),
+  },
+);
+```
+
+## Filtering
+
+### Per-column + advanced
+
+A per-column filter row renders beneath the header in `readable` mode. The **advanced filter** button lives in the row-number header; opening it lets you build cross-column clauses (AND-combined). The two are **mutually exclusive** — activating the advanced filter clears, disables and slashes the column fields and shows a red badge.
+
+```dart
+// Column filters (setting one deactivates the advanced filter)
+c.setColumnFilter('cat', 'Raw Material');
+c.clearColumnFilters();
+
+// Advanced filter
+c.setAdvancedFilter([
+  const AdvancedFilterClause(columnKey: 'amount', op: FilterOp.greaterOrEqual, value: 500),
+]);
+c.clearAdvancedFilter();
+
+// Read / restore the whole filter state as JSON
+final Map<String, dynamic> json = c.filterStateJson();
+c.applyFilterJson(json);
+```
+
+### Filter option sources
+
+Enumeration / currency / color columns take typed `FilterItem`s — or a sync / async / stream source:
+
+```dart
+SuperEnumerationColumn<String>(
+  key: 'priority', label: 'Priority', values: const ['Low', 'High'],
+  filterItems: const [FilterItem('🟢 Low', 'Low'), FilterItem('🔴 High', 'High')],
+);
+
+// or:
+filterSource: FilterValueSources.async(() => api.distinctPriorities()),
+```
+
+### Load-more receives the filter state
+
+```dart
+SuperTableController<Map<String, dynamic>>(
+  pagination: SuperPagination.loadMore,
+  hasMore: true,
+  onLoadMore: (filter) async {              // filter is the live SuperFilterState
+    final page = await api.fetch(query: filter.toJson());
+    c.appendRows(page, hasMore: page.length == pageSize);
+  },
+);
+```
+
+## SuperComboColumn — full AutoSuggestionsBox options
+
+`SuperComboColumn` forwards every box option. The two **rebuildable** builders (`sourceController` / `cellController`) are re-invoked whenever the cell takes edit-focus **and** the row's `fingerPrint` changed — so suggestions can depend on the rest of the row.
+
+```dart
+SuperComboColumn<String>(
+  key: 'bin', label: 'Bin',
+  hintText: 'Search bins…',
+  advancedSearch: true,
+  itemBuilder: (context, suggestion, highlighted) => /* ... */,
+  // Rebuilt when the row fingerPrint changes (e.g. after the warehouse cell changes):
+  sourceController: (context, controller, row, cell) =>
+      SuggestionSources.async<String>((q) => api.bins(row['warehouse'], q)),
+);
+```
+
+Access a cell's live box from the controller:
+
+```dart
+c.comboControllerFor(row, 'bin'); // AutoSuggestionsBoxController?
+c.comboSourceFor(row, 'bin');     // AutoSuggestionsSource?
+```
+
+## Focus & selection (programmatic)
+
+```dart
+c.selectCellAt(2, 1);            // one cell
+c.selectCells([CellPos(0,0), CellPos(3,2)]);
+c.selectRowAt(4);                // one row
+c.selectRowsAt([0, 1, 2]);       // many rows
+c.clearSelection();
+```
+
+Clicking the **row-number** cell selects the whole row **without** moving the active edit cursor.
+
+## Keyboard
 
 | Key | Action |
 |---|---|
-| type | filter the options live |
-| `↑` / `↓` | move the highlight |
-| `Enter` / click | pick the option and **commit in place** (cell stays selected) |
-| `Enter` again | step down to the next row |
-| free text + `Enter` | commit the typed value (combo allows free text), stay in place |
-| `Tab` / `Shift+Tab` | commit and move to the next / previous cell |
-| `Esc` | cancel the edit |
+| arrows / `Tab` | move; `Tab` at the last cell **appends a row** and focuses its first cell |
+| `Enter` / `F2` / type | edit |
+| `⌘`/`Ctrl` + `Enter` | insert a row **after** the focused row (focus same column) |
+| `⌘`/`Ctrl` + `Shift` + `Enter` | insert a row **before** the focused row |
+| `⌘`/`Ctrl` + `C` / `V` / `X` | copy / paste (validated) / cut as JSON / TSV |
+| `⌘`/`Ctrl` + `Z` / `Shift+Z` | undo / redo |
 
-`enumeration` columns (closed set) behave the same, minus free text.
-
-### Per-column filters (readable mode)
-
-A filter row renders beneath the header in `readable` mode (toggle with `SuperTable(columnFilters: …)`, default **on**). The control is chosen per column — value dropdown for `combo`/`enumeration`, tri-state for `checkbox`, a full-bleed contains field otherwise; `color` is skipped, and columns can opt out with `filterable: false`. Filters combine with **AND** and with the global search:
+Intercept keys yourself with the controller's `onKey` (return `true` to consume):
 
 ```dart
-controller.setColumnFilter('cat', 'Raw Material'); // narrow one column ('' clears)
-controller.columnFilter('cat');                    // → 'Raw Material'
-controller.activeColumnFilters;                     // → {'cat': 'Raw Material'}
-controller.clearColumnFilters();                    // reset all
-```
-
-### Grouping (readable mode)
-
-Right-click a row for **Group by ▸** (a submenu of every `groupable` column), or use the header menu. Opt a column out with `groupable: false`.
-
-```dart
-controller.toggleGroup('cat');   // add / remove a grouping level
-controller.groupKeys;            // active grouping columns, in order
-```
-
-### Row number column
-
-```dart
-SuperTable(controller: c, numbered: true); // show the gutter (default)
-```
-
-The gutter is **frozen** during horizontal scroll. Clicking a row number selects the **entire row**; `Shift` / `⌘`-click extend or toggle the selection band.
-
-### Custom row context menu (with submenus)
-
-`rowMenuBuilder` receives the row context plus the default entries; return the list to show. Any entry with `children` becomes an expandable tree node.
-
-```dart
-SuperTable(
-  controller: c,
-  rowMenuBuilder: (ctx, defaults) => [
-    ...defaults,
-    SuperMenuEntry(
-      icon: Icons.bolt_outlined,
-      label: 'Workflow',
-      separatorBefore: true,
-      children: [
-        SuperMenuEntry(label: 'Approve', onTap: () => approve(ctx.row)),
-        SuperMenuEntry(label: 'Reject',  danger: true, onTap: () => reject(ctx.row)),
-        SuperMenuEntry(
-          label: 'Assign to',
-          children: [
-            SuperMenuEntry(label: 'Finance', onTap: () => assign(ctx.rowIndex, 'finance')),
-            SuperMenuEntry(label: 'Audit',   onTap: () => assign(ctx.rowIndex, 'audit')),
-          ],
-        ),
-      ],
-    ),
-  ],
+SuperTableController(
+  onKey: (context, controller, node, event) {
+    if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.keyR) {
+      controller.clearColumnFilters();
+      return true;
+    }
+    return false;
+  },
 );
 ```
 
-### AutoSuggestionsBox on its own
+## Controller actions
 
 ```dart
-AutoSuggestionsBox<String>(
-  source: SuggestionSources.list<String>([
-    AutoSuggestion(value: 'each', label: 'each'),
-    AutoSuggestion(value: 'box',  label: 'box'),
-  ]),
-  hintText: 'Type or pick…',
-  onSelected: (s) => debugPrint('picked ${s.value}'),
-  onSubmitted: (raw) => debugPrint('free text $raw'),
-);
+c.setMode(SuperTableMode.editable);  // or toggleMode()
+c.appendRows(more, hasMore: false);  // load-more / streaming
+c.clearTable();
+c.requestLoadMore();                 // == loadMore()
+c.updateRows(rows);
+c.updateColumns(columns);
 ```
-
-Behavioural notes:
-
-- **Restore on blur** — leaving the field without picking reverts unconfirmed typing to the last committed value (unless nothing was ever committed). Disable with `restoreOnBlur: false`.
-- **Caret-anchored query** — matching uses the text from the first character **up to the caret**, so editing mid-string filters on the prefix you're actually in.
-
-### Suggestion sources
-
-| Factory | Use |
-|---|---|
-| `SuggestionSources.list(items)` | static, in-memory |
-| `SuggestionSources.strings(values)` | static plain strings |
-| `SuggestionSources.fuzzy(items)` | fuzzy-ranked |
-| `SuggestionSources.async(fetch)` | debounced remote lookup |
-| `SuggestionSources.remoteFallback(...)` | **local-first, progressive remote** |
-
-`remoteFallback` shows local matches instantly and only calls `fetch` when the local match count is `remoteThreshold` **or fewer** — remote rows then merge in (de-duplicated) behind a *“loading more”* indicator:
-
-```dart
-AutoSuggestionsBox<String>(
-  source: SuggestionSources.remoteFallback<String>(
-    initialItems: localVendors,
-    fetch: (q) => api.searchVendors(q),  // Future<List<AutoSuggestion<String>>>
-    remoteThreshold: 3,
-    remoteMinChars: 1,
-  ),
-);
-```
-
-### Advanced search overlay
-
-```dart
-AutoSuggestionsBox<String>(
-  items: directory,
-  advancedSearch: true, // focus the field, then press Ctrl/⌘+F
-);
-```
-
-Opens a modal surface over the same controller (a pick there commits straight back). Supply `advancedSearchBuilder` for a custom surface.
-
-## Architecture
-
-Clean Architecture, MVC-aligned, split per feature:
-
-```
-lib/
-├── super_table_field.dart            # public barrel — import this
-└── src/
-    ├── core/                         # shared tokens, widgets, utils, extensions
-    └── features/
-        ├── auto_suggestion_box/
-        │   ├── data/                 # suggestion sources (datasources), models
-        │   ├── domain/               # entities, source contract, usecases
-        │   └── presentation/         # controllers (Model), widgets + pages (View)
-        └── super_table/
-            ├── data/
-            ├── domain/               # SuperColumn, SuperTableState, column logic
-            └── presentation/
-                ├── controllers/      # SuperTableController (the Model/state)
-                ├── widgets/          # SuperTable, SuperCell, overlays (the View)
-                └── pages/            # SuperTableDemo
-```
-
-- **Model** — `SuperTableController` / `AutoSuggestionsBoxController` are `ChangeNotifier`s that own all state and domain logic, free of widget concerns.
-- **View** — widgets observe the controller and forward intents back.
-- **Domain** — entities and usecases (sorting, grouping, formatting, matching) are plain Dart.
 
 ## Example
 
-A runnable gallery lives in `example/`:
+A runnable gallery lives in `example/` with five focused examples:
+
+1. **Read-only report** — readable mode, typed model, conditional row styling.
+2. **Editable journal** — `validator` + `onChange`, Ctrl+Enter insert, live balance.
+3. **Async combo** — `SuperComboColumn.sourceController` + `fingerPrint` rebuild.
+4. **Controller-driven** — `setMode`, `onLoadMore`, programmatic filters + selection.
+5. **Styling & filters** — cell/row styles, `FilterItem` dropdowns, `onKey`.
 
 ```bash
 cd example
 flutter run
 ```
 
-It registers both theme extensions, toggles light/dark and LTR/RTL, and links the **SuperTable** demo (switch to *Editable*, edit the *Unit* combo column, group/filter in *Readable*) and the **Auto Suggestion Box** demo (single/multi/fuzzy, remote fallback, advanced search).
+## Architecture
 
-## Additional information
+Clean Architecture, MVC-aligned, split per feature. The `SuperTableController` / `AutoSuggestionsBoxController` are `ChangeNotifier`s that own all state and domain logic; widgets observe them and forward intents; entities and usecases (sorting, grouping, formatting, matching, validation) are plain Dart. Import the single barrel:
 
-- **Bounded height** — `SuperTable` scrolls internally; give it a bounded height (`Expanded`, `Flexible`, or `maxHeight:`).
-- **Theme parity** — when embedding the box yourself, register `AutoSuggestionsBoxThemeData` or the overlay will fall back to defaults.
-- See `SKILL.md` for an agent-oriented usage guide.
+```dart
+import 'package:super_table_field/super_table_field.dart';
+```
 
 ## License
 

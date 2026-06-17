@@ -15,6 +15,10 @@
 // ============================================================
 
 export 'domain/entities/super_column.dart';
+export 'domain/entities/super_columns.dart';
+export 'domain/entities/super_row.dart';
+export 'domain/entities/super_style.dart';
+export 'domain/entities/super_filter.dart';
 export 'domain/entities/super_table_state.dart';
 export 'domain/usecases/super_column_logic.dart';
 export 'presentation/controllers/super_table_controller.dart';

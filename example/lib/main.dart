@@ -13,6 +13,13 @@
 import 'package:flutter/material.dart';
 import 'package:super_table_field/super_table_field.dart';
 
+import 'examples/example_1_readonly_report.dart';
+import 'examples/example_2_editable_journal.dart';
+import 'examples/example_3_async_combo.dart';
+import 'examples/example_4_controller_driven.dart';
+import 'examples/example_5_styling_and_filters.dart';
+import 'examples/example_6_playground.dart';
+
 void main() => runApp(const ExampleApp());
 
 class ExampleApp extends StatefulWidget {
@@ -84,8 +91,20 @@ class _Launcher extends StatelessWidget {
   final VoidCallback onToggleDir;
 
   static final List<_Demo> _demos = [
-    _Demo('Super Table', 'Editable/readable grid · 13 column types · combo ⇒ AutoSuggestionsBox',
+    _Demo('Super Table', 'Editable/readable grid · typed columns · combo ⇒ AutoSuggestionsBox',
         Icons.grid_on_outlined, (_) => const SuperTableDemo()),
+    _Demo('1 · Read-only report', 'Readable mode · typed model · conditional row styling',
+        Icons.assessment_outlined, (_) => const ReadonlyReportExample()),
+    _Demo('2 · Editable journal', 'validator + onChange · Ctrl+Enter insert · live balance',
+        Icons.edit_note_outlined, (_) => const EditableJournalExample()),
+    _Demo('3 · Async combo', 'SuperComboColumn sourceController · fingerPrint rebuild',
+        Icons.cloud_sync_outlined, (_) => const AsyncComboExample()),
+    _Demo('4 · Controller-driven', 'setMode · onLoadMore · programmatic filters + selection',
+        Icons.tune_outlined, (_) => const ControllerDrivenExample()),
+    _Demo('5 · Styling & filters', 'Cell/row styles · FilterItem dropdowns · onKey',
+        Icons.palette_outlined, (_) => const StylingAndFiltersExample()),
+    _Demo('6 · Playground', 'Full toolbar · mode/search/select/paging/totals/filters',
+        Icons.dashboard_customize_outlined, (_) => const PlaygroundExample()),
     _Demo('Auto Suggestion Box', 'Typeahead · groups · multi-select · fuzzy',
         Icons.manage_search_outlined, (_) => const AutoSuggestionBoxDemo()),
   ];

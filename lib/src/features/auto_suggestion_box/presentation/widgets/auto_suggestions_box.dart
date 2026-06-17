@@ -1093,7 +1093,7 @@ class _AdvancedSearchDialogState<T> extends State<_AdvancedSearchDialog<T>> {
                   child: Row(children: [
                     Expanded(
                       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        const Text('ADVANCED SEARCH',
+                        Text('ADVANCED SEARCH',
                             style: TextStyle(
                                 fontFamily: AutoSuggestionsBoxThemeData.bodyFont,
                                 fontSize: 10.5,

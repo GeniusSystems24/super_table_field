@@ -3,6 +3,77 @@
 All notable changes to **super_table_field** are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/); versioning is [SemVer](https://semver.org/).
 
+## [0.4.0] — 2026-06-17
+
+A large, **breaking** release: `SuperTable` is now generic, columns are a typed
+class hierarchy, and the filtering / styling / focus / combo systems all gained
+programmatic surfaces.
+
+### Breaking
+- **`SuperTable` → `SuperTable<R>`** and **`SuperTableController` → `SuperTableController<R>`**,
+  generic over the row's backing type `R`.
+- **Rows are now `SuperRow<R>`** — a host-owned, typed `value` **plus** an editable
+  `cells` map (`Map<String, SuperCell>`) — not a bare `Map<String, dynamic>`.
+  Build them with `SuperRow.map({...})` (Map-backed) or `SuperRow<T>.of(value, {...})`
+  (typed-model-backed).
+- **The cell *coordinate*** type was renamed `SuperCell` → **`CellPos`**; the name
+  `SuperCell` is now the editable **cell-data** object (`value` + `error`).
+- Prefer the **typed column classes** over `SuperColumn(type: …)`; `SuperColumn<T>`
+  remains as a flexible base.
+
+### Added — Columns
+- **Typed column hierarchy**: `SuperTextColumn`, `SuperNumberColumn<T>`,
+  `SuperCurrencyColumn`, `SuperEnumerationColumn<T>`, `SuperComboColumn<T>`,
+  `SuperProgressColumn<T>`, `SuperColorColumn<T>` (number / text / `Color` value
+  modes), `SuperDateColumn`, `SuperTimeColumn`, `SuperLinkColumn`,
+  `SuperCheckboxColumn`, `SuperComputedColumn<T>`.
+- **`onChange`** — pre-commit gate (editable). May mutate sibling cells / the row
+  `fingerPrint`; returns whether the new value is accepted.
+- **`validator`** — returns an error code (or null); drives the per-cell badge.
+- **Conditional `styles`** per column (`CellStyle`).
+
+### Added — SuperTable / controller
+- **Mode switching through the controller** — `setMode` / `toggleMode`.
+- **Table actions** — `appendRows`, `clearTable`, `requestLoadMore` / `loadMore`,
+  `updateRows`, `updateColumns`, `setLoadMoreState`.
+- **Conditional row styles** — `SuperTable(styles: {condition: SuperRowStyle})`;
+  row styles take priority over column cell styles.
+- **`onKey`** — host keyboard hook on the controller (consult-before-default).
+
+### Added — Filtering
+- **Advanced (cross-column) filter** — a button in the row-number header opens a
+  clause editor; while active, column filters are cleared, disabled and slashed,
+  and the button shows a red badge. Setting a column filter deactivates it.
+- **Programmatic filters** — `setColumnFilter`, `setAdvancedFilter`,
+  `clearAdvancedFilter`, `applyFilterState` / `applyFilterJson`.
+- **JSON filter state** — `filterState` / `filterStateJson()`.
+- **`onLoadMore` now receives the live `SuperFilterState`** for backend fetches.
+- **Filter option sources** — sync / async / stream via `FilterValueSources`.
+- **`FilterItem(display, value)`** filter values for enumeration / currency /
+  color columns (replacing bare `List<String>`).
+
+### Added — Focus & combo
+- **Programmatic selection** — `selectCellAt`, `selectCells`, `selectRowAt`,
+  `selectRowsAt`, `clearSelection`.
+- Clicking the **row-number** cell selects the whole row **without** moving the
+  edit cursor.
+- **`SuperComboColumn`** forwards all `AutoSuggestionsBox` options, plus the
+  rebuildable **`sourceController`** / **`cellController`** builders (re-invoked on
+  `fingerPrint` change). Access them via `comboControllerFor` / `comboSourceFor`.
+
+### Fixed
+- **Tab on the last cell** now appends a new row and focuses its first cell.
+- **`⌘`/`Ctrl`+Enter** inserts a row after the focused row; add **Shift** to insert
+  before — focus moves to the same column in the new row.
+- **Right-click** opens the column header menu (left button drags to reorder; touch
+  double-tap opens the menu).
+- Row context-menu submenus now open as cascading **overlayCards**.
+- Load-more skeletons render at the **scroll tail** with an animated shimmer.
+
+### Docs
+- README rewritten for 0.4.0 (concepts, typed columns, filtering, styling, combo,
+  focus, keyboard). SKILL guide updated. Five new examples in `example/`.
+
 ## [0.3.0] — 2026-06-17
 
 ### Added — SuperTable

@@ -1,21 +1,22 @@
 // ============================================================
 // features/super_table/presentation/widgets/super_table.dart
 // ------------------------------------------------------------
-// The VIEW for the unified SuperTable — a thin, keyboard-first render of the
-// SuperTableController. A 1:1 port of the React tool's grid:
-//   • an editable-mode FORMULA BAR (Copy JSON · Undo · Redo · Shortcuts),
-//   • a GROUPED-BY chips bar when grouping is active,
-//   • a sticky header (optional type-tag sub-row, sort caret, resize grip,
-//     drag-reorder, click-to-open header menu),
-//   • a scrolling body of data rows + multi-level group headers (+ empty state),
-//   • an optional totals row,
-//   • an actionable trailing column (per-row delete / add-column header),
-//   • a footer: load-more button / numbered pager / keyboard status hint.
+// The VIEW for the unified SuperTable — a thin, keyboard-first render of a
+// `SuperTableController<R>`. Generic over the row's backing type `R`.
 //
-// Every cell display + editor comes from `super_cell.dart`; menus, dialogs and
-// the error badge from `super_table_overlays.dart`. All state lives in the
-// controller; this widget paints it and forwards pointer + key intents, with
-// scroll-on-focus + infinite-scroll wired to the controller.
+// 0.4.0 highlights:
+//   • an ADVANCED-FILTER button in the row-number header (red badge when
+//     active; while active the per-column filter fields are cleared, disabled
+//     and struck through with a slash),
+//   • RIGHT-CLICK (or touch double-tap) opens the column header menu; the LEFT
+//     button drags to reorder,
+//   • conditional ROW styles (via `SuperTable.styles`) and CELL styles (via
+//     each column's `styles`) — row styles win,
+//   • a host `onKey` hook (on the controller) consulted before defaults,
+//   • integrated load-more skeletons at the scroll tail + a shimmer animation.
+//
+// Cell display + editors come from `super_cell.dart`; menus / dialogs / the
+// error badge / the advanced-filter editor from `super_table_overlays.dart`.
 // ============================================================
 
 import 'package:flutter/material.dart';
@@ -23,6 +24,9 @@ import 'package:flutter/services.dart';
 
 import '../../../../core/core.dart';
 import '../../domain/entities/super_column.dart';
+import '../../domain/entities/super_filter.dart';
+import '../../domain/entities/super_row.dart';
+import '../../domain/entities/super_style.dart';
 import '../../domain/entities/super_table_state.dart';
 import '../../domain/usecases/super_column_logic.dart';
 import '../controllers/super_table_controller.dart';
@@ -32,67 +36,42 @@ import 'super_table_skin.dart';
 
 const double _kRowH = 40;
 const double _kRowHCompact = 32;
-const double _kHeadFull = 46; // with the type-tag sub-row (readable)
-const double _kHeadFlat = 38; // label only
-const double _kGutter = 40; // row-number / select gutter
-const double _kActionW = 46; // trailing action column
-const double _kFilterRowH = 38; // readable-mode per-column filter row
+const double _kHeadFull = 46;
+const double _kHeadFlat = 38;
+const double _kGutter = 40;
+const double _kActionW = 46;
+const double _kFilterRowH = 38;
 
-/// Context handed to [SuperTable.rowMenuBuilder] so callers can tailor the
-/// right-click row menu (append commands, build a tree, remove defaults).
-class SuperRowMenuContext {
-  /// The view-row index the menu was opened on.
+/// Context handed to [SuperTable.rowMenuBuilder].
+class SuperRowMenuContext<R> {
   final int rowIndex;
-
-  /// The row's data map.
-  final SuperRow row;
-
-  /// The live controller (selection, mode, mutations).
-  final SuperTableController controller;
+  final SuperRow<R> row;
+  final SuperTableController<R> controller;
   const SuperRowMenuContext({required this.rowIndex, required this.row, required this.controller});
 }
 
-class SuperTable extends StatefulWidget {
-  final SuperTableController controller;
+class SuperTable<R> extends StatefulWidget {
+  final SuperTableController<R> controller;
   final SuperDensity density;
-
-  /// Show the leading row-number gutter.
   final bool numbered;
-
-  /// Show the type-tag header sub-row. Null → on in readable mode (React parity).
   final bool? showTypeTags;
-
-  /// Show the totals row when any column declares an aggregate.
   final bool showTotals;
-
-  /// Show the footer (status hint / pager / load-more).
   final bool showFooter;
-
-  /// Show the editable-mode formula bar (Copy JSON · Undo · Redo · Shortcuts).
   final bool formulaBar;
-
-  /// Optional add-column action in the trailing header cell.
   final VoidCallback? onAddColumn;
-
-  /// Show a per-column filter row directly beneath the header. Combo/enum
-  /// columns get a value dropdown, checkbox columns a tri-state, everything
-  /// else a contains text field. Filters combine (AND) with each other and the
-  /// global search. **Readable mode only** — ignored while editing.
   final bool columnFilters;
 
-  /// Customise the right-click row context menu. Receives the row context and
-  /// the default entries; return the list to show (append your own commands,
-  /// reorder, or build a [SuperMenuEntry] tree via `children`). Return an empty
-  /// list to suppress the menu.
-  final List<SuperMenuEntry> Function(SuperRowMenuContext ctx, List<SuperMenuEntry> defaults)? rowMenuBuilder;
+  /// Enable the advanced (cross-column) filter button in the row-number header.
+  /// Readable mode only.
+  final bool advancedFilter;
 
-  /// Loading skeleton (renders shimmer rows instead of the body).
+  /// Conditional ROW styles (readable mode). The FIRST entry whose condition
+  /// returns true wins. Row styles take priority over column [CellStyle]s.
+  final Map<SuperRowCondition, SuperRowStyle>? styles;
+
+  final List<SuperMenuEntry> Function(SuperRowMenuContext<R> ctx, List<SuperMenuEntry> defaults)? rowMenuBuilder;
   final bool loading;
-
-  /// Number of skeleton rows while [loading].
   final int skeletonRows;
-
-  /// Outer max-height for the scroll viewport (used by infinite paging).
   final double? maxHeight;
 
   const SuperTable({
@@ -106,6 +85,8 @@ class SuperTable extends StatefulWidget {
     this.formulaBar = true,
     this.onAddColumn,
     this.columnFilters = true,
+    this.advancedFilter = true,
+    this.styles,
     this.rowMenuBuilder,
     this.loading = false,
     this.skeletonRows = 6,
@@ -113,21 +94,21 @@ class SuperTable extends StatefulWidget {
   });
 
   @override
-  State<SuperTable> createState() => _SuperTableState();
+  State<SuperTable<R>> createState() => _SuperTableState<R>();
 }
 
-class _SuperTableState extends State<SuperTable> {
+class _SuperTableState<R> extends State<SuperTable<R>> {
   final FocusNode _focus = FocusNode(debugLabel: 'SuperTable');
   final ScrollController _vScroll = ScrollController();
-  final ScrollController _vScrollG = ScrollController(); // pinned-gutter follower
+  final ScrollController _vScrollG = ScrollController();
   final ScrollController _hScroll = ScrollController();
   final Map<String, TextEditingController> _filterCtrls = {};
   int? _dragSlot;
   int? _overSlot;
-  SuperCell? _lastSel;
+  CellPos? _lastSel;
   bool _wasEditing = false;
 
-  SuperTableController get c => widget.controller;
+  SuperTableController<R> get c => widget.controller;
 
   @override
   void initState() {
@@ -139,8 +120,6 @@ class _SuperTableState extends State<SuperTable> {
     _wasEditing = c.editCell != null;
   }
 
-  /// Mirror the body's vertical offset onto the pinned row-number gutter so the
-  /// two panes scroll as one. One-way only — the gutter list is non-scrollable.
   void _syncGutter() {
     if (!_vScrollG.hasClients || !_vScroll.hasClients) return;
     final target = _vScroll.offset.clamp(0.0, _vScrollG.position.maxScrollExtent);
@@ -148,7 +127,7 @@ class _SuperTableState extends State<SuperTable> {
   }
 
   @override
-  void didUpdateWidget(covariant SuperTable old) {
+  void didUpdateWidget(covariant SuperTable<R> old) {
     super.didUpdateWidget(old);
     if (old.controller != c) {
       old.controller.removeListener(_onModel);
@@ -163,8 +142,6 @@ class _SuperTableState extends State<SuperTable> {
       _lastSel = c.sel;
       WidgetsBinding.instance.addPostFrameCallback((_) => _ensureVisible());
     }
-    // When an inline editor just closed (e.g. a combo/enum committed in place),
-    // pull keyboard focus back to the grid so the very next Enter advances.
     final editing = c.editCell != null;
     if (_wasEditing && !editing) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -201,8 +178,29 @@ class _SuperTableState extends State<SuperTable> {
   double get _gutterW => widget.numbered ? _kGutter : 0;
   double get _actW => _actionable ? _kActionW : 0;
   bool get _editable => c.mode == SuperTableMode.editable;
+  bool get _showAdvanced => widget.advancedFilter && c.mode == SuperTableMode.readable;
 
-  // ── scroll the active cell into view (React useLayoutEffect parity) ──
+  // ── conditional style resolution ──
+  SuperRowStyle? _rowStyle(SuperRow<R> row) {
+    final styles = widget.styles;
+    if (styles == null || c.mode != SuperTableMode.readable) return null;
+    for (final e in styles.entries) {
+      if (e.key(context, c, row)) return e.value;
+    }
+    return null;
+  }
+
+  CellStyle? _cellStyle(SuperColumn col, SuperRow<R> row) {
+    final styles = col.styles;
+    if (styles == null || c.mode != SuperTableMode.readable) return null;
+    final cell = row.cells[col.key];
+    if (cell == null) return null;
+    for (final e in styles.entries) {
+      if (e.key(context, c, row, cell)) return e.value;
+    }
+    return null;
+  }
+
   void _ensureVisible() {
     final sel = c.sel;
     if (_vScroll.hasClients) {
@@ -245,8 +243,11 @@ class _SuperTableState extends State<SuperTable> {
       keys.contains(LogicalKeyboardKey.controlRight);
 
   KeyEventResult _onKey(FocusNode node, KeyEvent e) {
+    // Host hook first — return true to mark handled and skip defaults.
+    if (c.onKey != null && c.onKey!(context, c, node, e)) return KeyEventResult.handled;
+
     if (e is! KeyDownEvent && e is! KeyRepeatEvent) return KeyEventResult.ignored;
-    if (c.editCell != null) return KeyEventResult.ignored; // editor owns keys
+    if (c.editCell != null) return KeyEventResult.ignored;
 
     final keys = HardwareKeyboard.instance.logicalKeysPressed;
     final shift = HardwareKeyboard.instance.isShiftPressed;
@@ -254,14 +255,13 @@ class _SuperTableState extends State<SuperTable> {
     final k = e.logicalKey;
     final ed = _editable;
 
-    // ── meta combos ──
     if (meta) {
       if (k == LogicalKeyboardKey.keyC) {
         c.copyJson();
         return KeyEventResult.handled;
       }
       if (k == LogicalKeyboardKey.keyV) {
-        c.paste(); // paste() guards readable mode and notifies on its own
+        c.paste();
         return KeyEventResult.handled;
       }
       if (k == LogicalKeyboardKey.keyX && ed) {
@@ -284,8 +284,9 @@ class _SuperTableState extends State<SuperTable> {
         c.duplicateRow();
         return KeyEventResult.handled;
       }
-      if ((k == LogicalKeyboardKey.enter || k == LogicalKeyboardKey.numpadEnter) && ed && c.addRowEnabled) {
-        c.addRow();
+      // Ctrl/⌘ + Enter → insert AFTER focus; + Shift → insert BEFORE focus.
+      if ((k == LogicalKeyboardKey.enter || k == LogicalKeyboardKey.numpadEnter) && ed) {
+        shift ? c.insertRowBeforeFocus() : c.insertRowAfterFocus();
         return KeyEventResult.handled;
       }
       if ((k == LogicalKeyboardKey.backspace || k == LogicalKeyboardKey.delete) && ed) {
@@ -293,22 +294,20 @@ class _SuperTableState extends State<SuperTable> {
         return KeyEventResult.handled;
       }
       if (k == LogicalKeyboardKey.home) {
-        c.setCursor(const SuperCell(0, 0), extend: shift);
+        c.setCursor(const CellPos(0, 0), extend: shift);
         return KeyEventResult.handled;
       }
       if (k == LogicalKeyboardKey.end) {
-        c.setCursor(SuperCell(c.nRows - 1, c.nCols - 1), extend: shift);
+        c.setCursor(CellPos(c.nRows - 1, c.nCols - 1), extend: shift);
         return KeyEventResult.handled;
       }
     }
 
-    // ── tab (both modes; appends a row only in editable) ──
     if (k == LogicalKeyboardKey.tab) {
       c.tabMove(back: shift);
       return KeyEventResult.handled;
     }
 
-    // ── navigation ──
     switch (k) {
       case LogicalKeyboardKey.arrowRight:
         c.moveSel(0, context.isRtl ? -1 : 1, extend: shift);
@@ -323,25 +322,22 @@ class _SuperTableState extends State<SuperTable> {
         c.moveSel(-1, 0, extend: shift);
         return KeyEventResult.handled;
       case LogicalKeyboardKey.home:
-        c.setCursor(SuperCell(c.sel.r, 0), extend: shift);
+        c.setCursor(CellPos(c.sel.r, 0), extend: shift);
         return KeyEventResult.handled;
       case LogicalKeyboardKey.end:
-        c.setCursor(SuperCell(c.sel.r, c.nCols - 1), extend: shift);
+        c.setCursor(CellPos(c.sel.r, c.nCols - 1), extend: shift);
         return KeyEventResult.handled;
       case LogicalKeyboardKey.pageUp:
-        c.setCursor(SuperCell(0, c.sel.c), extend: shift);
+        c.setCursor(CellPos(0, c.sel.c), extend: shift);
         return KeyEventResult.handled;
       case LogicalKeyboardKey.pageDown:
-        c.setCursor(SuperCell(c.nRows - 1, c.sel.c), extend: shift);
+        c.setCursor(CellPos(c.nRows - 1, c.sel.c), extend: shift);
         return KeyEventResult.handled;
     }
 
     if (!ed) return KeyEventResult.ignored;
 
-    // ── edit triggers ──
     if (k == LogicalKeyboardKey.enter || k == LogicalKeyboardKey.numpadEnter || k == LogicalKeyboardKey.f2) {
-      // After a combo/enum cell was committed in place with Enter, a second
-      // Enter steps down to the next row rather than re-opening the editor.
       if ((k != LogicalKeyboardKey.f2) && c.advanceOnEnter) {
         c.clearAdvanceOnEnter();
         c.moveSel(1, 0);
@@ -351,7 +347,6 @@ class _SuperTableState extends State<SuperTable> {
       return KeyEventResult.handled;
     }
     if (k == LogicalKeyboardKey.backspace || k == LogicalKeyboardKey.delete) {
-      // React parity: plain Delete clears ONLY the active cell.
       final col = c.sel.c < c.cols.length ? c.cols[c.sel.c] : null;
       if (col != null && c.canEdit(col)) c.writeCell(c.sel.r, col, '');
       return KeyEventResult.handled;
@@ -376,63 +371,36 @@ class _SuperTableState extends State<SuperTable> {
     if (ok) c.deleteRow(vr);
   }
 
-  // ── header menu ──
+  // ── header menu (opens on RIGHT-click / touch double-tap) ──
   void _openHeaderMenu(SuperColumn col, Offset pos) {
     final entries = <SuperMenuEntry>[];
     if (col.sortable) {
-      entries.add(SuperMenuEntry(
-        icon: Icons.arrow_upward_rounded,
-        label: 'Sort ascending',
-        checked: c.sort.key == col.key && c.sort.ascending,
-        onTap: () => c.sortBy(col, true),
-      ));
-      entries.add(SuperMenuEntry(
-        icon: Icons.arrow_downward_rounded,
-        label: 'Sort descending',
-        checked: c.sort.key == col.key && !c.sort.ascending,
-        onTap: () => c.sortBy(col, false),
-      ));
+      entries.add(SuperMenuEntry(icon: Icons.arrow_upward_rounded, label: 'Sort ascending', checked: c.sort.key == col.key && c.sort.ascending, onTap: () => c.sortBy(col, true)));
+      entries.add(SuperMenuEntry(icon: Icons.arrow_downward_rounded, label: 'Sort descending', checked: c.sort.key == col.key && !c.sort.ascending, onTap: () => c.sortBy(col, false)));
     }
-    // Grouping is a READABLE-mode affordance, and only for groupable columns.
     if (c.mode == SuperTableMode.readable && col.groupable) {
-      entries.add(SuperMenuEntry(
-        icon: Icons.workspaces_outline,
-        label: c.groupKeys.contains(col.key) ? 'Remove from grouping' : 'Group by this column',
-        separatorBefore: true,
-        checked: c.groupKeys.contains(col.key),
-        onTap: () => c.toggleGroup(col.key),
-      ));
+      entries.add(SuperMenuEntry(icon: Icons.workspaces_outline, label: c.groupKeys.contains(col.key) ? 'Remove from grouping' : 'Group by this column', separatorBefore: true, checked: c.groupKeys.contains(col.key), onTap: () => c.toggleGroup(col.key)));
     }
     if (c.canHideColumns) {
-      entries.add(SuperMenuEntry(
-        icon: Icons.visibility_off_outlined,
-        label: 'Hide column',
-        separatorBefore: true,
-        disabled: c.visibleColumnCount <= 1,
-        onTap: () => c.hideColumn(col.key),
-      ));
+      entries.add(SuperMenuEntry(icon: Icons.visibility_off_outlined, label: 'Hide column', separatorBefore: true, disabled: c.visibleColumnCount <= 1, onTap: () => c.hideColumn(col.key)));
     }
     showSuperMenu(context, globalPos: pos, entries: entries);
   }
 
   void _openRowMenu(int viewR, Offset pos) {
+    if (viewR >= c.view.length) return;
+    final row = c.view[viewR].row!;
     final entries = <SuperMenuEntry>[
-      SuperMenuEntry(
-        icon: Icons.content_copy_rounded,
-        label: 'Copy as JSON',
-        hint: '⌘C',
-        onTap: () => (c.rowMode && c.selRows.isNotEmpty) ? c.copyRowsJson(c.selRows.toList()) : c.copyRowsJson([viewR]),
-      ),
+      SuperMenuEntry(icon: Icons.content_copy_rounded, label: 'Copy as JSON', hint: '⌘C', onTap: () => (c.rowMode && c.selRows.isNotEmpty) ? c.copyRowsJson(c.selRows.toList()) : c.copyRowsJson([viewR])),
     ];
     if (_editable) {
       entries.addAll([
-        SuperMenuEntry(icon: Icons.vertical_align_top_rounded, label: 'Insert row above', separatorBefore: true, onTap: () => c.insertRow(viewR, after: false)),
-        SuperMenuEntry(icon: Icons.vertical_align_bottom_rounded, label: 'Insert row below', onTap: () => c.insertRow(viewR, after: true)),
+        SuperMenuEntry(icon: Icons.vertical_align_top_rounded, label: 'Insert row above', hint: '⌘⇧↵', separatorBefore: true, onTap: () => c.insertRow(viewR, after: false)),
+        SuperMenuEntry(icon: Icons.vertical_align_bottom_rounded, label: 'Insert row below', hint: '⌘↵', onTap: () => c.insertRow(viewR, after: true)),
         SuperMenuEntry(icon: Icons.copy_all_rounded, label: 'Duplicate row', hint: '⌘D', onTap: () => c.duplicateRow(viewR)),
         SuperMenuEntry(icon: Icons.delete_outline_rounded, label: 'Delete row', hint: '⌘⌫', danger: true, separatorBefore: true, onTap: () => _confirmDeleteRow(viewR)),
       ]);
     } else {
-      // Readable: offer grouping by any groupable column as a submenu (tree).
       final groupables = c.cols.where((col) => col.groupable).toList();
       if (groupables.isNotEmpty) {
         entries.add(SuperMenuEntry(
@@ -440,38 +408,39 @@ class _SuperTableState extends State<SuperTable> {
           label: 'Group by',
           separatorBefore: true,
           children: [
-            for (final col in groupables)
-              SuperMenuEntry(
-                label: col.label,
-                checked: c.groupKeys.contains(col.key),
-                onTap: () => c.toggleGroup(col.key),
-              ),
+            for (final col in groupables) SuperMenuEntry(label: col.label, checked: c.groupKeys.contains(col.key), onTap: () => c.toggleGroup(col.key)),
           ],
         ));
       }
     }
-
-    // Let callers extend/replace the menu (append commands, build a tree, …).
     final builder = widget.rowMenuBuilder;
-    final row = viewR < c.view.length ? c.view[viewR].row! : <String, dynamic>{};
-    final finalEntries = builder == null
-        ? entries
-        : builder(SuperRowMenuContext(rowIndex: viewR, row: row, controller: c), entries);
+    final finalEntries = builder == null ? entries : builder(SuperRowMenuContext<R>(rowIndex: viewR, row: row, controller: c), entries);
     if (finalEntries.isEmpty) return;
     showSuperMenu(context, globalPos: pos, entries: finalEntries);
   }
 
+  void _openAdvancedFilter() {
+    showSuperAdvancedFilter(
+      context,
+      columns: [for (final col in c.cols.where((col) => col.filterable)) AdvFilterColumn(col.key, col.label, numeric: col.type.isNumeric)],
+      initial: c.advancedFilter,
+      onApply: (clauses) => c.setAdvancedFilter(clauses, active: true),
+      onClear: c.clearAdvancedFilter,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Expose the live context so the controller can invoke onChange/validator.
+    c.viewContext = context;
     final skin = SuperTableSkin.of(context);
     final cols = c.cols;
     final colsW = cols.fold<double>(0, (a, col) => a + c.widthOf(col));
     final bodyW = (colsW + _actW) < 280 ? 280.0 : (colsW + _actW);
 
-    // Per-column filters render in READABLE mode only.
     final showFilter = widget.columnFilters && c.mode == SuperTableMode.readable;
-    final showLoadingMore = !widget.loading && c.loadingMore;
     final showTotalsRow = widget.showTotals && _hasTotals(cols) && !widget.loading && c.nRows > 0;
+    final extraSkeleton = c.loadingMore && !widget.loading ? widget.skeletonRows : 0;
 
     return Focus(
       focusNode: _focus,
@@ -491,20 +460,14 @@ class _SuperTableState extends State<SuperTable> {
                   color: skin.surface,
                   border: Border.all(color: skin.borderStrong),
                   borderRadius: BorderRadius.circular(SuperTokens.radiusCard),
-                  boxShadow: c.focused
-                      ? [BoxShadow(color: skin.accent, blurRadius: 0, spreadRadius: 1)]
-                      : null,
+                  boxShadow: c.focused ? [BoxShadow(color: skin.accent, blurRadius: 0, spreadRadius: 1)] : null,
                 ),
                 clipBehavior: Clip.antiAlias,
                 constraints: widget.maxHeight != null ? BoxConstraints(maxHeight: widget.maxHeight!) : const BoxConstraints(),
-                // Two panes: a pinned row-number gutter (frozen on horizontal
-                // scroll) + the horizontally-scrollable body. Their vertical
-                // offsets are kept in lock-step (_syncGutter).
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    if (widget.numbered)
-                      _buildGutterPane(skin, cols, showFilter: showFilter, showLoadingMore: showLoadingMore, showTotals: showTotalsRow),
+                    if (widget.numbered) _buildGutterPane(skin, cols, showFilter: showFilter, extraSkeleton: extraSkeleton, showTotals: showTotalsRow),
                     Expanded(
                       child: Scrollbar(
                         controller: _hScroll,
@@ -522,7 +485,7 @@ class _SuperTableState extends State<SuperTable> {
                                 Flexible(
                                   child: widget.loading
                                       ? _buildSkeleton(skin, cols)
-                                      : (c.nRows == 0 && c.renderList.isEmpty)
+                                      : (c.nRows == 0 && c.renderList.isEmpty && extraSkeleton == 0)
                                           ? _buildEmpty(skin)
                                           : Scrollbar(
                                               controller: _vScroll,
@@ -530,13 +493,13 @@ class _SuperTableState extends State<SuperTable> {
                                                 controller: _vScroll,
                                                 primary: false,
                                                 itemExtent: _rowH,
-                                                itemCount: c.renderList.length,
-                                                itemBuilder: (ctx, i) => _buildRenderItem(skin, cols, c.renderList[i]),
+                                                itemCount: c.renderList.length + extraSkeleton,
+                                                itemBuilder: (ctx, i) => i < c.renderList.length
+                                                    ? _buildRenderItem(skin, cols, c.renderList[i])
+                                                    : _skeletonRow(skin, cols),
                                               ),
                                             ),
                                 ),
-                                if (showLoadingMore)
-                                  for (var i = 0; i < widget.skeletonRows; i++) _skeletonRow(skin, cols),
                                 if (showTotalsRow) _buildTotals(skin, cols),
                               ],
                             ),
@@ -555,21 +518,12 @@ class _SuperTableState extends State<SuperTable> {
     );
   }
 
-  // ── pinned row-number gutter pane (frozen during horizontal scroll) ──
-  Widget _buildGutterPane(
-    SuperTableSkin skin,
-    List<SuperColumn> cols, {
-    required bool showFilter,
-    required bool showLoadingMore,
-    required bool showTotals,
-  }) {
+  // ── pinned row-number gutter pane ──
+  Widget _buildGutterPane(SuperTableSkin skin, List<SuperColumn> cols, {required bool showFilter, required int extraSkeleton, required bool showTotals}) {
     Widget middle;
     if (widget.loading) {
-      middle = Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [for (var i = 0; i < widget.skeletonRows; i++) _gutterSkeletonCell(skin)],
-      );
-    } else if (c.nRows == 0 && c.renderList.isEmpty) {
+      middle = Column(mainAxisSize: MainAxisSize.min, children: [for (var i = 0; i < widget.skeletonRows; i++) _gutterSkeletonCell(skin)]);
+    } else if (c.nRows == 0 && c.renderList.isEmpty && extraSkeleton == 0) {
       middle = const SizedBox.shrink();
     } else {
       middle = ListView.builder(
@@ -577,36 +531,26 @@ class _SuperTableState extends State<SuperTable> {
         primary: false,
         physics: const NeverScrollableScrollPhysics(),
         itemExtent: _rowH,
-        itemCount: c.renderList.length,
-        itemBuilder: (ctx, i) => _gutterItem(skin, c.renderList[i]),
+        itemCount: c.renderList.length + extraSkeleton,
+        itemBuilder: (ctx, i) => i < c.renderList.length ? _gutterItem(skin, c.renderList[i]) : _gutterSkeletonCell(skin),
       );
     }
     return SizedBox(
       width: _gutterW,
-      child: Column(
-        children: [
-          _gutterHead(skin),
-          if (showFilter) _filterGutter(skin),
-          Expanded(child: middle),
-          if (showLoadingMore)
-            for (var i = 0; i < widget.skeletonRows; i++) _gutterSkeletonCell(skin),
-          if (showTotals) _gutterTotalsCell(skin),
-        ],
-      ),
+      child: Column(children: [
+        _gutterHead(skin),
+        if (showFilter) _filterGutter(skin),
+        Expanded(child: middle),
+        if (showTotals) _gutterTotalsCell(skin),
+      ]),
     );
   }
 
-  Widget _gutterItem(SuperTableSkin skin, RenderItem item) {
+  Widget _gutterItem(SuperTableSkin skin, RenderItem<R> item) {
     if (item.isGroup) {
       return Container(
         height: _rowH,
-        decoration: BoxDecoration(
-          color: skin.surface2,
-          border: BorderDirectional(
-            end: BorderSide(color: skin.borderStrong),
-            bottom: BorderSide(color: skin.borderStrong),
-          ),
-        ),
+        decoration: BoxDecoration(color: skin.surface2, border: BorderDirectional(end: BorderSide(color: skin.borderStrong), bottom: BorderSide(color: skin.borderStrong))),
       );
     }
     final r = item.dataIndex;
@@ -616,25 +560,14 @@ class _SuperTableState extends State<SuperTable> {
 
   Widget _gutterSkeletonCell(SuperTableSkin skin) => Container(
         height: _rowH,
-        decoration: BoxDecoration(
-          color: skin.bg,
-          border: BorderDirectional(
-            end: BorderSide(color: skin.border),
-            bottom: BorderSide(color: skin.border),
-          ),
-        ),
+        decoration: BoxDecoration(color: skin.bg, border: BorderDirectional(end: BorderSide(color: skin.border), bottom: BorderSide(color: skin.border))),
+        child: const Center(child: _Shimmer(width: 14, height: 9)),
       );
 
   Widget _gutterTotalsCell(SuperTableSkin skin) => Container(
         height: _rowH,
         alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: skin.surface2,
-          border: BorderDirectional(
-            end: BorderSide(color: skin.border),
-            top: BorderSide(color: skin.borderStrong, width: 2),
-          ),
-        ),
+        decoration: BoxDecoration(color: skin.surface2, border: BorderDirectional(end: BorderSide(color: skin.border), top: BorderSide(color: skin.borderStrong, width: 2))),
         child: Icon(Icons.grid_on_rounded, size: 13, color: skin.fg4),
       );
 
@@ -669,16 +602,10 @@ class _SuperTableState extends State<SuperTable> {
           Row(mainAxisSize: MainAxisSize.min, children: [
             Icon(Icons.workspaces_outline, size: 13, color: skin.accent),
             const SizedBox(width: 6),
-            Text('GROUPED BY',
-                style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, letterSpacing: 0.7, color: skin.fg3)),
+            Text('GROUPED BY', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, letterSpacing: 0.7, color: skin.fg3)),
           ]),
-          for (var i = 0; i < c.groupKeys.length; i++)
-            _groupChip(skin, i, c.groupKeys[i]),
-          GestureDetector(
-            onTap: c.clearGroups,
-            child: Text('Clear all',
-                style: TextStyle(fontSize: 11.5, color: skin.fg3, decoration: TextDecoration.underline)),
-          ),
+          for (var i = 0; i < c.groupKeys.length; i++) _groupChip(skin, i, c.groupKeys[i]),
+          GestureDetector(onTap: c.clearGroups, child: Text('Clear all', style: TextStyle(fontSize: 11.5, color: skin.fg3, decoration: TextDecoration.underline))),
         ],
       ),
     );
@@ -689,23 +616,13 @@ class _SuperTableState extends State<SuperTable> {
     return Container(
       height: 26,
       padding: const EdgeInsetsDirectional.only(start: 11, end: 6),
-      decoration: BoxDecoration(
-        color: skin.inputBg,
-        border: Border.all(color: skin.borderStrong),
-        borderRadius: BorderRadius.circular(6),
-      ),
+      decoration: BoxDecoration(color: skin.inputBg, border: Border.all(color: skin.borderStrong), borderRadius: BorderRadius.circular(6)),
       child: Row(mainAxisSize: MainAxisSize.min, children: [
         Text('${i + 1}', style: TextStyle(fontFamily: SuperTokensFonts.mono, fontSize: 10, color: skin.fg4)),
         const SizedBox(width: 6),
         Text(col?.label ?? key, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: skin.fg1)),
         const SizedBox(width: 2),
-        GestureDetector(
-          onTap: () => c.toggleGroup(key),
-          child: Padding(
-            padding: const EdgeInsets.all(2),
-            child: Icon(Icons.close_rounded, size: 12, color: skin.fg3),
-          ),
-        ),
+        GestureDetector(onTap: () => c.toggleGroup(key), child: Padding(padding: const EdgeInsets.all(2), child: Icon(Icons.close_rounded, size: 12, color: skin.fg3))),
       ]),
     );
   }
@@ -714,10 +631,7 @@ class _SuperTableState extends State<SuperTable> {
   Widget _buildHeader(SuperTableSkin skin, List<SuperColumn> cols) {
     return Container(
       height: _headH,
-      decoration: BoxDecoration(
-        color: skin.bg,
-        border: Border(bottom: BorderSide(color: skin.borderStrong)),
-      ),
+      decoration: BoxDecoration(color: skin.bg, border: Border(bottom: BorderSide(color: skin.borderStrong))),
       child: Row(children: [
         for (final col in cols) _headerCell(skin, col),
         if (_actionable) _actionHead(skin),
@@ -726,16 +640,29 @@ class _SuperTableState extends State<SuperTable> {
   }
 
   Widget _gutterHead(SuperTableSkin skin) {
+    final active = c.advancedActive;
     return Container(
       width: _gutterW,
       height: _headH,
-      decoration: BoxDecoration(
-        color: skin.bg,
-        border: BorderDirectional(
-          end: BorderSide(color: skin.border),
-          bottom: BorderSide(color: skin.borderStrong),
-        ),
-      ),
+      alignment: Alignment.center,
+      decoration: BoxDecoration(color: skin.bg, border: BorderDirectional(end: BorderSide(color: skin.border), bottom: BorderSide(color: skin.borderStrong))),
+      child: _showAdvanced
+          ? Stack(clipBehavior: Clip.none, children: [
+              _IconHoverButton(
+                skin: skin,
+                icon: Icons.tune_rounded,
+                tooltip: active ? 'Advanced filter active — edit' : 'Advanced filter',
+                accent: active,
+                onTap: _openAdvancedFilter,
+              ),
+              if (active)
+                Positioned(
+                  right: 2,
+                  top: 2,
+                  child: Container(width: 7, height: 7, decoration: BoxDecoration(color: skin.danger, shape: BoxShape.circle, border: Border.all(color: skin.bg, width: 1))),
+                ),
+            ])
+          : null,
     );
   }
 
@@ -743,30 +670,20 @@ class _SuperTableState extends State<SuperTable> {
     return Container(
       width: _actW,
       alignment: Alignment.center,
-      decoration: BoxDecoration(
-        border: BorderDirectional(start: BorderSide(color: skin.border)),
-      ),
+      decoration: BoxDecoration(border: BorderDirectional(start: BorderSide(color: skin.border))),
       child: widget.onAddColumn != null
-          ? _IconHoverButton(
-              skin: skin,
-              icon: Icons.add_rounded,
-              tooltip: 'Add column',
-              onTap: widget.onAddColumn!,
-            )
+          ? _IconHoverButton(skin: skin, icon: Icons.add_rounded, tooltip: 'Add column', onTap: widget.onAddColumn!)
           : Icon(Icons.delete_outline_rounded, size: 13, color: skin.fg4),
     );
   }
 
-  // ── per-column filter row (under the header, readable mode only) ──
+  // ── per-column filter row ──
   TextEditingController _filterCtrl(String key) {
     final existing = _filterCtrls[key];
     final current = c.columnFilter(key);
     if (existing != null) {
       if (existing.text != current) {
-        existing.value = TextEditingValue(
-          text: current,
-          selection: TextSelection.collapsed(offset: current.length),
-        );
+        existing.value = TextEditingValue(text: current, selection: TextSelection.collapsed(offset: current.length));
       }
       return existing;
     }
@@ -778,10 +695,7 @@ class _SuperTableState extends State<SuperTable> {
   Widget _buildFilterRow(SuperTableSkin skin, List<SuperColumn> cols) {
     return Container(
       height: _kFilterRowH,
-      decoration: BoxDecoration(
-        color: skin.surface2,
-        border: Border(bottom: BorderSide(color: skin.border)),
-      ),
+      decoration: BoxDecoration(color: skin.surface2, border: Border(bottom: BorderSide(color: skin.border))),
       child: Row(children: [
         for (final col in cols) _filterCell(skin, col),
         if (_actionable) _filterAction(skin),
@@ -795,57 +709,45 @@ class _SuperTableState extends State<SuperTable> {
       width: _gutterW,
       height: _kFilterRowH,
       alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: skin.surface2,
-        border: BorderDirectional(
-          end: BorderSide(color: skin.border),
-          bottom: BorderSide(color: skin.border),
-        ),
-      ),
-      child: _IconHoverButton(
-        skin: skin,
-        icon: active ? Icons.filter_alt_off_rounded : Icons.filter_alt_outlined,
-        tooltip: active ? 'Clear all filters' : 'Filter rows',
-        onTap: active ? c.clearColumnFilters : () {},
-      ),
+      decoration: BoxDecoration(color: skin.surface2, border: BorderDirectional(end: BorderSide(color: skin.border), bottom: BorderSide(color: skin.border))),
+      child: c.advancedActive
+          ? Icon(Icons.block_rounded, size: 13, color: skin.fg4)
+          : _IconHoverButton(
+              skin: skin,
+              icon: active ? Icons.filter_alt_off_rounded : Icons.filter_alt_outlined,
+              tooltip: active ? 'Clear all filters' : 'Filter rows',
+              onTap: active ? c.clearColumnFilters : () {},
+            ),
     );
   }
 
-  Widget _filterAction(SuperTableSkin skin) {
-    return Container(
-      width: _actW,
-      decoration: BoxDecoration(
-        border: BorderDirectional(start: BorderSide(color: skin.border)),
-      ),
-    );
-  }
+  Widget _filterAction(SuperTableSkin skin) =>
+      Container(width: _actW, decoration: BoxDecoration(border: BorderDirectional(start: BorderSide(color: skin.border))));
 
   Widget _filterCell(SuperTableSkin skin, SuperColumn col) {
     final w = c.widthOf(col);
     final current = c.columnFilter(col.key);
     final filterable = col.filterable && col.type != SuperColumnType.color;
+    final disabled = c.advancedActive;
 
     Widget field;
-    if (!filterable) {
+    if (disabled) {
+      // Advanced filter active: clear, disable, and slash the column field.
+      field = _DisabledFilter(skin: skin);
+    } else if (!filterable) {
       field = const SizedBox.shrink();
-    } else if (col.type == SuperColumnType.enumeration ||
-        col.type == SuperColumnType.combo) {
+    } else if (col.type == SuperColumnType.enumeration || col.type == SuperColumnType.combo) {
       field = _filterDropdown(skin, col, current, options: col.opts ?? const []);
     } else if (col.type == SuperColumnType.checkbox) {
-      field = _filterDropdown(skin, col, current,
-          options: const ['Yes', 'No'],
-          labelFor: (v) => v == 'Yes' ? 'Checked' : 'Unchecked');
+      field = _filterDropdown(skin, col, current, options: const ['Yes', 'No'], labelFor: (v) => v == 'Yes' ? 'Checked' : 'Unchecked');
     } else {
       field = _filterText(skin, col, current);
     }
 
-    // Full-bleed: the field fills the whole cell — no inset/padding box.
     return Container(
       width: w,
       height: _kFilterRowH,
-      decoration: BoxDecoration(
-        border: BorderDirectional(end: BorderSide(color: skin.border)),
-      ),
+      decoration: BoxDecoration(border: BorderDirectional(end: BorderSide(color: skin.border))),
       child: field,
     );
   }
@@ -866,19 +768,10 @@ class _SuperTableState extends State<SuperTable> {
             onChanged: (v) => c.setColumnFilter(col.key, v),
             textAlign: isEnd ? TextAlign.right : TextAlign.left,
             textAlignVertical: TextAlignVertical.center,
-            style: TextStyle(
-              fontFamily: col.mono ? SuperTokensFonts.mono : SuperTokensFonts.body,
-              fontSize: 12,
-              color: skin.fg1,
-            ),
+            style: TextStyle(fontFamily: col.mono ? SuperTokensFonts.mono : SuperTokensFonts.body, fontSize: 12, color: skin.fg1),
             cursorColor: skin.accent,
             cursorHeight: 14,
-            decoration: InputDecoration(
-              isCollapsed: true,
-              border: InputBorder.none,
-              hintText: 'Filter…',
-              hintStyle: TextStyle(fontSize: 12, color: skin.fg4),
-            ),
+            decoration: InputDecoration(isCollapsed: true, border: InputBorder.none, hintText: 'Filter…', hintStyle: TextStyle(fontSize: 12, color: skin.fg4)),
           ),
         ),
         if (active)
@@ -887,38 +780,20 @@ class _SuperTableState extends State<SuperTable> {
               c.setColumnFilter(col.key, '');
               _filterCtrls[col.key]?.clear();
             },
-            child: Padding(
-              padding: const EdgeInsets.all(3),
-              child: Icon(Icons.close_rounded, size: 13, color: skin.fg3),
-            ),
+            child: Padding(padding: const EdgeInsets.all(3), child: Icon(Icons.close_rounded, size: 13, color: skin.fg3)),
           ),
       ]),
     );
   }
 
-  Widget _filterDropdown(
-    SuperTableSkin skin,
-    SuperColumn col,
-    String current, {
-    required List<String> options,
-    String Function(String)? labelFor,
-  }) {
+  Widget _filterDropdown(SuperTableSkin skin, SuperColumn col, String current, {required List<String> options, String Function(String)? labelFor}) {
     final active = current.trim().isNotEmpty;
     final label = active ? (labelFor?.call(current) ?? current) : 'All';
     return _DropdownTap(
       onOpen: (pos) {
         final entries = <SuperMenuEntry>[
-          SuperMenuEntry(
-            label: 'All',
-            checked: !active,
-            onTap: () => c.setColumnFilter(col.key, ''),
-          ),
-          for (final o in options)
-            SuperMenuEntry(
-              label: labelFor?.call(o) ?? o,
-              checked: current == o,
-              onTap: () => c.setColumnFilter(col.key, o),
-            ),
+          SuperMenuEntry(label: 'All', checked: !active, onTap: () => c.setColumnFilter(col.key, '')),
+          for (final o in options) SuperMenuEntry(label: labelFor?.call(o) ?? o, checked: current == o, onTap: () => c.setColumnFilter(col.key, o)),
         ];
         showSuperMenu(context, globalPos: pos, entries: entries);
       },
@@ -927,18 +802,7 @@ class _SuperTableState extends State<SuperTable> {
         color: active ? skin.accentWash(0.07) : Colors.transparent,
         padding: const EdgeInsetsDirectional.only(start: 9, end: 6),
         child: Row(children: [
-          Expanded(
-            child: Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: active ? FontWeight.w600 : FontWeight.w400,
-                color: active ? skin.fg1 : skin.fg4,
-              ),
-            ),
-          ),
+          Expanded(child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 12, fontWeight: active ? FontWeight.w600 : FontWeight.w400, color: active ? skin.fg1 : skin.fg4))),
           const SizedBox(width: 2),
           Icon(Icons.expand_more_rounded, size: 14, color: active ? skin.accent : skin.fg4),
         ]),
@@ -951,7 +815,7 @@ class _SuperTableState extends State<SuperTable> {
     final active = c.sort.key == col.key;
     final slot = c.slotOfKey(col.key);
     final isPinned = col.pin != SuperPin.none;
-    final draggable = slot >= 0; // mid columns only
+    final draggable = slot >= 0;
     final inGroup = c.groupKeys.contains(col.key);
     final isDropTarget = _overSlot == slot && _dragSlot != null && _dragSlot != slot;
 
@@ -960,8 +824,7 @@ class _SuperTableState extends State<SuperTable> {
             if (draggable) ...[Icon(Icons.drag_indicator_rounded, size: 10, color: skin.fg4), const SizedBox(width: 4)],
             if (isPinned) ...[Icon(Icons.push_pin_outlined, size: 9, color: skin.accent), const SizedBox(width: 4)],
             if (inGroup) ...[Icon(Icons.layers_rounded, size: 9, color: skin.accent), const SizedBox(width: 4)],
-            Text(col.type.wire.toUpperCase(),
-                style: TextStyle(fontFamily: SuperTokensFonts.mono, fontSize: 8.5, fontWeight: FontWeight.w700, letterSpacing: 0.5, color: skin.accent)),
+            Text(col.type.wire.toUpperCase(), style: TextStyle(fontFamily: SuperTokensFonts.mono, fontSize: 8.5, fontWeight: FontWeight.w700, letterSpacing: 0.5, color: skin.accent)),
           ])
         : null;
 
@@ -970,41 +833,22 @@ class _SuperTableState extends State<SuperTable> {
       mainAxisAlignment: isEnd ? MainAxisAlignment.end : MainAxisAlignment.start,
       children: [
         if (!_showTypeTags && draggable) ...[Icon(Icons.drag_indicator_rounded, size: 11, color: skin.fg4), const SizedBox(width: 4)],
-        Flexible(
-          child: Text(
-            col.label.toUpperCase(),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontFamily: SuperTokensFonts.body,
-              fontSize: 10,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.5,
-              color: active || inGroup ? skin.fg1 : skin.fg3,
-            ),
-          ),
-        ),
+        Flexible(child: Text(col.label.toUpperCase(), maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: SuperTokensFonts.body, fontSize: 10, fontWeight: FontWeight.w700, letterSpacing: 0.5, color: active || inGroup ? skin.fg1 : skin.fg3))),
         if (col.required) Text(' *', style: TextStyle(fontSize: 11, color: skin.danger)),
-        if (active) ...[
-          const SizedBox(width: 3),
-          Icon(c.sort.ascending ? Icons.arrow_upward_rounded : Icons.arrow_downward_rounded, size: 11, color: skin.accent),
-        ],
+        if (active) ...[const SizedBox(width: 3), Icon(c.sort.ascending ? Icons.arrow_upward_rounded : Icons.arrow_downward_rounded, size: 11, color: skin.accent)],
         if (!isEnd) const Spacer(),
         const SizedBox(width: 5),
-        Icon(Icons.expand_more_rounded, size: 12, color: skin.fg4),
+        Icon(Icons.more_vert_rounded, size: 12, color: skin.fg4),
       ],
     );
 
-    final Widget inner = Container(
+    Widget inner = Container(
       width: w,
       height: _headH,
       padding: EdgeInsets.symmetric(horizontal: 11, vertical: _showTypeTags ? 6 : 0),
       decoration: BoxDecoration(
         color: isDropTarget ? skin.accentWash(0.12) : skin.bg,
-        border: BorderDirectional(
-          start: isDropTarget ? BorderSide(color: skin.accent, width: 2) : BorderSide.none,
-          end: BorderSide(color: skin.border),
-        ),
+        border: BorderDirectional(start: isDropTarget ? BorderSide(color: skin.accent, width: 2) : BorderSide.none, end: BorderSide(color: skin.border)),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -1016,14 +860,18 @@ class _SuperTableState extends State<SuperTable> {
       ),
     );
 
+    // Right-click (mouse) or double-tap (touch) opens the menu; left button drags.
     Widget cell = GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTapDown: (d) => _openHeaderMenu(col, d.globalPosition),
       onSecondaryTapDown: (d) => _openHeaderMenu(col, d.globalPosition),
+      onDoubleTap: () {
+        final box = context.findRenderObject() as RenderBox?;
+        final pos = box != null ? box.localToGlobal(Offset(box.size.width / 2, _headH)) : Offset.zero;
+        _openHeaderMenu(col, pos);
+      },
       child: MouseRegion(cursor: SystemMouseCursors.click, child: inner),
     );
 
-    // resize grip
     cell = Stack(children: [
       cell,
       PositionedDirectional(
@@ -1076,8 +924,7 @@ class _SuperTableState extends State<SuperTable> {
                 height: _headH,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(color: skin.accent, borderRadius: BorderRadius.circular(5)),
-                child: Text(col.label.toUpperCase(),
-                    style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700)),
+                child: Text(col.label.toUpperCase(), style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700)),
               ),
             ),
           ),
@@ -1089,39 +936,26 @@ class _SuperTableState extends State<SuperTable> {
     return cell;
   }
 
-  // ── render item (group header OR data row) ──
-  Widget _buildRenderItem(SuperTableSkin skin, List<SuperColumn> cols, RenderItem item) {
+  // ── render item ──
+  Widget _buildRenderItem(SuperTableSkin skin, List<SuperColumn> cols, RenderItem<R> item) {
     if (item.isGroup) return _buildGroupHeader(skin, cols, item);
     return _buildRow(skin, cols, item);
   }
 
-  Widget _buildGroupHeader(SuperTableSkin skin, List<SuperColumn> cols, RenderItem g) {
+  Widget _buildGroupHeader(SuperTableSkin skin, List<SuperColumn> cols, RenderItem<R> g) {
     final collapsed = c.isCollapsed(g.path);
     return GestureDetector(
       onTap: () => c.toggleCollapse(g.path),
       child: Container(
         height: _rowH,
         padding: EdgeInsetsDirectional.only(start: 12.0 + g.depth * 20, end: 16),
-        decoration: BoxDecoration(
-          color: skin.surface2,
-          border: Border(bottom: BorderSide(color: skin.borderStrong)),
-        ),
+        decoration: BoxDecoration(color: skin.surface2, border: Border(bottom: BorderSide(color: skin.borderStrong))),
         child: Row(children: [
-          AnimatedRotation(
-            turns: collapsed ? (context.isRtl ? 0.25 : -0.25) : 0.0,
-            duration: const Duration(milliseconds: 150),
-            child: Icon(Icons.expand_more_rounded, size: 14, color: skin.fg3),
-          ),
+          AnimatedRotation(turns: collapsed ? (context.isRtl ? 0.25 : -0.25) : 0.0, duration: const Duration(milliseconds: 150), child: Icon(Icons.expand_more_rounded, size: 14, color: skin.fg3)),
           const SizedBox(width: 9),
-          Text(g.groupCol!.label.toUpperCase(),
-              style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.w700, letterSpacing: 0.7, color: skin.fg4)),
+          Text(g.groupCol!.label.toUpperCase(), style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.w700, letterSpacing: 0.7, color: skin.fg4)),
           const SizedBox(width: 6),
-          Flexible(
-            child: Text(g.groupValue == null || g.groupValue!.isEmpty ? '—' : g.groupValue!,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: skin.fg1)),
-          ),
+          Flexible(child: Text(g.groupValue == null || g.groupValue!.isEmpty ? '—' : g.groupValue!, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: skin.fg1))),
           const SizedBox(width: 8),
           SuperPill(text: '${g.groupCount}', color: skin.accent, dot: false),
           const SizedBox(width: 4),
@@ -1131,7 +965,7 @@ class _SuperTableState extends State<SuperTable> {
     );
   }
 
-  List<Widget> _groupAggregates(SuperTableSkin skin, List<SuperColumn> cols, List<SuperRow> rows) {
+  List<Widget> _groupAggregates(SuperTableSkin skin, List<SuperColumn> cols, List<SuperRow<R>> rows) {
     final out = <Widget>[];
     for (final col in cols) {
       if (col.agg == SuperAgg.none || col.agg == SuperAgg.count) continue;
@@ -1140,15 +974,12 @@ class _SuperTableState extends State<SuperTable> {
       final isCur = col.type == SuperColumnType.currency;
       final prefix = isCur ? r'$' : '';
       final isProgAvg = col.type == SuperColumnType.progress && col.agg == SuperAgg.avg;
-      final body = col.agg == SuperAgg.avg
-          ? (v * 100).round() / 100
-          : v.round();
+      final body = col.agg == SuperAgg.avg ? (v * 100).round() / 100 : v.round();
       final txt = '$prefix${SuperColumnLogic.fmtNum(body, col.copyWith(decimals: col.agg == SuperAgg.avg ? 2 : 0))}${isProgAvg ? '%' : ''}';
       out.add(Padding(
         padding: const EdgeInsetsDirectional.only(start: 14),
         child: Row(mainAxisSize: MainAxisSize.min, children: [
-          Text('${col.label.toUpperCase()} ',
-              style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.w700, letterSpacing: 0.4, color: skin.fg4)),
+          Text('${col.label.toUpperCase()} ', style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.w700, letterSpacing: 0.4, color: skin.fg4)),
           Text(txt, style: TextStyle(fontFamily: SuperTokensFonts.mono, fontSize: 11, fontWeight: FontWeight.w600, color: skin.fg2)),
         ]),
       ));
@@ -1156,15 +987,18 @@ class _SuperTableState extends State<SuperTable> {
     return out;
   }
 
-  Widget _buildRow(SuperTableSkin skin, List<SuperColumn> cols, RenderItem item) {
+  Widget _buildRow(SuperTableSkin skin, List<SuperColumn> cols, RenderItem<R> item) {
     final r = item.dataIndex;
     final rowActive = (c.rowMode ? c.selRows.contains(r) : c.sel.r == r) && c.focused;
+    final rowStyle = _rowStyle(item.row!);
     return GestureDetector(
       onSecondaryTapDown: (d) => _openRowMenu(r, d.globalPosition),
-      child: SizedBox(
+      child: Container(
         height: _rowH,
+        color: rowStyle?.background,
         child: Row(children: [
-          for (var ci = 0; ci < cols.length; ci++) _bodyCell(skin, cols[ci], item, r, ci),
+          if (rowStyle?.accentBar != null) Container(width: 3, color: rowStyle!.accentBar),
+          for (var ci = 0; ci < cols.length; ci++) _bodyCell(skin, cols[ci], item, r, ci, rowStyle),
           if (_actionable) _actionCell(skin, r, rowActive),
         ]),
       ),
@@ -1175,33 +1009,17 @@ class _SuperTableState extends State<SuperTable> {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTapDown: (_) => _focus.requestFocus(),
-      // Clicking the row number selects the WHOLE row (lights every cell), in
-      // both cell and row selection modes. Shift/⌘ extend or toggle.
+      // Clicking the row number selects the WHOLE row WITHOUT moving the edit
+      // cursor (0.4.0). Shift/⌘ extend or toggle.
       onTap: () {
-        if (c.editCell != null) c.commit();
-        c.selectGutterRow(
-          r,
-          shift: HardwareKeyboard.instance.isShiftPressed,
-          meta: _meta(HardwareKeyboard.instance.logicalKeysPressed),
-        );
+        c.selectGutterRow(r, shift: HardwareKeyboard.instance.isShiftPressed, meta: _meta(HardwareKeyboard.instance.logicalKeysPressed));
       },
       child: Container(
         width: _gutterW,
         height: _rowH,
         alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: rowActive ? skin.accentWashOnBg(0.12) : skin.bg,
-          border: BorderDirectional(
-            end: BorderSide(color: skin.borderStrong),
-            bottom: BorderSide(color: skin.border),
-          ),
-        ),
-        child: Text((r + 1).toString().padLeft(2, '0'),
-            style: TextStyle(
-                fontFamily: SuperTokensFonts.mono,
-                fontSize: 11,
-                fontWeight: rowActive ? FontWeight.w700 : FontWeight.w400,
-                color: rowActive ? skin.accent : skin.fg3)),
+        decoration: BoxDecoration(color: rowActive ? skin.accentWashOnBg(0.12) : skin.bg, border: BorderDirectional(end: BorderSide(color: skin.borderStrong), bottom: BorderSide(color: skin.border))),
+        child: Text('${(r + 1).toString().padLeft(2, '0')}', style: TextStyle(fontFamily: SuperTokensFonts.mono, fontSize: 11, fontWeight: rowActive ? FontWeight.w700 : FontWeight.w400, color: rowActive ? skin.accent : skin.fg3)),
       ),
     );
   }
@@ -1210,46 +1028,36 @@ class _SuperTableState extends State<SuperTable> {
     return Container(
       width: _actW,
       alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: rowActive ? skin.accentWash(0.05) : skin.surface,
-        border: BorderDirectional(
-          start: BorderSide(color: skin.border),
-          bottom: BorderSide(color: skin.border),
-        ),
-      ),
+      decoration: BoxDecoration(color: rowActive ? skin.accentWash(0.05) : skin.surface, border: BorderDirectional(start: BorderSide(color: skin.border), bottom: BorderSide(color: skin.border))),
       child: _deleteCol
-          ? _IconHoverButton(
-              skin: skin,
-              icon: Icons.delete_outline_rounded,
-              tooltip: 'Delete row',
-              danger: true,
-              onTap: () => _confirmDeleteRow(r),
-            )
-          : _IconHoverButton(
-              skin: skin,
-              icon: Icons.drag_indicator_rounded,
-              tooltip: 'Row options',
-              onTap: () {},
-            ),
+          ? _IconHoverButton(skin: skin, icon: Icons.delete_outline_rounded, tooltip: 'Delete row', danger: true, onTap: () => _confirmDeleteRow(r))
+          : _IconHoverButton(skin: skin, icon: Icons.drag_indicator_rounded, tooltip: 'Row options', onTap: () {}),
     );
   }
 
-  Widget _bodyCell(SuperTableSkin skin, SuperColumn col, RenderItem item, int r, int ci) {
+  Widget _bodyCell(SuperTableSkin skin, SuperColumn col, RenderItem<R> item, int r, int ci, SuperRowStyle? rowStyle) {
     final w = c.widthOf(col);
     final isCursor = c.sel.r == r && c.sel.c == ci;
     final active = isCursor && c.focused;
     final selDim = isCursor && !c.focused;
-    final isEditing = c.editCell == SuperCell(r, ci);
+    final isEditing = c.editCell == CellPos(r, ci);
     final selected = c.isCellSelected(r, ci) && c.focused;
     final editableCell = c.canEdit(col);
     final dim = col.type == SuperColumnType.computed || col.type == SuperColumnType.readonly;
-    final error = _editable ? SuperColumnLogic.validateCell(col, col.rawValue(item.row!)) : null;
+    final storedError = item.row!.cells[col.key]?.error;
+    final error = _editable ? (storedError ?? SuperColumnLogic.validateCell(col, col.rawValue(item.row!))) : null;
     final rowActive = (c.rowMode ? c.selRows.contains(r) : c.sel.r == r) && c.focused;
+    final cellStyle = _cellStyle(col, item.row!);
 
-    final align = switch (col.align) {
-      SuperAlign.end => AlignmentDirectional.centerEnd,
-      SuperAlign.center => Alignment.center,
-      SuperAlign.start => AlignmentDirectional.centerStart,
+    // Row styles take priority over cell styles for fg/weight.
+    final fg = rowStyle?.foreground ?? cellStyle?.foreground;
+    final weight = rowStyle?.fontWeight ?? cellStyle?.fontWeight;
+
+    final alignV = cellStyle?.align;
+    final align = switch (alignV ?? _colAlign(col)) {
+      TextAlign.right => AlignmentDirectional.centerEnd,
+      TextAlign.center => Alignment.center,
+      _ => AlignmentDirectional.centerStart,
     };
 
     Color bg;
@@ -1259,16 +1067,21 @@ class _SuperTableState extends State<SuperTable> {
       bg = skin.accentWash(0.14);
     } else if (selected) {
       bg = skin.accentWash(0.09);
+    } else if (cellStyle?.background != null && rowStyle?.background == null) {
+      bg = cellStyle!.background!;
     } else if (rowActive) {
       bg = skin.accentWash(0.05);
+    } else if (rowStyle?.background != null) {
+      bg = Colors.transparent; // row paints its own background
     } else if (dim) {
       bg = skin.dimFill;
     } else {
       bg = Colors.transparent;
     }
 
-    final Widget content = isEditing
+    Widget content = isEditing
         ? SuperCellEditor(
+            controller: c,
             col: col,
             row: item.row!,
             value: c.draft,
@@ -1276,29 +1089,18 @@ class _SuperTableState extends State<SuperTable> {
             rtl: context.isRtl,
             onChanged: c.setDraft,
             onCancel: c.cancelEdit,
-            onCommit: ({Object? override, int dr = 0, int dc = 0}) =>
-                c.commit(move: (dr == 0 && dc == 0) ? null : SuperCell(dr, dc), override: override),
+            onCommit: ({Object? override, int dr = 0, int dc = 0}) => c.commit(move: (dr == 0 && dc == 0) ? null : CellPos(dr, dc), override: override),
           )
-        : Align(
-            alignment: align,
-            child: SuperCellDisplay(col: col, row: item.row!),
-          );
+        : Align(alignment: align, child: SuperCellDisplay(col: col, row: item.row!, fg: fg, weight: weight));
 
     Widget cell = Container(
       width: w,
       height: _rowH,
       padding: isEditing ? EdgeInsets.zero : EdgeInsetsDirectional.only(start: 11, end: (error != null) ? 26 : 11),
-      decoration: BoxDecoration(
-        color: bg,
-        border: Border(
-          right: BorderSide(color: skin.border),
-          bottom: BorderSide(color: skin.border),
-        ),
-      ),
+      decoration: BoxDecoration(color: bg, border: Border(right: BorderSide(color: skin.border), bottom: BorderSide(color: skin.border))),
       child: content,
     );
 
-    // selection / cursor / invalid outline overlay
     Border? outline;
     if (active) {
       outline = Border.all(color: skin.accent, width: 2);
@@ -1310,17 +1112,11 @@ class _SuperTableState extends State<SuperTable> {
       outline = Border.all(color: skin.danger.withOpacity(0.55), width: 1);
     }
     if (outline != null) {
-      cell = Stack(children: [
-        cell,
-        Positioned.fill(child: IgnorePointer(child: DecoratedBox(decoration: BoxDecoration(border: outline)))),
-      ]);
+      cell = Stack(children: [cell, Positioned.fill(child: IgnorePointer(child: DecoratedBox(decoration: BoxDecoration(border: outline))))]);
     }
 
     if (error != null && !isEditing) {
-      cell = Stack(children: [
-        cell,
-        PositionedDirectional(end: 4, top: 0, bottom: 0, child: Center(child: SuperCellErrorBadge(error: error))),
-      ]);
+      cell = Stack(children: [cell, PositionedDirectional(end: 4, top: 0, bottom: 0, child: Center(child: SuperCellErrorBadge(error: error)))]);
     }
 
     return GestureDetector(
@@ -1334,14 +1130,16 @@ class _SuperTableState extends State<SuperTable> {
       },
       onDoubleTap: editableCell ? () => c.beginEdit(r: r, c: ci) : null,
       onSecondaryTapDown: (d) => _openRowMenu(r, d.globalPosition),
-      child: MouseRegion(
-        cursor: editableCell ? SystemMouseCursors.cell : SystemMouseCursors.basic,
-        child: cell,
-      ),
+      child: MouseRegion(cursor: editableCell ? SystemMouseCursors.cell : SystemMouseCursors.basic, child: cell),
     );
   }
 
-  // ── empty state ──
+  TextAlign _colAlign(SuperColumn col) => switch (col.align) {
+        SuperAlign.end => TextAlign.right,
+        SuperAlign.center => TextAlign.center,
+        SuperAlign.start => TextAlign.left,
+      };
+
   Widget _buildEmpty(SuperTableSkin skin) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 40),
@@ -1354,14 +1152,10 @@ class _SuperTableState extends State<SuperTable> {
     );
   }
 
-  // ── totals ──
   Widget _buildTotals(SuperTableSkin skin, List<SuperColumn> cols) {
     return Container(
       height: _rowH,
-      decoration: BoxDecoration(
-        color: skin.surface2,
-        border: Border(top: BorderSide(color: skin.borderStrong, width: 2)),
-      ),
+      decoration: BoxDecoration(color: skin.surface2, border: Border(top: BorderSide(color: skin.borderStrong, width: 2))),
       child: Row(children: [
         for (var i = 0; i < cols.length; i++) _totalCell(skin, cols[i], i),
         if (_actionable) SizedBox(width: _actW),
@@ -1377,16 +1171,10 @@ class _SuperTableState extends State<SuperTable> {
       final isCur = col.type == SuperColumnType.currency;
       final prefix = col.prefix ?? (isCur ? r'$' : '');
       final suffix = col.suffix != null ? (isCur ? ' ${col.suffix}' : col.suffix) : '';
-      final txt = col.agg == SuperAgg.count
-          ? '${v.toInt()}'
-          : '$prefix${SuperColumnLogic.fmtNum(col.agg == SuperAgg.avg ? (v * 100).round() / 100 : v, col.copyWith(decimals: col.type == SuperColumnType.progress ? 0 : col.decimals))}$suffix';
-      child = Text(txt,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: TextStyle(fontFamily: SuperTokensFonts.mono, fontSize: 12.5, fontWeight: FontWeight.w700, color: skin.fg1));
+      final txt = col.agg == SuperAgg.count ? '${v.toInt()}' : '$prefix${SuperColumnLogic.fmtNum(col.agg == SuperAgg.avg ? (v * 100).round() / 100 : v, col.copyWith(decimals: col.type == SuperColumnType.progress ? 0 : col.decimals))}$suffix';
+      child = Text(txt, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: SuperTokensFonts.mono, fontSize: 12.5, fontWeight: FontWeight.w700, color: skin.fg1));
     } else if (i == 0) {
-      child = Text('TOTALS',
-          style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, letterSpacing: 0.6, color: skin.fg3));
+      child = Text('TOTALS', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, letterSpacing: 0.6, color: skin.fg3));
     } else {
       child = const SizedBox.shrink();
     }
@@ -1400,26 +1188,17 @@ class _SuperTableState extends State<SuperTable> {
     );
   }
 
-  // ── footer stack: load-more · pager · status hint ──
   List<Widget> _buildFooterStack(SuperTableSkin skin) {
     final out = <Widget>[];
     if (c.pagination == SuperPagination.loadMore && c.hasMore && !widget.loading) {
       out.add(Padding(
         padding: const EdgeInsets.only(top: 14),
         child: Center(
-          child: _BarButton(
-            skin: skin,
-            icon: c.loadingMore ? null : Icons.arrow_downward_rounded,
-            label: c.loadingMore ? 'Loading…' : 'Load more',
-            enabled: !c.loadingMore,
-            onTap: c.requestLoadMore,
-          ),
+          child: _BarButton(skin: skin, icon: c.loadingMore ? null : Icons.arrow_downward_rounded, label: c.loadingMore ? 'Loading…' : 'Load more', enabled: !c.loadingMore, onTap: c.requestLoadMore),
         ),
       ));
     }
-    if (c.pagination == SuperPagination.pages && !c.grouped && c.pageCount > 1) {
-      out.add(_buildPager(skin));
-    }
+    if (c.pagination == SuperPagination.pages && !c.grouped && c.pageCount > 1) out.add(_buildPager(skin));
     out.add(_buildStatusHint(skin));
     return out;
   }
@@ -1428,24 +1207,18 @@ class _SuperTableState extends State<SuperTable> {
     final total = c.sortedRows.length;
     final from = total == 0 ? 0 : c.page * c.pageSize + 1;
     final to = (c.page * c.pageSize + c.pageSize).clamp(0, total);
-    final pages = <int>[
-      for (var i = 0; i < c.pageCount; i++)
-        if ((i - c.page).abs() <= 2 || i == 0 || i == c.pageCount - 1) i
-    ];
+    final pages = <int>[for (var i = 0; i < c.pageCount; i++) if ((i - c.page).abs() <= 2 || i == 0 || i == c.pageCount - 1) i];
     final widgets = <Widget>[];
     int? prev;
     for (final i in pages) {
-      if (prev != null && i - prev > 1) {
-        widgets.add(SizedBox(width: 20, child: Center(child: Text('…', style: TextStyle(color: skin.fg4)))));
-      }
+      if (prev != null && i - prev > 1) widgets.add(SizedBox(width: 20, child: Center(child: Text('…', style: TextStyle(color: skin.fg4)))));
       widgets.add(_PageNumBtn(skin: skin, n: i, active: i == c.page, onTap: () => c.setPage(i)));
       prev = i;
     }
     return Padding(
       padding: const EdgeInsets.only(top: 12),
       child: Row(children: [
-        Text(total == 0 ? '0 of 0' : '$from–$to of $total',
-            style: TextStyle(fontSize: 12, color: skin.fg3)),
+        Text(total == 0 ? '0 of 0' : '$from–$to of $total', style: TextStyle(fontSize: 12, color: skin.fg3)),
         const Spacer(),
         _PagerBtn(skin: skin, icon: context.isRtl ? Icons.chevron_right_rounded : Icons.chevron_left_rounded, enabled: c.page > 0, onTap: () => c.setPage(c.page - 1)),
         const SizedBox(width: 6),
@@ -1459,26 +1232,19 @@ class _SuperTableState extends State<SuperTable> {
   Widget _buildStatusHint(SuperTableSkin skin) {
     final n = _editable ? c.rows.length : c.sortedRows.length;
     final hint = _editable
-        ? '$n row${n == 1 ? '' : 's'} · ↵ edit · Tab next (new row at end) · ⌘C/V JSON copy·paste · ⌘Z undo'
-        : '$n row${n == 1 ? '' : 's'} · ⇧+arrows to range-select · right-click to copy as JSON · ⌘C copy';
+        ? '$n row${n == 1 ? '' : 's'} · ↵ edit · Tab next (new row at end) · ⌘↵ insert after · ⌘C/V JSON · ⌘Z undo'
+        : '$n row${n == 1 ? '' : 's'} · ⇧+arrows to range-select · right-click header for options · ⌘C copy';
     return Padding(
       padding: const EdgeInsets.only(top: 10),
       child: Row(children: [
-        Expanded(
-          child: Text(hint, style: TextStyle(fontSize: 12, color: skin.fg3)),
-        ),
-        if (c.rowMode && c.selRows.isNotEmpty)
-          Text('${c.selRows.length} selected', style: TextStyle(fontSize: 12, color: skin.accent)),
+        Expanded(child: Text(hint, style: TextStyle(fontSize: 12, color: skin.fg3))),
+        if (c.rowMode && c.selRows.isNotEmpty) Text('${c.selRows.length} selected', style: TextStyle(fontSize: 12, color: skin.accent)),
       ]),
     );
   }
 
-  // ── skeleton ──
   Widget _buildSkeleton(SuperTableSkin skin, List<SuperColumn> cols) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [for (var i = 0; i < widget.skeletonRows; i++) _skeletonRow(skin, cols)],
-    );
+    return Column(mainAxisSize: MainAxisSize.min, children: [for (var i = 0; i < widget.skeletonRows; i++) _skeletonRow(skin, cols)]);
   }
 
   Widget _skeletonRow(SuperTableSkin skin, List<SuperColumn> cols) {
@@ -1489,28 +1255,86 @@ class _SuperTableState extends State<SuperTable> {
         for (final col in cols)
           Container(
             width: c.widthOf(col),
+            alignment: col.align == SuperAlign.end ? AlignmentDirectional.centerEnd : AlignmentDirectional.centerStart,
             padding: const EdgeInsets.symmetric(horizontal: 11),
             decoration: BoxDecoration(border: Border(right: BorderSide(color: skin.border))),
-            child: _shimmerBar(skin, c.widthOf(col) * 0.55),
+            child: _Shimmer(width: (c.widthOf(col) * 0.5).clamp(24.0, 160.0), height: 10),
           ),
         if (_actionable) SizedBox(width: _actW),
       ]),
     );
   }
+}
 
-  Widget _shimmerBar(SuperTableSkin skin, double w) => Align(
-        alignment: AlignmentDirectional.centerStart,
-        child: Container(
-          width: w,
-          height: 10,
-          decoration: BoxDecoration(color: skin.inputBg, borderRadius: BorderRadius.circular(4)),
-        ),
-      );
+// ── animated shimmer bar for skeleton rows ──
+class _Shimmer extends StatefulWidget {
+  final double width;
+  final double height;
+  const _Shimmer({required this.width, required this.height});
+  @override
+  State<_Shimmer> createState() => _ShimmerState();
+}
+
+class _ShimmerState extends State<_Shimmer> with SingleTickerProviderStateMixin {
+  late final AnimationController _ac = AnimationController(vsync: this, duration: const Duration(milliseconds: 1100))..repeat(reverse: true);
+  @override
+  void dispose() {
+    _ac.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final skin = SuperTableSkin.of(context);
+    return AnimatedBuilder(
+      animation: _ac,
+      builder: (ctx, _) {
+        final t = 0.45 + 0.55 * _ac.value;
+        return Container(
+          width: widget.width,
+          height: widget.height,
+          decoration: BoxDecoration(color: skin.inputBg.withOpacity(t), borderRadius: BorderRadius.circular(4)),
+        );
+      },
+    );
+  }
+}
+
+/// Disabled per-column filter field shown with a slash while the advanced
+/// filter is active.
+class _DisabledFilter extends StatelessWidget {
+  final SuperTableSkin skin;
+  const _DisabledFilter({required this.skin});
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: _kFilterRowH,
+      color: skin.dimFill,
+      alignment: Alignment.center,
+      child: Stack(alignment: Alignment.center, children: [
+        Positioned.fill(child: CustomPaint(painter: _SlashPainter(skin.fg4.withOpacity(0.5)))),
+      ]),
+    );
+  }
+}
+
+class _SlashPainter extends CustomPainter {
+  final Color color;
+  _SlashPainter(this.color);
+  @override
+  void paint(Canvas canvas, Size size) {
+    final p = Paint()
+      ..color = color
+      ..strokeWidth = 1.2
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(Offset(size.width * 0.32, size.height * 0.72), Offset(size.width * 0.68, size.height * 0.28), p);
+  }
+
+  @override
+  bool shouldRepaint(covariant _SlashPainter old) => old.color != color;
 }
 
 // ── small shared widgets ──
-
-/// Secondary toolbar/formula-bar button (icon + optional label).
 class _BarButton extends StatefulWidget {
   final SuperTableSkin skin;
   final IconData? icon;
@@ -1539,17 +1363,11 @@ class _BarButtonState extends State<_BarButton> {
           child: Container(
             height: 30,
             padding: EdgeInsets.symmetric(horizontal: widget.label != null ? 11 : 8),
-            decoration: BoxDecoration(
-              color: on && _h ? s.hover : Colors.transparent,
-              border: Border.all(color: s.borderStrong),
-              borderRadius: BorderRadius.circular(SuperTokens.radiusControl),
-            ),
+            decoration: BoxDecoration(color: on && _h ? s.hover : Colors.transparent, border: Border.all(color: s.borderStrong), borderRadius: BorderRadius.circular(SuperTokens.radiusControl)),
             child: Row(mainAxisSize: MainAxisSize.min, children: [
               if (widget.icon != null) Icon(widget.icon, size: 14, color: s.fg2),
               if (widget.icon != null && widget.label != null) const SizedBox(width: 7),
-              if (widget.label != null)
-                Text(widget.label!,
-                    style: TextStyle(fontFamily: SuperTokensFonts.body, fontSize: 13, fontWeight: FontWeight.w600, color: s.fg2)),
+              if (widget.label != null) Text(widget.label!, style: TextStyle(fontFamily: SuperTokensFonts.body, fontSize: 13, fontWeight: FontWeight.w600, color: s.fg2)),
             ]),
           ),
         ),
@@ -1558,8 +1376,6 @@ class _BarButtonState extends State<_BarButton> {
   }
 }
 
-/// A tap surface that reports the global position of the tap so a floating
-/// menu can be anchored to it. Used by the per-column filter dropdowns.
 class _DropdownTap extends StatefulWidget {
   final Widget child;
   final void Function(Offset globalPos) onOpen;
@@ -1573,23 +1389,19 @@ class _DropdownTapState extends State<_DropdownTap> {
   Widget build(BuildContext context) {
     return MouseRegion(
       cursor: SystemMouseCursors.click,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTapDown: (d) => widget.onOpen(d.globalPosition),
-        child: widget.child,
-      ),
+      child: GestureDetector(behavior: HitTestBehavior.opaque, onTapDown: (d) => widget.onOpen(d.globalPosition), child: widget.child),
     );
   }
 }
 
-/// A small hover icon-button used in header/row action cells.
 class _IconHoverButton extends StatefulWidget {
   final SuperTableSkin skin;
   final IconData icon;
   final String tooltip;
   final bool danger;
+  final bool accent;
   final VoidCallback onTap;
-  const _IconHoverButton({required this.skin, required this.icon, required this.tooltip, this.danger = false, required this.onTap});
+  const _IconHoverButton({required this.skin, required this.icon, required this.tooltip, this.danger = false, this.accent = false, required this.onTap});
   @override
   State<_IconHoverButton> createState() => _IconHoverButtonState();
 }
@@ -1599,7 +1411,9 @@ class _IconHoverButtonState extends State<_IconHoverButton> {
   @override
   Widget build(BuildContext context) {
     final s = widget.skin;
-    final color = _h ? (widget.danger ? s.danger : s.accent) : (widget.danger ? s.fg3 : s.fg4);
+    final color = widget.accent
+        ? s.accent
+        : (_h ? (widget.danger ? s.danger : s.accent) : (widget.danger ? s.fg3 : s.fg4));
     return Tooltip(
       message: widget.tooltip,
       child: MouseRegion(
@@ -1612,10 +1426,7 @@ class _IconHoverButtonState extends State<_IconHoverButton> {
             width: 26,
             height: 26,
             alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: _h ? (widget.danger ? s.tint(s.danger, 0.12) : s.hover) : Colors.transparent,
-              borderRadius: BorderRadius.circular(SuperTokens.radiusControl),
-            ),
+            decoration: BoxDecoration(color: (_h || widget.accent) ? (widget.danger ? s.tint(s.danger, 0.12) : s.accentWash(0.14)) : Colors.transparent, borderRadius: BorderRadius.circular(SuperTokens.radiusControl)),
             child: Icon(widget.icon, size: 14, color: color),
           ),
         ),
@@ -1639,17 +1450,8 @@ class _PageNumBtn extends StatelessWidget {
         height: 30,
         alignment: Alignment.center,
         padding: const EdgeInsets.symmetric(horizontal: 6),
-        decoration: BoxDecoration(
-          color: active ? skin.accent : Colors.transparent,
-          border: Border.all(color: active ? Colors.transparent : skin.borderStrong),
-          borderRadius: BorderRadius.circular(5),
-        ),
-        child: Text('${n + 1}',
-            style: TextStyle(
-                fontFamily: SuperTokensFonts.mono,
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: active ? Colors.white : skin.fg2)),
+        decoration: BoxDecoration(color: active ? skin.accent : Colors.transparent, border: Border.all(color: active ? Colors.transparent : skin.borderStrong), borderRadius: BorderRadius.circular(5)),
+        child: Text('${n + 1}', style: TextStyle(fontFamily: SuperTokensFonts.mono, fontSize: 12, fontWeight: FontWeight.w600, color: active ? Colors.white : skin.fg2)),
       ),
     );
   }
@@ -1671,11 +1473,7 @@ class _PagerBtn extends StatelessWidget {
           width: 30,
           height: 30,
           alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: skin.inputBg,
-            border: Border.all(color: skin.borderStrong),
-            borderRadius: BorderRadius.circular(5),
-          ),
+          decoration: BoxDecoration(color: skin.inputBg, border: Border.all(color: skin.borderStrong), borderRadius: BorderRadius.circular(5)),
           child: Icon(icon, size: 16, color: skin.fg2),
         ),
       ),

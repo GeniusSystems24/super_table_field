@@ -1,15 +1,19 @@
 // ============================================================
 // features/super_table/domain/entities/super_table_state.dart
 // ------------------------------------------------------------
-// Small value types describing the unified SuperTable's mode + view state:
-// the grid mode, selection model, pagination strategy, density, a sort spec,
-// a cell coordinate, and the interleaved render-list item (group header vs
-// data row). All immutable; the controller owns the live instances.
+// Small value types describing the unified SuperTable's mode + view state: the
+// grid mode, selection model, pagination strategy, density, a sort spec, a cell
+// *coordinate* ([CellPos]), and the interleaved render-list item (group header
+// vs data row). All immutable; the controller owns the live instances.
+//
+// NOTE (0.4.0): the cell *coordinate* is now [CellPos] — the name `SuperCell`
+// is the editable cell-data object (see `super_row.dart`).
 // ============================================================
 
 import 'package:flutter/foundation.dart';
 
 import 'super_column.dart';
+import 'super_row.dart';
 
 /// readable = sortable/selectable/copyable display grid;
 /// editable = spreadsheet cell editing + row ops.
@@ -36,28 +40,34 @@ class SortSpec {
       SortSpec(key: key ?? this.key, ascending: ascending ?? this.ascending);
 }
 
-/// A cell coordinate in the *view* (post-filter/sort/paginate) space.
+/// A cell *coordinate* in the *view* (post-filter/sort/paginate) space.
+/// (Renamed from `SuperCell` in 0.4.0 — that name is now the cell-data object.)
 @immutable
-class SuperCell {
+class CellPos {
   final int r;
   final int c;
-  const SuperCell(this.r, this.c);
+  const CellPos(this.r, this.c);
 
   String get token => '$r:$c';
 
+  CellPos copyWith({int? r, int? c}) => CellPos(r ?? this.r, c ?? this.c);
+
   @override
-  bool operator ==(Object other) => other is SuperCell && other.r == r && other.c == c;
+  bool operator ==(Object other) => other is CellPos && other.r == r && other.c == c;
   @override
   int get hashCode => Object.hash(r, c);
+
+  @override
+  String toString() => 'CellPos($r, $c)';
 }
 
 /// One entry of the flat render list: either a [group] header or a [data] row.
 @immutable
-class RenderItem {
+class RenderItem<R> {
   final bool isGroup;
 
   // data-row fields
-  final SuperRow? row;
+  final SuperRow<R>? row;
   final int dataIndex; // index within the visible data view
   final int sourceIndex; // index within the original rows list
 
@@ -67,7 +77,7 @@ class RenderItem {
   final int groupCount;
   final int depth;
   final String path;
-  final List<SuperRow> groupRows;
+  final List<SuperRow<R>> groupRows;
 
   const RenderItem.data({
     required this.row,
