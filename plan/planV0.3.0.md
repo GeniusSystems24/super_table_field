@@ -1,116 +1,171 @@
-# SuperTableField package Requirements and Issues
+# SuperTableField Package Requirements and Issues
 
-Version 0.3.0
+update `flutter\super_table_field` flutter package as Version 0.4.0
 
-## ميزات Table
+## SuperTable Core
 
-> Make SuperTable a generic type SuperTable<RowValueType>.
+> Make `SuperTable` a generic type: `SuperTable<RowValueType>`.
 
-### Row
+### SuperTableController
 
-#### Row style
+* Allow the table mode to be changed through the controller, from read mode to edit mode and vice versa.
+* Allow table actions such as loading more data, clearing the table, and other related operations to be triggered through the controller.
 
-* إضافة conditional style استايل شرطي، بحيث يتم تحديد لون خلفية الصف أو لون النص بحسب مجموعة من الشروط كالتالي:
-* هذا الاستايل له الأولوية على الـ column style
+### EditableMode
 
-```dart
-SuperTable<RowValueType>(
-    // in ReadableMode
-    styles:{
-        conditionFun1(BuildContext context,SuperTableController<RowValueType> tableController ,SuperRow<RowValueType> row)=>true: SuperRowStyle(),
-        conditionFun2(BuildContext context,SuperTableController<RowValueType> tableController ,SuperRow<RowValueType> row)=>true: SuperRowStyle(),
-    }
-)
-```
+* Fix the row-creation behavior when pressing `Tab` on the last cell of the last row. A new row should be added, and focus should move to the first cell of the newly created row.
+* Allow creating a new row after the currently focused row by pressing `Ctrl + Enter`, or before the currently focused row by pressing `Shift + Ctrl + Enter`. After the new row is created, focus should move to the same column/cell position in the new row.
 
-### Loading more
+### Documentation
 
-* Fix skeleton style.
-* Fix loading mechanism.
+* Update the documentation in `README.md` using pub.dev package documentation style and principles.
+* Update `CHANGELOG.md`.
+* Update ai skill.
+* Create 5 examples demonstrating different ways to use `SuperTable`.
 
-### Column
+---
 
-#### Inherited Column types
+## Column
 
-قم بإنشاء كلاس لكل نوع يرث من الكلاس الأساسي SuperColumn مع القيم الخاصة به، كالتالي:
+### Inherited Column Types
 
-* SuperTextColumn.
-* SuperNumberColumn<T extends num>.
-* SuperCurrencyColumn.
-* SuperEnumerationColumn<T>.
-* SuperComboColumn<T>
-* SuperProgressColumn<T>
-* SuperColorColumn<T>, بحيث تحدد صيغة التعامل مع القيمة: رقم أم نص أم Color
-* SuperDateColumn
-* SuperTimeColumn
-* SuperLinkColumn
-* SuperCheckboxColumn
+Create a dedicated class for each column type. Each class should inherit from the base `SuperColumn` class and define its own type-specific values, as follows:
 
-أبقِ على SuperColumn كما هو قابلًا للاستخدام الحر
+* `SuperTextColumn`.
+* `SuperNumberColumn<T extends num>`.
+* `SuperCurrencyColumn`.
+* `SuperEnumerationColumn<T>`.
+* `SuperComboColumn<T>`.
+* `SuperProgressColumn<T>`.
+* `SuperColorColumn<T>`, with support for defining how the value should be handled: as a number, text, or `Color`.
+* `SuperDateColumn`.
+* `SuperTimeColumn`.
+* `SuperLinkColumn`.
+* `SuperCheckboxColumn`.
 
-#### Column functions
+Keep `SuperColumn` available as a flexible base column for custom usage.
 
-* onChange function like this:
+### Column Functions
+
+* Add an `onChange` function as follows:
 
 ```dart
 SuperXColumn<T>(
 // in EditableMode.
-// default value is: (BuildContext context,SuperTableController<RowValueType> tableController , row , cell , previousValue , newValue)=>true,
+// default value is: (BuildContext context, SuperTableController<RowValueType> tableController, row, cell, previousValue, newValue) => true,
 //
-onChange: (BuildContext context,SuperTableController<RowValueType> tableController ,SuperRow<RowValueType> row , cell ,T previousValue ,T newValue){
+onChange: (BuildContext context, SuperTableController<RowValueType> tableController, SuperRow<RowValueType> row, cell, T previousValue, T newValue) {
     // can reset value of other cells
-    row.cells["columnName"].value=...; 
+    row.cells["columnName"].value = ...; 
     // can change row's fingerPrint
-    row.fingerPrint=....;
+    row.fingerPrint = ....;
     // or
     row.randomFingerPrint();
 
-    // it should return bool value, true if newValue is valid or false if not.
-    if(/*newValue is ...*/ )
-    return true;
+    // it should return a bool value: true if newValue is valid, or false if it is not.
+    if (/* newValue is ... */)
+        return true;
     else 
-    return false;
+        return false;
 }
 )
 ```
 
-* validator function like this:
+* Add a `validator` function as follows:
 
 ```dart
 SuperXColumn<T>(
 // in EditableMode.
-// default value is: (BuildContext context,SuperTableController<RowValueType> tableController , row , cell , value) => null,
+// default value is: (BuildContext context, SuperTableController<RowValueType> tableController, row, cell, value) => null,
 //
-validator: (BuildContext context,SuperTableController<RowValueType> tableController ,SuperRow<RowValueType> row , cell ,T value){
-    // check if value is not valid
+validator: (BuildContext context, SuperTableController<RowValueType> tableController, SuperRow<RowValueType> row, cell, T value) {
+    // check whether the value is invalid
     return 'error code';
 }
 )
 ```
 
-#### Cell
+---
 
-* Enhance filter cell design.
+## Filtering System
 
-#### Filter Source
+### Filter Source
 
-* Add source types for filter values like sync, async, and stream.
+* Add source types for filter values, such as sync, async, and stream sources.
 
-#### EnumerationColumn
+### Advanced Table Filter
 
-* Make its filter values a list of FilterItem(String display, T value) instead of List<String>.
+* Add an advanced filter button in the header of the row-number column. When the advanced filter is active, the column filter fields should be cleared, disabled, and visually marked with a slash `/` to indicate that they are inactive.
+* When the advanced filter is active, the icon should display a red badge, or another suitable color, to indicate that filter settings are currently applied.
 
-#### SuperCurrencyColumn
+### Filtering System
 
-* Make its filter values a list of FilterItem(String display, T value) instead of List<String>.
+* Allow filters to be set programmatically, whether advanced filters or column filters. When a column filter is changed, ensure that the advanced filter is not active.
+* Allow the current filter state to be extracted programmatically from the controller as a structured JSON object.
+* Include the current filter state in the `onLoadMore` operation so it can be used during data fetching.
 
-#### SuperColorColumn
+### EnumerationColumn
 
-* Make its filter values a list of FilterItem(String display, T value) instead of List<String>.
+* Make its filter values a list of `FilterItem(String display, T value)` instead of `List<String>`.
 
-#### SuperComboColumn
+### SuperCurrencyColumn
 
-* Add all options of AutoSuggestionsBox like this:
+* Make its filter values a list of `FilterItem(String display, T value)` instead of `List<String>`.
+
+### SuperColorColumn
+
+* Make its filter values a list of `FilterItem(String display, T value)` instead of `List<String>`.
+
+---
+
+## Row
+
+### Row Style
+
+* Add conditional row styling, allowing the row background color or text color to be determined according to a set of conditions, as follows:
+* This style should take priority over the column style.
+
+```dart
+SuperTable<RowValueType>(
+    // in ReadableMode
+    styles: {
+        conditionFun1(BuildContext context, SuperTableController<RowValueType> tableController, SuperRow<RowValueType> row) => true: SuperRowStyle(),
+        conditionFun2(BuildContext context, SuperTableController<RowValueType> tableController, SuperRow<RowValueType> row) => true: SuperRowStyle(),
+    }
+)
+```
+
+### Row Context Menu
+
+* Make tree options display their branches as an `overlayCard`, and allow them to expand into nested tree branches as needed.
+
+---
+
+## Cell
+
+### Filter Cell
+
+* Enhance the filter cell design.
+
+### Cell Style
+
+* Add conditional cell styling, allowing the cell background color or text color to be determined according to a set of conditions, as follows:
+
+```dart
+SuperXColumn<T>(
+    // in ReadableMode
+    styles: {
+        conditionFun1(BuildContext context, SuperTableController<RowValueType> tableController, SuperRow<RowValueType> row, cell) => true: CellStyle(),
+        conditionFun2(BuildContext context, SuperTableController<RowValueType> tableController, SuperRow<RowValueType> row, cell) => true: CellStyle(),
+    }
+)
+```
+
+---
+
+## SuperComboColumn
+
+* Add all `AutoSuggestionsBox` options, as follows:
 
 ```dart
 SuperComboColumn<T>(
@@ -118,87 +173,62 @@ key: '...',
 label: '...',
 //------------------------- normal options ----------------------------------
 // one for all
-advancedSearch:...,
-advancedSearchBuilder:...,
-itemBuilder:...,
-loadingBuilder:...,
-emptyBuilder:...,
-hintText:...,
-onSubmitted:...,
-leading:...,
-highlightMatch:...,
-maxVisibleRows:...,
-clearButton:false,
-onSelected:...,
+advancedSearch: ...,
+advancedSearchBuilder: ...,
+itemBuilder: ...,
+loadingBuilder: ...,
+emptyBuilder: ...,
+hintText: ...,
+onSubmitted: ...,
+leading: ...,
+highlightMatch: ...,
+maxVisibleRows: ...,
+clearButton: false,
+onSelected: ...,
 //------------------------- rebuildable options ----------------------------------
-// this will be recalled when the cell is in editable focus and (row's fingerPrint is changed or first build).
-sourceController: (BuildContext context,SuperTableController<RowValueType> tableController ,SuperRow<RowValueType> row, cell){
-    return  AutoSuggestionsSource<T>(...);
+// this will be recalled when the cell is in editable focus and either the row's fingerPrint changes or this is the first build.
+sourceController: (BuildContext context, SuperTableController<RowValueType> tableController, SuperRow<RowValueType> row, cell) {
+    return AutoSuggestionsSource<T>(...);
 }
-cellController: (BuildContext context,SuperTableController<RowValueType> tableController ,SuperRow<RowValueType> row, cell){
+cellController: (BuildContext context, SuperTableController<RowValueType> tableController, SuperRow<RowValueType> row, cell) {
     return AutoSuggestionsBoxController<T>(...);
 }
 )
 ```
 
-* أتِح إمكانية الوصول إلى المتحكم AutoSuggestionsBoxController والمصدر SuggestionSources الخاص بخلية الصف بواسطة SuperTableController.
+* Allow access to the `AutoSuggestionsBoxController` controller and the row cell's suggestion source through `SuperTableController`.
 
-#### Cell style
+---
 
-* إضافة conditional style استايل شرطي، بحيث يتم تحديد لون خلفية الخلية أو لون النص بحسب مجموعة من الشروط كالتالي:
+## Focus System
 
-```dart
-SuperXColumn<T>(
-    // in ReadableMode
-    styles:{
-        conditionFun1(BuildContext context,SuperTableController<RowValueType> tableController ,SuperRow<RowValueType> row, cell)=>true: CellStyle(),
-        conditionFun2(BuildContext context,SuperTableController<RowValueType> tableController ,SuperRow<RowValueType> row, cell)=>true: CellStyle(),
-    }
-)
-```
+* Allow selecting a single cell, multiple cells, a single row, or multiple rows programmatically through the controller, and allow clearing the selection.
+* When clicking the row-number cell, the row should be selected without changing the focus of the currently focused cell.
 
-### Advanced table Filter
+---
 
-* إضافة زر الفلترة المتقدمة يكون في Header of RowNo Column، وعندما يكون فعالًا يتم تفريغ حقول الفلتر الخاصة بالأعمدة وجعلها disabled وعليها خط / يشير إلى أنها ملغاة
-* عندما يكون الفلتر المتقدم فعالًا، يجب أن يكون على الأيقونة badge باللون الأحمر أو لون مناسب يشير إلى أن هناك إعدادات فلترة موجودة
+## Loading More
 
-### Filtering system
+* Fix the skeleton style.
+* Fix the loading mechanism.
 
-* يمكن ضبط الفلتر برمجيًا، سواء المتقدم أو فلاتر الأعمدة، مع التحقق من أن الفلتر المتقدم غير فعال عند التغيير على فلاتر الأعمدة
-* يمكن استخراج الفلتر برمجيًا من controller على صيغة json مركب
-* إرفاق الفلتر مع عملية onLoadMore لكي يتم الاستفادة منه في عملية الجلب
+---
 
-### Focus system
+## Context Menus
 
-* يمكن التحديد على خلية أو عدة خلايا أو صف أو عدة صفوف برمجيًا بواسطة controller أو إلغاء التحديد
-* عند الضغط على خلية رقم الصف، يتم التحديد على الصف دون تغيير التركيز على الخلية الحالية
+### Column Context Menu
 
-### Column context menu
+* Show the context menu when right-clicking the column header, not when left-clicking it. The left mouse button should be used for drag-and-drop column reordering. On touch screens, double-tap should open the context menu, while long-press should be used for drag-and-drop.
 
-* يتم إظهار القائمة عند الضغط على رأس العمود بالزر الأيمن وليس الأيسر، ويكون الزر الأيسر للسحب والإفلات من أجل نقل الأعمدة، أما في شاشات اللمس فيتم اعتماد النقر مرتين لظهور القائمة والضغط باستمرار للسحب والإفلات
+---
 
-### Row context menu
+## Keyboard Shortcuts Function
 
-* اجعل الخيارات الشجرية تعرض تفرعاتها كـ overlayCard واجعلها قابلة للتمدد إلى أشجار تفرعية كما نريد.
-
-### Keyboard shortcuts function
-
-* دالة لإضافة الاختصارات كالتالي
+* Add a function for handling keyboard shortcuts, as follows:
 
 ```dart
 SuperTable<RowValueType>(
     // in ReadableMode
-    onKey: (BuildContext context,SuperTableController<RowValueType> tableController, FocusNode node, KeyEvent e){}   
+    onKey: (BuildContext context, SuperTableController<RowValueType> tableController, FocusNode node, KeyEvent e) {}   
 )
 ```
-
-### SuperTableController
-
-* أتِح إمكانية تعديل mode من خلال المتحكم من قراءة إلى تعديل والعكس.
-* أتِح إمكانية تحميل المزيد أو تنظيف الجدول أو غيره من خلال المتحكم
-
-### Documentation
-
-* Update documentation in Readme.md, use pub.dev package's documentation style and principles.
-* Update changelog.md
-* Create 5 examples for using SuperTable in different ways.
