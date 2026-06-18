@@ -13,9 +13,10 @@ description: >
 
 # Super Table Field — Agent Skill
 
-`super_table_field` pairs two GeniusLink components and wires them together:
-`SuperTable` (data grid) and `AutoSuggestionsBox` (typeahead). In editable
-mode, the table's `combo` columns are edited through the real
+`super_table_field` provides the `SuperTable` data grid and wires it to the
+`AutoSuggestionsBox` typeahead from its companion package
+`super_auto_suggestion_box` (which this package depends on and re-exports). In
+editable mode, the table's `combo` columns are edited through the real
 `AutoSuggestionsBox`. This skill tells you how to wire them correctly.
 
 ## When to use
@@ -237,8 +238,10 @@ Embedding tip: set `bare: true`, pass a `fieldHeight`, and provide `onEscape` /
 Clean Architecture per feature under `lib/src/features/<feature>/`:
 `data/` (datasources, models) · `domain/` (entities, usecases — pure Dart) ·
 `presentation/` (`controllers/` = Model/state as `ChangeNotifier`, `widgets/` +
-`pages/` = View). Shared tokens/widgets live in `lib/src/core/`. Add new column
-behavior in `domain/usecases/super_column_logic.dart` and render in
+`pages/` = View). The shared tokens/widgets (`core`) and the `AutoSuggestionsBox`
+live in the `super_auto_suggestion_box` dependency, re-exported through this
+package's barrel. Add new column behavior in
+`domain/usecases/super_column_logic.dart` and render in
 `presentation/widgets/super_cell.dart`; keep the controller widget-free.
 
 ## Common mistakes

@@ -27,7 +27,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart' show BuildContext, FocusNode;
 
-import '../../../auto_suggestion_box/auto_suggestion_box.dart'
+import 'package:super_auto_suggestion_box/super_auto_suggestion_box.dart'
     show AutoSuggestionsBoxController, AutoSuggestionsSource;
 import '../../domain/entities/super_column.dart';
 import '../../domain/entities/super_filter.dart';

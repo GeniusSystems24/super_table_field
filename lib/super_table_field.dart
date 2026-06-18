@@ -1,5 +1,6 @@
-/// Super Table Field — a GeniusLink design-system Flutter package pairing the
-/// unified **SuperTable** data grid with the **AutoSuggestionsBox** typeahead.
+/// Super Table Field — a GeniusLink design-system Flutter package providing the
+/// unified **SuperTable** data grid, wired to the **AutoSuggestionsBox** typeahead
+/// from the companion `super_auto_suggestion_box` package.
 ///
 /// In editable mode, the table's `combo` columns are edited through the real
 /// `AutoSuggestionsBox` (filter · arrow-navigate · pick · free-text commit),
@@ -10,15 +11,14 @@
 ///   domain/      — entities, repository contracts, usecases (pure Dart)
 ///   presentation/— controllers (Model / state), widgets + pages (the View)
 ///
-/// Shared, cross-feature code lives in `lib/src/core/`.
-///
-/// Import this single barrel to get everything:
+/// The shared GeniusLink **core** foundation and the **AutoSuggestionsBox** live
+/// in `super_auto_suggestion_box`, which this package depends on and re-exports —
+/// so this single barrel still gives you everything:
 ///   `import 'package:super_table_field/super_table_field.dart';`
 library super_table_field;
 
-// ── Core (theme tokens, shared widgets, utils) ──────────────────────────────
-export 'src/core/core.dart';
+// ── Core + AutoSuggestionsBox (re-exported from super_auto_suggestion_box) ───
+export 'package:super_auto_suggestion_box/super_auto_suggestion_box.dart';
 
-// ── Features ────────────────────────────────────────────────────────────────
-export 'src/features/auto_suggestion_box/auto_suggestion_box.dart';
+// ── Feature ─────────────────────────────────────────────────────────────────
 export 'src/features/super_table/super_table.dart';

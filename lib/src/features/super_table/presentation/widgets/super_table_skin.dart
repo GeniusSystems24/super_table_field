@@ -9,7 +9,7 @@
 
 import 'package:flutter/widgets.dart';
 
-import '../../../../core/core.dart';
+import 'package:super_auto_suggestion_box/super_auto_suggestion_box.dart';
 
 /// Resolved palette for the SuperTable, derived from the core theme.
 class SuperTableSkin {

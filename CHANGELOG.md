@@ -3,6 +3,22 @@
 All notable changes to **super_table_field** are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/); versioning is [SemVer](https://semver.org/).
 
+## [0.5.0] — 2026-06-18
+
+### Changed
+- **`AutoSuggestionsBox` and the shared `core` foundation were split out into the
+  new [`super_auto_suggestion_box`](../super_auto_suggestion_box) package**
+  (also `0.5.0`). `super_table_field` now **depends on** that package and
+  **re-exports** it, so `import 'package:super_table_field/super_table_field.dart';`
+  still exposes everything (`SuperThemeData`, `AutoSuggestionsBoxThemeData`,
+  `SuperTable`, `AutoSuggestionsBox`, the `core` widgets/tokens, …) — **no source
+  changes are required** for existing consumers.
+
+### Migration
+- None required for table users. If you only need the typeahead, depend on
+  `super_auto_suggestion_box` directly and import
+  `package:super_auto_suggestion_box/super_auto_suggestion_box.dart`.
+
 ## [0.4.0] — 2026-06-17
 
 A large, **breaking** release: `SuperTable` is now generic, columns are a typed

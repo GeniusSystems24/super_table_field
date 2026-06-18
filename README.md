@@ -2,14 +2,18 @@
 
 [![style: flutter_lints](https://img.shields.io/badge/style-flutter__lints-blue)](https://pub.dev/packages/flutter_lints)
 
-A **GeniusLink design-system** Flutter package that pairs two production components and wires them together:
+A **GeniusLink design-system** Flutter package providing a generic data grid, wired to the typeahead from its companion package:
 
 - **`SuperTable<R>`** — a generic, keyboard-first data grid with `readable` and `editable` modes, a typed column hierarchy, per-column **and** advanced (cross-column) filtering, conditional row/cell styling, multi-level grouping, totals, pagination, clipboard, and undo/redo.
-- **`AutoSuggestionsBox`** — a typeahead / combobox field with local + remote sources, fuzzy matching, multi-select, free-text, and an advanced-search overlay.
+- **`AutoSuggestionsBox`** — a typeahead / combobox field with local + remote sources, fuzzy matching, multi-select, free-text, and an advanced-search overlay. It now lives in the companion [`super_auto_suggestion_box`](../super_auto_suggestion_box) package, which this package **depends on and re-exports** (along with the shared GeniusLink `core` foundation).
 
 In editable mode, the table's `combo` columns are edited **through the real `AutoSuggestionsBox`** — one keyboard model, one look, no duplicate combobox.
 
 Light + dark themes, full LTR + RTL.
+
+## What's new in 0.5.0
+
+- **`AutoSuggestionsBox` + the shared `core` foundation split into [`super_auto_suggestion_box`](../super_auto_suggestion_box).** This package now depends on it and **re-exports it**, so the single barrel import below still gives you everything (`SuperThemeData`, `AutoSuggestionsBoxThemeData`, `SuperTable`, `AutoSuggestionsBox`, …) — existing code is unchanged. Need only the typeahead? Depend on `super_auto_suggestion_box` directly.
 
 ## What's new in 0.4.0
 

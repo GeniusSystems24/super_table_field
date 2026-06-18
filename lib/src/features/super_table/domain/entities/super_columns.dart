@@ -18,7 +18,7 @@
 
 import 'package:flutter/widgets.dart';
 
-import '../../../auto_suggestion_box/auto_suggestion_box.dart';
+import 'package:super_auto_suggestion_box/super_auto_suggestion_box.dart';
 import '../../presentation/controllers/super_table_controller.dart';
 import 'super_column.dart';
 import 'super_filter.dart';

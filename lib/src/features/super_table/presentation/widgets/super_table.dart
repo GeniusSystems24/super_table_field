@@ -22,7 +22,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../../../core/core.dart';
+import 'package:super_auto_suggestion_box/super_auto_suggestion_box.dart';
 import '../../domain/entities/super_column.dart';
 import '../../domain/entities/super_filter.dart';
 import '../../domain/entities/super_row.dart';
