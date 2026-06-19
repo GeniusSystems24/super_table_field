@@ -1,13 +1,15 @@
 name: super_table_field
 description: >
   Super Table Field — a GeniusLink design-system Flutter package providing the
-  unified SuperTable data grid (readable/editable, 13 column types, 4 selection
-  modes, search, multi-level grouping, totals, pagination, JSON/TSV clipboard,
-  undo/redo), wired to the AutoSuggestionsBox typeahead from the companion
-  super_auto_suggestion_box package. In editable mode, `combo` columns are edited
-  through the real AutoSuggestionsBox. Light/dark + LTR/RTL.
+  unified SuperTable data grid for ERP / accounting screens: readable/editable
+  modes, a typed column hierarchy, change tracking (add/modify/delete deltas),
+  per-column + advanced filtering, custom aggregations, selection statistics,
+  conditional styling, grouping, totals, pagination, CSV/TSV/JSON export, row
+  reordering, per-cell edit locking, clipboard and undo/redo — wired to the
+  AutoSuggestionsBox typeahead from the companion super_auto_suggestion_box
+  package. Light/dark + LTR/RTL.
 publish_to: "none"
-version: 0.5.0
+version: 1.0.0
 
 environment:
   sdk: ">=3.0.0 <4.0.0"

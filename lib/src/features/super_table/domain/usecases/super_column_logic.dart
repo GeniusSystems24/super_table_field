@@ -268,12 +268,22 @@ abstract final class SuperColumnLogic {
   // ── aggregation ──
   static num? aggregate(SuperColumn col, List<SuperRow> rows) {
     if (col.agg == SuperAgg.none) return null;
+    if (col.agg == SuperAgg.custom) return col.aggregator?.call(rows);
     if (col.agg == SuperAgg.count) return rows.length;
+    if (rows.isEmpty) return col.agg == SuperAgg.sum || col.agg == SuperAgg.avg ? 0 : null;
     final nums = rows.map((r) => numVal(col.rawValue(r)));
-    final sum = nums.fold<num>(0, (a, b) => a + b);
-    if (col.agg == SuperAgg.sum) return sum;
-    if (col.agg == SuperAgg.avg) return rows.isEmpty ? 0 : sum / rows.length;
-    return null;
+    switch (col.agg) {
+      case SuperAgg.sum:
+        return nums.fold<num>(0, (a, b) => a + b);
+      case SuperAgg.avg:
+        return nums.fold<num>(0, (a, b) => a + b) / rows.length;
+      case SuperAgg.min:
+        return nums.reduce((a, b) => a < b ? a : b);
+      case SuperAgg.max:
+        return nums.reduce((a, b) => a > b ? a : b);
+      default:
+        return null;
+    }
   }
 
   // ── advanced-filter clause evaluation ──

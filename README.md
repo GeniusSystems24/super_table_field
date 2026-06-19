@@ -11,6 +11,19 @@ In editable mode, the table's `combo` columns are edited **through the real `Aut
 
 Light + dark themes, full LTR + RTL.
 
+## What's new in 1.0.0
+
+The **ERP release** — everything an accounting / inventory / document grid needs to stage edits and post them to a backend:
+
+- **Change tracking** — opt in with `SuperTableController(trackChanges: true)`. The controller captures a per-cell baseline and exposes the add / modify / delete delta through `controller.changes` (a `SuperChangeSet`), plus `hasChanges`, `isRowDirty`, `isCellDirty`, and the `acceptChanges` / `rejectChanges` pair. Dirty cells get an accent corner marker. Post only what changed.
+- **Export** — `controller.toCsv()`, `toTsv()`, `toJsonRows()`, and `copyCsvToClipboard()`. Output honours the **active filter, sort, and column order**.
+- **Extended + custom aggregations** — `SuperAgg.min`, `SuperAgg.max`, and `SuperAgg.custom` with a per-column `aggregator` (e.g. a quantity-weighted average). `aggLabel` renames the figure in group headers.
+- **Selection statistics** — `controller.selectionStats` returns a live `Sum / Avg / Min / Max / Count` over the selected numeric cells; the grid footer shows it automatically.
+- **Per-cell edit locking** — `SuperTableController(cellEditable: (col, row) => ...)` makes individual cells read-only (lock a row once it's *posted*, keep one field editable, …).
+- **Manual row reordering** — `moveRow`, `moveRowUp`, `moveRowDown`, plus *Move row up / down* in the editable row menu. Reorders record undo.
+
+This release is **backward compatible** — every new capability is opt-in. See the [CHANGELOG](CHANGELOG.md) and the [Roadmap](#roadmap).
+
 ## What's new in 0.5.0
 
 - **`AutoSuggestionsBox` + the shared `core` foundation split into [`super_auto_suggestion_box`](../super_auto_suggestion_box).** This package now depends on it and **re-exports it**, so the single barrel import below still gives you everything (`SuperThemeData`, `AutoSuggestionsBoxThemeData`, `SuperTable`, `AutoSuggestionsBox`, …) — existing code is unchanged. Need only the typeahead? Depend on `super_auto_suggestion_box` directly.
@@ -34,7 +47,11 @@ See the [CHANGELOG](CHANGELOG.md) for the full list and migration notes.
 - ✅ **Filtering** — per-column filters, an advanced cross-column editor, sync/async/stream filter option sources, programmatic get/set, and a JSON filter state.
 - ✅ **Conditional styling** — row styles win over cell styles; first matching condition applies.
 - ✅ **Sticky row-number gutter** — frozen during horizontal scroll; click to select the whole row without moving the edit cursor.
-- ✅ **Grouping & aggregates**, **totals**, **pagination** (pages / infinite / load-more).
+- ✅ **Grouping & aggregates** (sum / avg / count / **min / max / custom**), **totals**, **pagination** (pages / infinite / load-more).
+- ✅ **Change tracking** — opt-in add/modify/delete delta (`SuperChangeSet`) with dirty-cell markers and accept/reject.
+- ✅ **Export** — CSV / TSV / JSON of the live (filtered + sorted) view, plus copy-to-clipboard.
+- ✅ **Selection statistics** — spreadsheet-style running aggregate over selected cells.
+- ✅ **Per-cell edit locking** & **manual row reordering**.
 - ✅ **Combo ⇄ AutoSuggestionsBox** — with per-cell, rebuildable sources/controllers driven by the row `fingerPrint`.
 - ✅ **Clipboard** (JSON / TSV), **undo/redo**, **keyboard-first** with an `onKey` escape hatch.
 
@@ -228,6 +245,111 @@ SuperTableController<Map<String, dynamic>>(
 );
 ```
 
+## Change tracking (ERP save-delta)
+
+Most ERP grids stage edits and then post **only the delta** to a backend. Opt in with `trackChanges: true`; the controller snapshots a per-cell baseline and tracks every add / edit / delete against it. There is **zero overhead unless you opt in**.
+
+```dart
+final c = SuperTableController<Map<String, dynamic>>(
+  mode: SuperTableMode.editable,
+  addRowEnabled: true,
+  trackChanges: true,                       // ← capture a baseline
+  emptyRowValue: () => <String, dynamic>{'sku': '', 'qty': 0, 'price': 0.0},
+  columns: [ /* … */ ],
+  rows: [ /* … server data … */ ],
+);
+
+// … user edits a price, Tabs in a new row, deletes a row …
+
+if (c.hasChanges) {
+  final SuperChangeSet delta = c.changes;
+  delta.added;     // List<SuperRowChange> — brand-new rows
+  delta.modified;  // rows with changed cells (each carries its SuperCellChange list)
+  delta.deleted;   // rows removed since the baseline
+  await api.post(delta.toJson());           // {added:[…], modified:[…], deleted:[…]}
+  c.acceptChanges();                        // re-baseline: the grid is clean again
+}
+
+// or throw the edits away:
+c.rejectChanges();                          // restores cells, re-adds deleted rows, drops new ones
+```
+
+Dirty cells render a small accent corner. Query state directly with `c.rowStateOf(row)` (`pristine` / `added` / `modified` / `deleted`), `c.isRowDirty(row)`, and `c.isCellDirty(row, 'price')`. Rows streamed in via `appendRows(…)` are treated as clean baseline data, not local edits.
+
+## Export (CSV / TSV / JSON)
+
+Export reflects exactly what's on screen — the **active filter, sort order, and (optionally) the on-screen column order**.
+
+```dart
+final csv  = c.toCsv();                      // header + display text, comma-separated
+final tsv  = c.toTsv();                      // paste straight into Excel / Sheets
+final rows = c.toJsonRows();                 // List<Map<String,Object?>> of raw values
+
+await c.copyCsvToClipboard();                // CSV → system clipboard (fires onNotify)
+
+// Options:
+c.toCsv(includeHeader: false, visibleOnly: false); // all columns, no header
+c.toDelimited(delimiter: ';');                       // any delimiter
+```
+
+## Aggregations (min / max / custom)
+
+Beyond `sum` / `avg` / `count`, columns can aggregate with `SuperAgg.min`, `SuperAgg.max`, or `SuperAgg.custom` + an `aggregator`. The result appears in the totals row and in each group header; `aggLabel` renames it there.
+
+```dart
+// Quantity-weighted average unit cost — Σ(qty·cost) / Σ(qty):
+SuperComputedColumn<num>(
+  key: 'wac', label: 'WAC',
+  agg: SuperAgg.custom,
+  aggLabel: 'WTD AVG',
+  aggregator: (rows) {
+    num q = 0, v = 0;
+    for (final r in rows) { q += r['qty'] as num; v += (r['qty'] as num) * (r['cost'] as num); }
+    return q == 0 ? 0 : v / q;
+  },
+  compute: (row) => row['cost'] as num,
+  format: (v, row) => '\$${(v as num).toStringAsFixed(2)}',
+);
+
+SuperCurrencyColumn(key: 'cost', label: 'Unit Cost', agg: SuperAgg.min, aggLabel: 'MIN');
+```
+
+## Selection statistics
+
+In a cell-selection mode (`singleCell` / `multiCells`), `controller.selectionStats` returns a live aggregate over the selected numeric cells — the spreadsheet status-bar number. The grid footer renders it automatically when two or more numeric cells are selected; read it yourself to drive a custom status bar.
+
+```dart
+final s = c.selectionStats;                  // null when nothing numeric is selected
+if (s != null && s.hasAggregate) {
+  print('Σ ${s.sum} · avg ${s.average} · min ${s.min} · max ${s.max} · n=${s.numericCount}');
+}
+```
+
+## Per-cell edit locking
+
+ERP rows often freeze once posted or approved. The `cellEditable` gate runs in addition to the mode + column rules; return `false` to make a specific cell read-only.
+
+```dart
+SuperTableController(
+  mode: SuperTableMode.editable,
+  // Lock every cell of a posted row — except its Status, so you can re-open it.
+  cellEditable: (col, row) => row['status'] == 'Draft' || col.key == 'status',
+  columns: [ /* … */ ],
+);
+```
+
+Locked cells won't enter edit mode, won't clear on Delete, and won't accept a paste.
+
+## Manual row reordering
+
+Document lines (a quotation, a delivery note, a BOM) care about order. Reorder programmatically or via the *Move row up / down* entries in the editable row menu. Moves record undo and fire `onChange`. (No-op while grouped.)
+
+```dart
+c.moveRow(fromViewIndex, toViewIndex);
+c.moveRowUp();      // the focused row
+c.moveRowDown();
+```
+
 ## SuperComboColumn — full AutoSuggestionsBox options
 
 `SuperComboColumn` forwards every box option. The two **rebuildable** builders (`sourceController` / `cellController`) are re-invoked whenever the cell takes edit-focus **and** the row's `fingerPrint` changed — so suggestions can depend on the rest of the row.
@@ -297,22 +419,48 @@ c.clearTable();
 c.requestLoadMore();                 // == loadMore()
 c.updateRows(rows);
 c.updateColumns(columns);
+c.moveRowUp();                       // reorder the focused row (1.0.0)
+c.acceptChanges();                   // re-baseline after a save (1.0.0)
+c.rejectChanges();                   // discard edits (1.0.0)
+c.copyCsvToClipboard();              // export the live view (1.0.0)
 ```
 
 ## Example
 
-A runnable gallery lives in `example/` with five focused examples:
+A runnable gallery lives in `example/` with twelve focused examples:
 
 1. **Read-only report** — readable mode, typed model, conditional row styling.
 2. **Editable journal** — `validator` + `onChange`, Ctrl+Enter insert, live balance.
 3. **Async combo** — `SuperComboColumn.sourceController` + `fingerPrint` rebuild.
 4. **Controller-driven** — `setMode`, `onLoadMore`, programmatic filters + selection.
 5. **Styling & filters** — cell/row styles, `FilterItem` dropdowns, `onKey`.
+6. **Playground** — the full toolbar over every mode / option.
+7. **Change tracking** — `trackChanges`, dirty cells, the `changes` delta, save / revert.
+8. **Selection statistics** — `multiCells` + `selectionStats` status bar.
+9. **Export** — `toCsv` / `toTsv` / `toJsonRows`, reflecting the filtered view.
+10. **Aggregations** — `min` / `max` / `custom` aggregator (weighted average), `aggLabel`.
+11. **Cell locking** — `cellEditable` to freeze posted rows.
+12. **Row reordering** — `moveRowUp` / `moveRowDown` / `moveRow` with undo.
 
 ```bash
 cd example
 flutter run
 ```
+
+## Roadmap
+
+Planned for upcoming releases (ordered, not committed):
+
+- **Frozen / pinned columns at the edges** beyond the row-number gutter (left & right pins for ERP key + action columns).
+- **Column-level CSV/Excel formatters** and an `.xlsx` export helper (styled headers, number formats, frozen header row).
+- **Server-side data source** — a `SuperTableDataSource` interface for server-driven sort / filter / page over large datasets, with built-in debounce.
+- **Footer (group) aggregation rows** rendered inline under each group, not just in the header.
+- **Cell-level change history & per-cell revert** UI (right-click → *Revert cell*), building on the 1.0.0 baseline.
+- **Validation summary panel** — collect every cell error into a dismissible list with jump-to-cell.
+- **Fill handle & range fill** (drag the selection corner to copy down / right).
+- **Column chooser / show-hide + reorder persistence** to a saved view JSON.
+- **Virtualized rows** for very large in-memory datasets.
+- **Accessibility pass** — semantics for screen readers and high-contrast theming.
 
 ## Architecture
 

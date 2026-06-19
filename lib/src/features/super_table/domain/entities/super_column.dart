@@ -68,7 +68,7 @@ enum SuperAlign { start, center, end }
 enum SuperPin { none, left, right }
 
 /// The aggregate shown in the totals row / group headers for a column.
-enum SuperAgg { none, sum, avg, count }
+enum SuperAgg { none, sum, avg, count, min, max, custom }
 
 // ── Callback typedefs ───────────────────────────────────────────────────────
 
@@ -109,6 +109,11 @@ typedef SuperRowCondition = bool Function(
   SuperTableController controller,
   SuperRow row,
 );
+
+/// A custom column aggregator (see [SuperColumn.aggregator]). Receives the rows
+/// in scope (the whole filtered table for the totals row, or one group's rows
+/// for a group header) and returns the aggregate number, or null to show nothing.
+typedef SuperAggregator = num? Function(List<SuperRow> rows);
 
 /// The flexible base column. `T` is the cell value type. Use the typed
 /// subclasses (`SuperTextColumn`, `SuperNumberColumn<T>`, …) for the common
@@ -180,6 +185,15 @@ class SuperColumn<T> {
   /// Editable-mode validator (see [SuperColumnValidator]).
   final SuperColumnValidator<T>? validator;
 
+  // ── 1.0.0: aggregation ──
+  /// Custom aggregator, used when [agg] is [SuperAgg.custom]. Lets ERP columns
+  /// show a weighted average, a running balance, a distinct count, etc.
+  final SuperAggregator? aggregator;
+
+  /// Optional label prefix shown beside the aggregate in group headers (e.g.
+  /// `'AVG'`). Falls back to the column label when null.
+  final String? aggLabel;
+
   /// Conditional cell styles (readable mode); first matching condition wins.
   final Map<SuperCellCondition, CellStyle>? styles;
 
@@ -222,10 +236,13 @@ class SuperColumn<T> {
     this.write,
     this.onChange,
     this.validator,
+    this.aggregator,
+    this.aggLabel,
     this.styles,
     this.filterSource,
     this.filterItems,
-  });
+  }) : assert(agg != SuperAgg.custom || aggregator != null,
+            'SuperAgg.custom requires an aggregator function');
 
   /// The raw, untyped value of this column for [row]: compute ▸ accessor ▸ cell.
   Object? rawValue(SuperRow row) {
@@ -282,6 +299,8 @@ class SuperColumn<T> {
         align: align ?? this.align,
         pin: pin ?? this.pin,
         agg: agg ?? this.agg,
+        aggregator: aggregator,
+        aggLabel: aggLabel,
         editable: editable,
         sortable: sortable,
         groupable: groupable,

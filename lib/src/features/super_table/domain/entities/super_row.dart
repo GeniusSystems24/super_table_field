@@ -38,10 +38,46 @@ class SuperCell {
   /// The last validation error code/message for this cell (null = valid).
   String? error;
 
+  // ── change tracking (1.0.0) ──
+  Object? _baseline;
+  bool _hasBaseline = false;
+
+  /// Whether a baseline has been captured for this cell (see
+  /// `SuperTableController(trackChanges: true)`).
+  bool get baselineSet => _hasBaseline;
+
+  /// The last accepted value for this cell, or null if no baseline is set.
+  Object? get baseline => _baseline;
+
+  /// Whether the current [value] differs from the captured [baseline].
+  /// Always false until a baseline is captured.
+  bool get isDirty => _hasBaseline && _baseline != _value;
+
+  /// Capture the current [value] as the baseline (called by the controller on
+  /// construction and on `acceptChanges`).
+  void markBaseline() {
+    _baseline = _value;
+    _hasBaseline = true;
+  }
+
+  /// Restore [value] to the captured [baseline] (no-op if none). Used by
+  /// `rejectChanges`.
+  void revertToBaseline() {
+    if (_hasBaseline) {
+      _value = _baseline;
+      error = null;
+    }
+  }
+
   /// Typed read helper: `cell.as<num>()` / `cell.as<String>()`.
   V? as<V>() => _value is V ? _value as V : null;
 
-  SuperCell copy() => SuperCell(columnKey: columnKey, value: _value, error: error);
+  SuperCell copy() {
+    final c = SuperCell(columnKey: columnKey, value: _value, error: error);
+    c._baseline = _baseline;
+    c._hasBaseline = _hasBaseline;
+    return c;
+  }
 
   @override
   String toString() => 'SuperCell($columnKey: $_value${error != null ? ', error: $error' : ''})';
@@ -55,9 +91,15 @@ class SuperRow<R> {
     required Map<String, SuperCell> cells,
     Object? fingerPrint,
     int? id,
+    this.isNew = false,
   })  : cells = cells,
         _fingerPrint = fingerPrint ?? _fpSeq++,
         id = id ?? _idSeq++;
+
+  /// Whether this row was created after the controller's change-tracking
+  /// baseline (i.e. it is an *added* row, not yet persisted). Maintained by the
+  /// controller when `trackChanges` is on; ignored otherwise.
+  bool isNew;
 
   /// Stable per-instance identity for selection / diffing (independent of
   /// [fingerPrint], which is a rebuild token, not an identity).

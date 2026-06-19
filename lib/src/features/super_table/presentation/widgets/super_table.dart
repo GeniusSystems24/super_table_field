@@ -398,6 +398,8 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
         SuperMenuEntry(icon: Icons.vertical_align_top_rounded, label: 'Insert row above', hint: '⌘⇧↵', separatorBefore: true, onTap: () => c.insertRow(viewR, after: false)),
         SuperMenuEntry(icon: Icons.vertical_align_bottom_rounded, label: 'Insert row below', hint: '⌘↵', onTap: () => c.insertRow(viewR, after: true)),
         SuperMenuEntry(icon: Icons.copy_all_rounded, label: 'Duplicate row', hint: '⌘D', onTap: () => c.duplicateRow(viewR)),
+        SuperMenuEntry(icon: Icons.arrow_upward_rounded, label: 'Move row up', separatorBefore: true, disabled: viewR == 0, onTap: () => c.moveRowUp(viewR)),
+        SuperMenuEntry(icon: Icons.arrow_downward_rounded, label: 'Move row down', disabled: viewR >= c.view.length - 1, onTap: () => c.moveRowDown(viewR)),
         SuperMenuEntry(icon: Icons.delete_outline_rounded, label: 'Delete row', hint: '⌘⌫', danger: true, separatorBefore: true, onTap: () => _confirmDeleteRow(viewR)),
       ]);
     } else {
@@ -979,7 +981,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
       out.add(Padding(
         padding: const EdgeInsetsDirectional.only(start: 14),
         child: Row(mainAxisSize: MainAxisSize.min, children: [
-          Text('${col.label.toUpperCase()} ', style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.w700, letterSpacing: 0.4, color: skin.fg4)),
+          Text('${(col.aggLabel ?? col.label).toUpperCase()} ', style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.w700, letterSpacing: 0.4, color: skin.fg4)),
           Text(txt, style: TextStyle(fontFamily: SuperTokensFonts.mono, fontSize: 11, fontWeight: FontWeight.w600, color: skin.fg2)),
         ]),
       ));
@@ -1042,7 +1044,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
     final selDim = isCursor && !c.focused;
     final isEditing = c.editCell == CellPos(r, ci);
     final selected = c.isCellSelected(r, ci) && c.focused;
-    final editableCell = c.canEdit(col);
+    final editableCell = c.canEditRow(col, item.row!);
     final dim = col.type == SuperColumnType.computed || col.type == SuperColumnType.readonly;
     final storedError = item.row!.cells[col.key]?.error;
     final error = _editable ? (storedError ?? SuperColumnLogic.validateCell(col, col.rawValue(item.row!))) : null;
@@ -1117,6 +1119,18 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
 
     if (error != null && !isEditing) {
       cell = Stack(children: [cell, PositionedDirectional(end: 4, top: 0, bottom: 0, child: Center(child: SuperCellErrorBadge(error: error)))]);
+    }
+
+    // Change-tracking: mark dirty cells with a small accent corner (1.0.0).
+    if (c.trackChanges && !isEditing && c.isCellDirty(item.row!, col.key)) {
+      cell = Stack(children: [
+        cell,
+        PositionedDirectional(
+          top: 0,
+          start: 0,
+          child: IgnorePointer(child: CustomPaint(size: const Size(8, 8), painter: _DirtyCornerPainter(skin.accent))),
+        ),
+      ]);
     }
 
     return GestureDetector(
@@ -1234,10 +1248,19 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
     final hint = _editable
         ? '$n row${n == 1 ? '' : 's'} · ↵ edit · Tab next (new row at end) · ⌘↵ insert after · ⌘C/V JSON · ⌘Z undo'
         : '$n row${n == 1 ? '' : 's'} · ⇧+arrows to range-select · right-click header for options · ⌘C copy';
+    final stats = c.selectionStats;
+    String fmt(num v) => v == v.roundToDouble() ? v.toInt().toString() : v.toStringAsFixed(2);
     return Padding(
       padding: const EdgeInsets.only(top: 10),
       child: Row(children: [
         Expanded(child: Text(hint, style: TextStyle(fontSize: 12, color: skin.fg3))),
+        if (stats != null && stats.hasAggregate) ...[
+          Text(
+            'Sum ${fmt(stats.sum)}  ·  Avg ${fmt(stats.average)}  ·  Min ${fmt(stats.min!)}  ·  Max ${fmt(stats.max!)}  ·  Count ${stats.numericCount}',
+            style: TextStyle(fontFamily: SuperTokensFonts.mono, fontSize: 11.5, color: skin.accent),
+          ),
+          const SizedBox(width: 14),
+        ],
         if (c.rowMode && c.selRows.isNotEmpty) Text('${c.selRows.length} selected', style: TextStyle(fontSize: 12, color: skin.accent)),
       ]),
     );
@@ -1332,6 +1355,26 @@ class _SlashPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _SlashPainter old) => old.color != color;
+}
+
+/// A small filled triangle painted in a cell's top-leading corner to mark a
+/// dirty (changed) cell when change-tracking is on.
+class _DirtyCornerPainter extends CustomPainter {
+  final Color color;
+  _DirtyCornerPainter(this.color);
+  @override
+  void paint(Canvas canvas, Size size) {
+    final p = Paint()..color = color;
+    final path = Path()
+      ..moveTo(0, 0)
+      ..lineTo(size.width, 0)
+      ..lineTo(0, size.height)
+      ..close();
+    canvas.drawPath(path, p);
+  }
+
+  @override
+  bool shouldRepaint(covariant _DirtyCornerPainter old) => old.color != color;
 }
 
 // ── small shared widgets ──

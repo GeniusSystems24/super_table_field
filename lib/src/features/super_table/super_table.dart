@@ -9,6 +9,11 @@
 // `super-table` tool. Build it from a `SuperTableController` + a list of
 // `SuperColumn`s over `SuperRow` (`Map<String, dynamic>`) data.
 //
+// 1.0.0 adds the ERP essentials: opt-in **change tracking** (add/modify/delete
+// deltas via `controller.changes`), **CSV/TSV/JSON export**, **custom + min/max
+// aggregations**, **selection statistics**, **per-cell edit locking**, and
+// **manual row reordering**.
+//
 // In EDITABLE mode, `SuperColumnType.combo` cells are edited through the
 // design-system-native `AutoSuggestionsBox` (see `super_cell.dart`): type to
 // filter, ↑/↓ to move, Enter/click to pick, or type a free value and commit.
@@ -18,6 +23,7 @@ export 'domain/entities/super_column.dart';
 export 'domain/entities/super_columns.dart';
 export 'domain/entities/super_row.dart';
 export 'domain/entities/super_style.dart';
+export 'domain/entities/super_change.dart';
 export 'domain/entities/super_filter.dart';
 export 'domain/entities/super_table_state.dart';
 export 'domain/usecases/super_column_logic.dart';

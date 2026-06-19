@@ -106,3 +106,50 @@ class RenderItem<R> {
 
 /// A toast-style notification kind raised by the controller (copy/paste, etc.).
 enum SuperNotifyKind { ok, error }
+
+/// A live spreadsheet-style summary of the currently selected cells — the kind
+/// of running aggregate ERP operators expect in the status bar when they
+/// rubber-band a block of numbers. Computed on demand by
+/// `SuperTableController.selectionStats`; null when nothing numeric is selected.
+@immutable
+class SuperSelectionStats {
+  /// Total number of selected cells (any type).
+  final int count;
+
+  /// How many of the selected cells held a parseable number.
+  final int numericCount;
+
+  /// Sum of the numeric cells.
+  final num sum;
+
+  /// Mean of the numeric cells (0 when [numericCount] is 0).
+  final num average;
+
+  /// Smallest numeric value (null when [numericCount] is 0).
+  final num? min;
+
+  /// Largest numeric value (null when [numericCount] is 0).
+  final num? max;
+
+  const SuperSelectionStats({
+    required this.count,
+    required this.numericCount,
+    required this.sum,
+    required this.average,
+    this.min,
+    this.max,
+  });
+
+  /// Whether there are at least two numeric cells — the point at which a running
+  /// aggregate is worth showing.
+  bool get hasAggregate => numericCount >= 2;
+
+  Map<String, dynamic> toJson() => {
+        'count': count,
+        'numericCount': numericCount,
+        'sum': sum,
+        'average': average,
+        'min': min,
+        'max': max,
+      };
+}

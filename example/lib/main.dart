@@ -19,6 +19,12 @@ import 'examples/example_3_async_combo.dart';
 import 'examples/example_4_controller_driven.dart';
 import 'examples/example_5_styling_and_filters.dart';
 import 'examples/example_6_playground.dart';
+import 'examples/example_7_change_tracking.dart';
+import 'examples/example_8_selection_stats.dart';
+import 'examples/example_9_export.dart';
+import 'examples/example_10_aggregations.dart';
+import 'examples/example_11_cell_locking.dart';
+import 'examples/example_12_row_reorder.dart';
 
 void main() => runApp(const ExampleApp());
 
@@ -105,6 +111,18 @@ class _Launcher extends StatelessWidget {
         Icons.palette_outlined, (_) => const StylingAndFiltersExample()),
     _Demo('6 · Playground', 'Full toolbar · mode/search/select/paging/totals/filters',
         Icons.dashboard_customize_outlined, (_) => const PlaygroundExample()),
+    _Demo('7 · Change tracking', 'trackChanges · dirty cells · changes delta · save/revert',
+        Icons.fact_check_outlined, (_) => const ChangeTrackingExample()),
+    _Demo('8 · Selection statistics', 'multiCells · selectionStats · Sum/Avg/Min/Max status bar',
+        Icons.functions_outlined, (_) => const SelectionStatsExample()),
+    _Demo('9 · Export', 'toCsv / toTsv / toJsonRows · respects filter + sort',
+        Icons.file_download_outlined, (_) => const ExportExample()),
+    _Demo('10 · Aggregations', 'min / max / custom aggregator · weighted average · aggLabel',
+        Icons.summarize_outlined, (_) => const AggregationsExample()),
+    _Demo('11 · Cell locking', 'cellEditable · lock posted rows · read-only cells',
+        Icons.lock_outline, (_) => const CellLockingExample()),
+    _Demo('12 · Row reordering', 'moveRowUp / moveRowDown / moveRow · undo',
+        Icons.swap_vert_outlined, (_) => const RowReorderExample()),
     _Demo('Auto Suggestion Box', 'Typeahead · groups · multi-select · fuzzy',
         Icons.manage_search_outlined, (_) => const AutoSuggestionBoxDemo()),
   ];

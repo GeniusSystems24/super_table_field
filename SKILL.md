@@ -5,7 +5,9 @@ description: >
   data grids and typeahead inputs — SuperTable<R> (a generic readable/editable
   keyboard-first grid with a typed column hierarchy, onChange/validator,
   per-column + advanced filtering, conditional row/cell styling, grouping,
-  totals, pagination, undo/redo) and AutoSuggestionsBox (a filtering combobox).
+  totals, pagination, change tracking, CSV/TSV/JSON export, custom aggregations,
+  selection statistics, per-cell edit locking, row reordering, undo/redo) and
+  AutoSuggestionsBox (a filtering combobox).
   Apply when a Flutter app needs a themed (light/dark, LTR/RTL) table, a typeahead
   field, or an editable table whose `combo` columns are edited through the
   AutoSuggestionsBox.
@@ -176,6 +178,46 @@ Programmatic: `selectCellAt(r,c)`, `selectCells([CellPos(...)])`, `selectRowAt(r
 `selectRowsAt([...])`, `clearSelection()`. Clicking the **row-number** cell
 selects the whole row **without** moving the edit cursor.
 
+## ERP features (1.0.0)
+
+All opt-in; no overhead unless used.
+
+**Change tracking (save-delta).** Pass `trackChanges: true`. The controller
+snapshots a per-cell baseline; query the delta and post only what changed:
+
+```dart
+final c = SuperTableController(mode: SuperTableMode.editable, trackChanges: true, /* … */);
+// … user edits …
+if (c.hasChanges) {
+  await api.post(c.changes.toJson());   // {added:[…], modified:[…], deleted:[…]}
+  c.acceptChanges();                    // re-baseline (clean). Or c.rejectChanges() to discard.
+}
+c.rowStateOf(row);                      // pristine | added | modified | deleted
+c.isCellDirty(row, 'price');            // dirty cells also show an accent corner
+```
+Streamed rows from `appendRows(...)` count as clean baseline data; `clearTable()`
+records deletions. Entities: `SuperChangeSet`, `SuperRowChange`, `SuperCellChange`,
+`SuperRowState`.
+
+**Export.** `c.toCsv()` / `toTsv()` / `toJsonRows()` / `toDelimited(delimiter:)` /
+`copyCsvToClipboard()` — all reflect the active filter, sort, and column order.
+
+**Aggregations.** Beyond `sum`/`avg`/`count`, columns support `SuperAgg.min`,
+`SuperAgg.max`, and `SuperAgg.custom` + `aggregator: (List<SuperRow> rows) => num?`
+(e.g. a quantity-weighted average). `aggLabel:` renames the figure in group headers.
+
+**Selection statistics.** In a cell-selection mode, `c.selectionStats` returns a
+`SuperSelectionStats` (`sum`/`average`/`min`/`max`/`count`/`numericCount`) over the
+selected numeric cells; the footer shows it for 2+ numeric cells.
+
+**Per-cell edit locking.** `cellEditable: (col, row) => bool` gates editing in
+addition to mode + column rules — e.g. freeze a posted row but keep its status
+field editable. Also exposed as `c.canEditRow(col, row)`.
+
+**Row reordering.** `c.moveRow(from, to)`, `c.moveRowUp([viewR])`,
+`c.moveRowDown([viewR])`, plus *Move row up / down* in the editable row menu.
+Records undo; no-op while grouped.
+
 ## Grouping & the row context menu (readable mode)
 
 Group by any column whose `groupable` is true (default). **Right-click** a row
@@ -260,3 +302,7 @@ package's barrel. Add new column behavior in
   grouping affordances show only in `SuperTableMode.readable`.
 - Placing `SuperTable` in an unbounded-height parent → it scrolls internally and
   needs bounded height (`Expanded`/`Flexible`/`maxHeight:`).
+- Expecting a `changes` delta without `trackChanges: true` → it's off by default;
+  `c.changes` is empty and `c.hasChanges` is false until you opt in.
+- Reading `selectionStats` in a row-selection mode → it aggregates *cell*
+  selections; use `singleCell`/`multiCells`. It also ignores non-numeric cells.

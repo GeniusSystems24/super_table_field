@@ -30,6 +30,7 @@ import 'package:flutter/widgets.dart' show BuildContext, FocusNode;
 import 'package:super_auto_suggestion_box/super_auto_suggestion_box.dart'
     show AutoSuggestionsBoxController, AutoSuggestionsSource;
 import '../../domain/entities/super_column.dart';
+import '../../domain/entities/super_change.dart';
 import '../../domain/entities/super_filter.dart';
 import '../../domain/entities/super_row.dart';
 import '../../domain/entities/super_table_state.dart';
@@ -63,6 +64,8 @@ class SuperTableController<R> extends ChangeNotifier {
     bool hasMore = false,
     bool loadingMore = false,
     R Function()? emptyRowValue,
+    this.trackChanges = false,
+    this.cellEditable,
   })  : _rawColumns = columns,
         _rows = rows,
         _mode = mode,
@@ -76,6 +79,7 @@ class SuperTableController<R> extends ChangeNotifier {
     _order = _midBase.map((c) => c.key).toList();
     _selRows = {0};
     _ensureCells();
+    if (trackChanges) _captureBaseline();
   }
 
   // ── config ──
@@ -93,6 +97,16 @@ class SuperTableController<R> extends ChangeNotifier {
 
   /// Optional host key handler (see [SuperKeyHandler]).
   final SuperKeyHandler<R>? onKey;
+
+  /// When true, the controller captures a per-cell baseline so [changes]
+  /// returns the added/modified/deleted delta (see [SuperChangeSet]). Off by
+  /// default — there is no tracking overhead unless you opt in.
+  final bool trackChanges;
+
+  /// Optional per-cell editability gate (1.0.0). Consulted in addition to the
+  /// mode + column rules; return false to make a specific cell read-only (e.g.
+  /// lock the cells of a row whose `posted` flag is set).
+  final bool Function(SuperColumn col, SuperRow row)? cellEditable;
 
   final R Function()? _emptyValue;
 
@@ -144,6 +158,9 @@ class SuperTableController<R> extends ChangeNotifier {
   // ── history ──
   final List<List<SuperRow<R>>> _undo = [];
   final List<List<SuperRow<R>>> _redo = [];
+
+  // ── change tracking (1.0.0) ──
+  final List<({int index, SuperRow<R> row})> _deletedRows = [];
 
   // ── combo per-cell registries (rebuilt on fingerPrint change) ──
   final Map<String, AutoSuggestionsBoxController> _comboCtrls = {};
@@ -216,6 +233,182 @@ class SuperTableController<R> extends ChangeNotifier {
   /// Apply a filter state from its JSON form.
   void applyFilterJson(Map<String, dynamic> json) => applyFilterState(SuperFilterState.fromJson(json));
 
+  // ── change tracking (1.0.0) ────────────────────────────────────
+  /// Whether any row was added, modified, or deleted since the last baseline.
+  /// Always false unless [trackChanges] is enabled.
+  bool get hasChanges {
+    if (!trackChanges) return false;
+    if (_deletedRows.any((e) => !e.row.isNew)) return true;
+    for (final row in _rows) {
+      if (row.isNew) return true;
+      if (row.cells.values.any((c) => c.isDirty)) return true;
+    }
+    return false;
+  }
+
+  /// The tracked state of [row] relative to the baseline.
+  SuperRowState rowStateOf(SuperRow row) {
+    if (!trackChanges) return SuperRowState.pristine;
+    if (row.isNew) return SuperRowState.added;
+    if (row.cells.values.any((c) => c.isDirty)) return SuperRowState.modified;
+    return SuperRowState.pristine;
+  }
+
+  /// Whether [row] differs from its baseline (added or modified).
+  bool isRowDirty(SuperRow row) => rowStateOf(row) != SuperRowState.pristine;
+
+  /// Whether one cell of [row] differs from its baseline.
+  bool isCellDirty(SuperRow row, String columnKey) => row.cells[columnKey]?.isDirty ?? false;
+
+  /// The full add/modify/delete delta since the last baseline. Hand
+  /// `changes.toJson()` to a backend, or iterate the partitions yourself.
+  SuperChangeSet<R> get changes {
+    if (!trackChanges) return const SuperChangeSet();
+    final added = <SuperRowChange<R>>[];
+    final modified = <SuperRowChange<R>>[];
+    final deleted = <SuperRowChange<R>>[];
+    for (final row in _rows) {
+      if (row.isNew) {
+        added.add(SuperRowChange<R>(state: SuperRowState.added, row: row));
+        continue;
+      }
+      final cellChanges = <SuperCellChange>[];
+      for (final cell in row.cells.values) {
+        if (cell.isDirty) {
+          cellChanges.add(SuperCellChange(
+              columnKey: cell.columnKey, oldValue: cell.baseline, newValue: cell.value));
+        }
+      }
+      if (cellChanges.isNotEmpty) {
+        modified.add(SuperRowChange<R>(state: SuperRowState.modified, row: row, cellChanges: cellChanges));
+      }
+    }
+    for (final e in _deletedRows) {
+      if (!e.row.isNew) deleted.add(SuperRowChange<R>(state: SuperRowState.deleted, row: e.row));
+    }
+    return SuperChangeSet<R>(added: added, modified: modified, deleted: deleted);
+  }
+
+  /// Treat the current grid as the new clean baseline (call after a successful
+  /// save). Clears the deleted-row log and re-captures every cell baseline.
+  void acceptChanges() {
+    if (!trackChanges) return;
+    _captureBaseline();
+    notifyListeners();
+  }
+
+  /// Discard every edit since the baseline: drop added rows, revert modified
+  /// cells, and restore deleted rows to their recorded positions.
+  void rejectChanges() {
+    if (!trackChanges) return;
+    final restored = <SuperRow<R>>[];
+    for (final row in _rows) {
+      if (row.isNew) continue;
+      for (final cell in row.cells.values) {
+        cell.revertToBaseline();
+      }
+      restored.add(row);
+    }
+    final dels = [..._deletedRows]..sort((a, b) => a.index.compareTo(b.index));
+    for (final e in dels) {
+      if (e.row.isNew) continue;
+      restored.insert(e.index.clamp(0, restored.length), e.row);
+    }
+    _deletedRows.clear();
+    _rows = restored;
+    onChange?.call(_rows);
+    _clampSelection();
+    notifyListeners();
+  }
+
+  // ── selection statistics (1.0.0) ───────────────────────────────
+  /// A running sum / average / count / min / max over the numeric cells in the
+  /// current selection — the spreadsheet status-bar aggregate. Null when nothing
+  /// is selected.
+  SuperSelectionStats? get selectionStats {
+    final cells = selectedCells();
+    if (cells.isEmpty) return null;
+    final theCols = cols;
+    final theView = view;
+    num sum = 0;
+    var numeric = 0;
+    num? mn;
+    num? mx;
+    for (final p in cells) {
+      if (p.r >= theView.length || p.c >= theCols.length) continue;
+      final rowEntry = theView[p.r].row;
+      if (rowEntry == null) continue; // group header / non-data row
+      final col = theCols[p.c];
+      final isNum = col.type.isNumeric || col.type == SuperColumnType.computed;
+      if (!isNum) continue;
+      final raw = col.rawValue(rowEntry);
+      if (raw == null || '$raw'.trim().isEmpty) continue;
+      if (raw is! num && double.tryParse('$raw'.replaceAll(RegExp(r'[^0-9.\-]'), '')) == null) {
+        continue;
+      }
+      final n = SuperColumnLogic.numVal(raw);
+      sum += n;
+      numeric++;
+      mn = (mn == null || n < mn) ? n : mn;
+      mx = (mx == null || n > mx) ? n : mx;
+    }
+    return SuperSelectionStats(
+      count: cells.length,
+      numericCount: numeric,
+      sum: sum,
+      average: numeric == 0 ? 0 : sum / numeric,
+      min: mn,
+      max: mx,
+    );
+  }
+
+  // ── export (1.0.0) ─────────────────────────────────────────────
+  String _csvEscape(String s, String delimiter) {
+    if (s.contains(delimiter) || s.contains('"') || s.contains('\n') || s.contains('\r')) {
+      return '"${s.replaceAll('"', '""')}"';
+    }
+    return s;
+  }
+
+  /// Serialise the **current view** (post-search/filter/sort) to a delimited
+  /// string. [visibleOnly] uses the on-screen, reordered columns; pass false to
+  /// export every column. Values use each column's display text.
+  String toDelimited({String delimiter = ',', bool includeHeader = true, bool visibleOnly = true}) {
+    final columns = visibleOnly ? cols : _rawColumns;
+    final buf = StringBuffer();
+    if (includeHeader) {
+      buf.writeln(columns.map((col) => _csvEscape(col.label, delimiter)).join(delimiter));
+    }
+    for (final row in sortedRows) {
+      buf.writeln(columns
+          .map((col) => _csvEscape(SuperColumnLogic.toText(col, col.rawValue(row), row), delimiter))
+          .join(delimiter));
+    }
+    return buf.toString();
+  }
+
+  /// The current view as CSV text (respects the active filter + sort).
+  String toCsv({bool includeHeader = true, bool visibleOnly = true}) =>
+      toDelimited(delimiter: ',', includeHeader: includeHeader, visibleOnly: visibleOnly);
+
+  /// The current view as TSV text (paste-into-Excel friendly).
+  String toTsv({bool includeHeader = true, bool visibleOnly = true}) =>
+      toDelimited(delimiter: '\t', includeHeader: includeHeader, visibleOnly: visibleOnly);
+
+  /// The current view as a list of `{columnKey: rawValue}` maps.
+  List<Map<String, Object?>> toJsonRows({bool visibleOnly = true}) {
+    final columns = visibleOnly ? cols : _rawColumns;
+    return [
+      for (final row in sortedRows) {for (final col in columns) col.key: col.rawValue(row)}
+    ];
+  }
+
+  /// Convenience: copy the current view as CSV onto the system clipboard.
+  Future<void> copyCsvToClipboard() async {
+    await Clipboard.setData(ClipboardData(text: toCsv()));
+    onNotify?.call(SuperNotifyKind.ok, 'Copied ${sortedRows.length} rows as CSV');
+  }
+
   // ── cell scaffolding ──
   Object? _defaultFor(SuperColumn col) {
     switch (col.type) {
@@ -243,8 +436,35 @@ class SuperTableController<R> extends ChangeNotifier {
       for (final col in _rawColumns) {
         if (!row.cells.containsKey(col.key)) {
           final v = col.readBacking(row.value) ?? _defaultFor(col);
-          row.cells[col.key] = SuperCell(columnKey: col.key, value: v);
+          final cell = SuperCell(columnKey: col.key, value: v);
+          // A column added to an already-baselined row is itself pristine.
+          if (trackChanges && !row.isNew) cell.markBaseline();
+          row.cells[col.key] = cell;
         }
+      }
+    }
+  }
+
+  // ── change tracking baseline helpers ──
+  /// Capture (or re-capture) the baseline for every current row: mark each cell,
+  /// flag every row as persisted, and drop the deleted-row log.
+  void _captureBaseline() {
+    _deletedRows.clear();
+    for (final row in _rows) {
+      row.isNew = false;
+      for (final cell in row.cells.values) {
+        cell.markBaseline();
+      }
+    }
+  }
+
+  /// Treat [rows] as freshly-persisted (pristine) data — used when the host
+  /// streams in server rows via [appendRows].
+  void _baselineRows(Iterable<SuperRow<R>> rows) {
+    for (final row in rows) {
+      row.isNew = false;
+      for (final cell in row.cells.values) {
+        cell.markBaseline();
       }
     }
   }
@@ -277,6 +497,7 @@ class SuperTableController<R> extends ChangeNotifier {
   void updateRows(List<SuperRow<R>> rows) {
     _rows = rows;
     _ensureCells();
+    if (trackChanges) _captureBaseline();
     _clampSelection();
     notifyListeners();
   }
@@ -286,6 +507,8 @@ class SuperTableController<R> extends ChangeNotifier {
   void appendRows(List<SuperRow<R>> more, {bool? hasMore, bool loadingDone = true}) {
     _rows = [..._rows, ...more];
     _ensureCells();
+    // Streamed-in rows are persisted data, not local edits.
+    if (trackChanges) _baselineRows(more);
     if (hasMore != null) _hasMore = hasMore;
     if (loadingDone) _loadingMore = false;
     notifyListeners();
@@ -294,6 +517,11 @@ class SuperTableController<R> extends ChangeNotifier {
   /// Remove every row (keeps columns + view config). Records undo.
   void clearTable() {
     if (_rows.isEmpty) return;
+    if (trackChanges) {
+      for (var i = 0; i < _rows.length; i++) {
+        _deletedRows.add((index: i, row: _rows[i]));
+      }
+    }
     _applyRows(<SuperRow<R>>[]);
     _clampSelection();
     notifyListeners();
@@ -961,6 +1189,14 @@ class SuperTableController<R> extends ChangeNotifier {
       c.type != SuperColumnType.computed &&
       c.type != SuperColumnType.readonly;
 
+  /// Row-aware editability: [canEdit] plus the optional [cellEditable] gate
+  /// (1.0.0). The View consults this so locked rows render read-only.
+  bool canEditRow(SuperColumn? col, SuperRow row) {
+    if (!canEdit(col)) return false;
+    final gate = cellEditable;
+    return gate == null || gate(col!, row);
+  }
+
   SuperRow<R> _blankRow() {
     final R backing = _emptyValue != null ? _emptyValue!() : (<String, dynamic>{} as R);
     final cells = <String, SuperCell>{};
@@ -970,7 +1206,7 @@ class SuperTableController<R> extends ChangeNotifier {
       cells[col.key] = SuperCell(columnKey: col.key, value: v);
       if (backing is Map && backing[col.key] == null) backing[col.key] = v;
     }
-    return SuperRow<R>(value: backing, cells: cells);
+    return SuperRow<R>(value: backing, cells: cells, isNew: trackChanges);
   }
 
   void beginEdit({String? initial, int? r, int? c}) {
@@ -979,6 +1215,7 @@ class SuperTableController<R> extends ChangeNotifier {
     final col = cc < cols.length ? cols[cc] : null;
     if (!canEdit(col)) return;
     final entry = rr < view.length ? view[rr] : null;
+    if (entry?.row != null && !canEditRow(col, entry!.row!)) return;
     final cur = entry?.row?.cells[col!.key]?.value;
     _draft = initial ?? (cur == null ? '' : SuperColumnLogic.toText(col!, cur, entry!.row!));
     _editCell = CellPos(rr, cc);
@@ -1015,6 +1252,7 @@ class SuperTableController<R> extends ChangeNotifier {
     if (viewR >= view.length) return;
     final entry = view[viewR];
     final row = entry.row!;
+    if (!canEditRow(col, row)) return;
     final cell = row.cells[col.key] ??= SuperCell(columnKey: col.key);
     final prev = cell.value;
 
@@ -1040,7 +1278,7 @@ class SuperTableController<R> extends ChangeNotifier {
     if (ec != null) {
       final col = ec.c < cols.length ? cols[ec.c] : null;
       final entry = ec.r < view.length ? view[ec.r] : null;
-      if (entry != null && col != null && canEdit(col)) {
+      if (entry != null && col != null && canEditRow(col, entry.row!)) {
         final row = entry.row!;
         final cell = row.cells[col.key] ??= SuperCell(columnKey: col.key);
         final prev = cell.value;
@@ -1160,8 +1398,10 @@ class SuperTableController<R> extends ChangeNotifier {
     final vr = viewR ?? _sel.r;
     final entry = vr < view.length ? view[vr] : null;
     if (entry == null) return;
+    final dup = entry.row!.copy();
+    if (trackChanges) dup.isNew = true;
     final next = [..._rows];
-    next.insert(entry.sourceIndex + 1, entry.row!.copy());
+    next.insert(entry.sourceIndex + 1, dup);
     _applyRows(next);
     _rebuildRenderList();
     _sel = CellPos((vr + 1).clamp(0, nRows == 0 ? 0 : nRows - 1), _sel.c);
@@ -1173,6 +1413,7 @@ class SuperTableController<R> extends ChangeNotifier {
     final vr = viewR ?? _sel.r;
     final entry = vr < view.length ? view[vr] : null;
     if (entry == null) return;
+    if (trackChanges) _deletedRows.add((index: entry.sourceIndex, row: entry.row!));
     _applyRows([
       for (var i = 0; i < _rows.length; i++)
         if (i != entry.sourceIndex) _rows[i]
@@ -1181,6 +1422,43 @@ class SuperTableController<R> extends ChangeNotifier {
     _sel = CellPos(_sel.r.clamp(0, n == 0 ? 0 : n - 1), _sel.c);
     _anchor = _sel;
     notifyListeners();
+  }
+
+  // ── manual row reordering (1.0.0) ──
+  /// Move the row at view index [fromView] so it lands at view index [toView].
+  /// No-op while grouped. Records undo and fires [onChange].
+  void moveRow(int fromView, int toView) {
+    if (grouped) return;
+    final n = view.length;
+    if (fromView < 0 || fromView >= n) return;
+    final clampedTo = toView.clamp(0, n - 1);
+    if (fromView == clampedTo) return;
+    final fromSrc = view[fromView].sourceIndex;
+    final toSrc = view[clampedTo].sourceIndex;
+    final next = [..._rows];
+    final row = next.removeAt(fromSrc);
+    next.insert(toSrc.clamp(0, next.length), row);
+    _applyRows(next);
+    _rebuildRenderList();
+    _sel = CellPos(clampedTo, _sel.c);
+    _anchor = _sel;
+    _selRows = {clampedTo};
+    _rowBand
+      ..clear()
+      ..add(clampedTo);
+    notifyListeners();
+  }
+
+  /// Move a row one position earlier (defaults to the focused row).
+  void moveRowUp([int? viewR]) {
+    final vr = viewR ?? _sel.r;
+    if (vr > 0) moveRow(vr, vr - 1);
+  }
+
+  /// Move a row one position later (defaults to the focused row).
+  void moveRowDown([int? viewR]) {
+    final vr = viewR ?? _sel.r;
+    if (vr < view.length - 1) moveRow(vr, vr + 1);
   }
 
   // ── clipboard ──
@@ -1230,7 +1508,7 @@ class SuperTableController<R> extends ChangeNotifier {
     for (final cell in cells) {
       final entry = cell.r < view.length ? view[cell.r] : null;
       final col = cell.c < cols.length ? cols[cell.c] : null;
-      if (entry != null && col != null && canEdit(col)) {
+      if (entry != null && col != null && canEditRow(col, entry.row!)) {
         final c = entry.row!.cells[col.key] ??= SuperCell(columnKey: col.key);
         c.value = '';
         c.error = SuperColumnLogic.validateCell(col, '');

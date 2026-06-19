@@ -3,6 +3,60 @@
 All notable changes to **super_table_field** are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/); versioning is [SemVer](https://semver.org/).
 
+## [1.0.0] — 2026-06-19
+
+The **ERP release** — first stable. A focused set of additions that turn the
+grid into a staging surface for backend writes, plus the operators ERP teams
+expect from a DataGridView. **Fully backward compatible** — every new capability
+is opt-in; existing `0.5.0` code is unchanged.
+
+### Added — Change tracking
+- **`SuperTableController(trackChanges: true)`** captures a per-cell *baseline*
+  and tracks every edit against it. No tracking overhead unless you opt in.
+- **`controller.changes`** returns a **`SuperChangeSet`** — `added` / `modified`
+  / `deleted` partitions of `SuperRowChange`s; each modified row carries its
+  `SuperCellChange` list (`columnKey`, `oldValue`, `newValue`). `toJson()` yields
+  a ready-to-post `{added, modified, deleted}` payload.
+- **`hasChanges`**, **`rowStateOf(row)`** (`SuperRowState.pristine|added|modified|deleted`),
+  **`isRowDirty(row)`**, **`isCellDirty(row, key)`**.
+- **`acceptChanges()`** re-baselines after a successful save; **`rejectChanges()`**
+  reverts modified cells, restores deleted rows to their positions, and drops
+  added rows.
+- Dirty cells render a small accent corner marker in the grid.
+- New entities: `SuperChangeSet`, `SuperRowChange`, `SuperCellChange`,
+  `SuperRowState`. `SuperCell` gained `baseline` / `isDirty` / `markBaseline` /
+  `revertToBaseline`; `SuperRow` gained `isNew`.
+
+### Added — Export
+- **`toCsv()`**, **`toTsv()`**, **`toDelimited(delimiter:)`**, **`toJsonRows()`**,
+  and **`copyCsvToClipboard()`** on the controller. Output honours the active
+  filter, sort, and (by default) the on-screen column order.
+
+### Added — Aggregations
+- **`SuperAgg.min`**, **`SuperAgg.max`**, and **`SuperAgg.custom`** with a per-column
+  **`aggregator`** (`num? Function(List<SuperRow>)`) for weighted averages, running
+  balances, distinct counts, etc.
+- **`aggLabel`** renames the aggregate shown in group headers.
+
+### Added — Selection statistics
+- **`controller.selectionStats`** returns a **`SuperSelectionStats`**
+  (`sum` / `average` / `min` / `max` / `count` / `numericCount`) over the selected
+  numeric cells. The grid footer shows it automatically for 2+ numeric cells.
+
+### Added — Editing
+- **`SuperTableController(cellEditable: (col, row) => bool)`** — per-cell edit
+  locking, consulted in addition to mode + column rules (e.g. freeze *posted*
+  rows). Exposed as **`controller.canEditRow(col, row)`**.
+- **Manual row reordering**: **`moveRow(from, to)`**, **`moveRowUp([viewR])`**,
+  **`moveRowDown([viewR])`**, plus *Move row up / down* in the editable row menu.
+  Moves record undo and fire `onChange`. Duplicated/blank rows are flagged as new
+  when tracking is on.
+
+### Notes
+- `appendRows(...)` treats streamed-in rows as clean baseline data (not local
+  edits) when `trackChanges` is on; `clearTable()` records deletions.
+- Five new runnable examples (7–12), one per feature.
+
 ## [0.5.0] — 2026-06-18
 
 ### Changed
