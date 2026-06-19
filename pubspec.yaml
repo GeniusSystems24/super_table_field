@@ -16,6 +16,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  # Shared GeniusLink design-system foundation (theme, tokens, type, widgets).
+  super_core:
+    path: ../super_core
   super_auto_suggestion_box:
     path: ../super_auto_suggestion_box
 

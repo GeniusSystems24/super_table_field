@@ -21,7 +21,7 @@ update `flutter\super_table_field` flutter package as Version 0.4.0
 * Update the documentation in `README.md` using pub.dev package documentation style and principles.
 * Update `CHANGELOG.md`.
 * Update ai skill.
-* Create 5 examples demonstrating different ways to use `SuperTable`.
+* Create 3 examples demonstrating different ways to use `SuperDataFormField`.
 
 ---
 

@@ -18,6 +18,7 @@
 library super_table_field;
 
 // ── Core + AutoSuggestionsBox (re-exported from super_auto_suggestion_box) ───
+export 'package:super_core/super_core.dart';
 export 'package:super_auto_suggestion_box/super_auto_suggestion_box.dart';
 
 // ── Feature ─────────────────────────────────────────────────────────────────
