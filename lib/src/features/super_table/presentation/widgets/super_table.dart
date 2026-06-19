@@ -24,7 +24,6 @@ import 'package:flutter/services.dart';
 
 import 'package:super_auto_suggestion_box/super_auto_suggestion_box.dart';
 import '../../domain/entities/super_column.dart';
-import '../../domain/entities/super_filter.dart';
 import '../../domain/entities/super_row.dart';
 import '../../domain/entities/super_style.dart';
 import '../../domain/entities/super_table_state.dart';

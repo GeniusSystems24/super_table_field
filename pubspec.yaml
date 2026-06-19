@@ -8,8 +8,18 @@ description: >
   reordering, per-cell edit locking, clipboard and undo/redo — wired to the
   AutoSuggestionsBox typeahead from the companion super_auto_suggestion_box
   package. Light/dark + LTR/RTL.
-publish_to: "none"
+
 version: 1.0.0
+homepage: https://geniussystems24.github.io/super_table_field
+repository: https://github.com/GeniusSystems24/super_table_field
+issue_tracker: https://github.com/GeniusSystems24/super_table_field/issues
+
+topics:
+  - flutter
+  - widgets
+  - data-grid
+  - tables
+  - forms
 
 environment:
   sdk: ">=3.0.0 <4.0.0"
@@ -19,10 +29,8 @@ dependencies:
   flutter:
     sdk: flutter
   # Shared GeniusLink design-system foundation (theme, tokens, type, widgets).
-  super_core:
-    path: ../super_core
-  super_auto_suggestion_box:
-    path: ../super_auto_suggestion_box
+  super_core: ^0.1.0
+  super_auto_suggestion_box: ^0.5.0
 
 dev_dependencies:
   flutter_test:
