@@ -266,13 +266,23 @@ abstract final class SuperColumnLogic {
   }
 
   // ── aggregation ──
-  static num? aggregate(SuperColumn col, List<SuperRow> rows) {
-    if (col.agg == SuperAgg.none) return null;
-    if (col.agg == SuperAgg.custom) return col.aggregator?.call(rows);
-    if (col.agg == SuperAgg.count) return rows.length;
-    if (rows.isEmpty) return col.agg == SuperAgg.sum || col.agg == SuperAgg.avg ? 0 : null;
+  /// Aggregate [col] over [rows]. By default the column's own [SuperColumn.agg]
+  /// (and [SuperColumn.aggregator] for [SuperAgg.custom]) drive the result; pass
+  /// [agg] / [aggregator] to override them programmatically — e.g. read a `sum`
+  /// off a column that declares no aggregate, or apply a one-off custom reducer.
+  static num? aggregate(
+    SuperColumn col,
+    List<SuperRow> rows, {
+    SuperAgg? agg,
+    SuperAggregator? aggregator,
+  }) {
+    final mode = agg ?? col.agg;
+    if (mode == SuperAgg.none) return null;
+    if (mode == SuperAgg.custom) return (aggregator ?? col.aggregator)?.call(rows);
+    if (mode == SuperAgg.count) return rows.length;
+    if (rows.isEmpty) return mode == SuperAgg.sum || mode == SuperAgg.avg ? 0 : null;
     final nums = rows.map((r) => numVal(col.rawValue(r)));
-    switch (col.agg) {
+    switch (mode) {
       case SuperAgg.sum:
         return nums.fold<num>(0, (a, b) => a + b);
       case SuperAgg.avg:

@@ -24,6 +24,7 @@ import 'package:flutter/services.dart';
 
 import 'package:super_auto_suggestion_box/super_auto_suggestion_box.dart';
 import '../../domain/entities/super_column.dart';
+import '../../domain/entities/super_filter.dart';
 import '../../domain/entities/super_row.dart';
 import '../../domain/entities/super_style.dart';
 import '../../domain/entities/super_table_state.dart';
@@ -35,7 +36,6 @@ import 'super_table_skin.dart';
 
 const double _kRowH = 40;
 const double _kRowHCompact = 32;
-const double _kHeadFull = 46;
 const double _kHeadFlat = 38;
 const double _kGutter = 40;
 const double _kActionW = 46;
@@ -53,6 +53,9 @@ class SuperTable<R> extends StatefulWidget {
   final SuperTableController<R> controller;
   final SuperDensity density;
   final bool numbered;
+
+  /// Deprecated and ignored — a column's data type is never displayed in the
+  /// header. Kept for source compatibility; setting it has no effect.
   final bool? showTypeTags;
   final bool showTotals;
   final bool showFooter;
@@ -170,8 +173,8 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
   }
 
   double get _rowH => widget.density == SuperDensity.compact ? _kRowHCompact : _kRowH;
-  bool get _showTypeTags => widget.showTypeTags ?? (c.mode == SuperTableMode.readable);
-  double get _headH => _showTypeTags ? _kHeadFull : _kHeadFlat;
+  // Column data types are never displayed; the header is always the flat height.
+  double get _headH => _kHeadFlat;
   bool get _deleteCol => c.mode == SuperTableMode.editable;
   bool get _actionable => _deleteCol || widget.onAddColumn != null;
   double get _gutterW => widget.numbered ? _kGutter : 0;
@@ -820,20 +823,15 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
     final inGroup = c.groupKeys.contains(col.key);
     final isDropTarget = _overSlot == slot && _dragSlot != null && _dragSlot != slot;
 
-    final tagRow = _showTypeTags
-        ? Row(mainAxisSize: MainAxisSize.min, children: [
-            if (draggable) ...[Icon(Icons.drag_indicator_rounded, size: 10, color: skin.fg4), const SizedBox(width: 4)],
-            if (isPinned) ...[Icon(Icons.push_pin_outlined, size: 9, color: skin.accent), const SizedBox(width: 4)],
-            if (inGroup) ...[Icon(Icons.layers_rounded, size: 9, color: skin.accent), const SizedBox(width: 4)],
-            Text(col.type.wire.toUpperCase(), style: TextStyle(fontFamily: SuperTokensFonts.mono, fontSize: 8.5, fontWeight: FontWeight.w700, letterSpacing: 0.5, color: skin.accent)),
-          ])
-        : null;
-
     final isEnd = col.align == SuperAlign.end;
+    // Column data types are never surfaced: the header shows only the label and
+    // its drag / pin / group / sort affordances.
     final labelRow = Row(
       mainAxisAlignment: isEnd ? MainAxisAlignment.end : MainAxisAlignment.start,
       children: [
-        if (!_showTypeTags && draggable) ...[Icon(Icons.drag_indicator_rounded, size: 11, color: skin.fg4), const SizedBox(width: 4)],
+        if (draggable) ...[Icon(Icons.drag_indicator_rounded, size: 11, color: skin.fg4), const SizedBox(width: 4)],
+        if (isPinned) ...[Icon(Icons.push_pin_outlined, size: 10, color: skin.accent), const SizedBox(width: 4)],
+        if (inGroup) ...[Icon(Icons.layers_rounded, size: 10, color: skin.accent), const SizedBox(width: 4)],
         Flexible(child: Text(col.label.toUpperCase(), maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: SuperTokensFonts.body, fontSize: 10, fontWeight: FontWeight.w700, letterSpacing: 0.5, color: active || inGroup ? skin.fg1 : skin.fg3))),
         if (col.required) Text(' *', style: TextStyle(fontSize: 11, color: skin.danger)),
         if (active) ...[const SizedBox(width: 3), Icon(c.sort.ascending ? Icons.arrow_upward_rounded : Icons.arrow_downward_rounded, size: 11, color: skin.accent)],
@@ -846,7 +844,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
     Widget inner = Container(
       width: w,
       height: _headH,
-      padding: EdgeInsets.symmetric(horizontal: 11, vertical: _showTypeTags ? 6 : 0),
+      padding: const EdgeInsets.symmetric(horizontal: 11),
       decoration: BoxDecoration(
         color: isDropTarget ? skin.accentWash(0.12) : skin.bg,
         border: BorderDirectional(start: isDropTarget ? BorderSide(color: skin.accent, width: 2) : BorderSide.none, end: BorderSide(color: skin.border)),
@@ -854,10 +852,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          if (tagRow != null) ...[tagRow, const SizedBox(height: 2)],
-          labelRow,
-        ],
+        children: [labelRow],
       ),
     );
 

@@ -32,6 +32,7 @@ import 'package:super_auto_suggestion_box/super_auto_suggestion_box.dart'
 import '../../domain/entities/super_column.dart';
 import '../../domain/entities/super_change.dart';
 import '../../domain/entities/super_filter.dart';
+import '../../domain/entities/super_group.dart';
 import '../../domain/entities/super_row.dart';
 import '../../domain/entities/super_table_state.dart';
 import '../../domain/usecases/super_column_logic.dart';
@@ -171,6 +172,14 @@ class SuperTableController<R> extends ChangeNotifier {
   SuperTableMode get mode => _mode;
   List<SuperRow<R>> get rows => _rows;
   List<SuperColumn> get rawColumns => _rawColumns;
+
+  /// Every column that can ever render — all columns except the
+  /// [SuperColumn.hidden] ones.
+  List<SuperColumn> get dataColumns => _rawColumns.where((c) => !c.hidden).toList();
+
+  /// Columns marked [SuperColumn.hidden]: present only for filtering, grouping
+  /// and aggregation (by key), never rendered and never revealable.
+  List<SuperColumn> get hiddenColumns => _rawColumns.where((c) => c.hidden).toList();
   SuperSelectionMode get selectionMode => _selectionMode;
   String get search => _search;
   CellPos get sel => _sel;
@@ -372,9 +381,10 @@ class SuperTableController<R> extends ChangeNotifier {
 
   /// Serialise the **current view** (post-search/filter/sort) to a delimited
   /// string. [visibleOnly] uses the on-screen, reordered columns; pass false to
-  /// export every column. Values use each column's display text.
+  /// export every renderable column. Values use each column's display text.
+  /// [SuperColumn.hidden] columns are never exported.
   String toDelimited({String delimiter = ',', bool includeHeader = true, bool visibleOnly = true}) {
-    final columns = visibleOnly ? cols : _rawColumns;
+    final columns = visibleOnly ? cols : dataColumns;
     final buf = StringBuffer();
     if (includeHeader) {
       buf.writeln(columns.map((col) => _csvEscape(col.label, delimiter)).join(delimiter));
@@ -397,7 +407,7 @@ class SuperTableController<R> extends ChangeNotifier {
 
   /// The current view as a list of `{columnKey: rawValue}` maps.
   List<Map<String, Object?>> toJsonRows({bool visibleOnly = true}) {
-    final columns = visibleOnly ? cols : _rawColumns;
+    final columns = visibleOnly ? cols : dataColumns;
     return [
       for (final row in sortedRows) {for (final col in columns) col.key: col.rawValue(row)}
     ];
@@ -407,6 +417,119 @@ class SuperTableController<R> extends ChangeNotifier {
   Future<void> copyCsvToClipboard() async {
     await Clipboard.setData(ClipboardData(text: toCsv()));
     onNotify?.call(SuperNotifyKind.ok, 'Copied ${sortedRows.length} rows as CSV');
+  }
+
+  // ── programmatic aggregation (1.1.0) ───────────────────────────
+  /// Resolve which columns to aggregate. Explicit [keys] are looked up in the
+  /// **full** column set (so [SuperColumn.hidden] columns are eligible); when
+  /// null, every column that declares an aggregate (`agg != none`) is used —
+  /// hidden columns included.
+  List<SuperColumn> _aggColumns(Iterable<String>? keys) {
+    if (keys != null) return keys.map(colByKey).whereType<SuperColumn>().toList();
+    return _rawColumns.where((c) => c.agg != SuperAgg.none).toList();
+  }
+
+  /// Aggregate one column over a set of [rows] (defaults to the whole live,
+  /// filtered + sorted view). Optionally override the column's declared [agg] /
+  /// [aggregator] — e.g. read a `sum` off a column that declares no aggregate.
+  /// Works for [SuperColumn.hidden] columns too. Returns null for an unknown
+  /// column or a no-op aggregate.
+  num? aggregateColumn(
+    String columnKey, {
+    Iterable<SuperRow<R>>? rows,
+    SuperAgg? agg,
+    SuperAggregator? aggregator,
+  }) {
+    final col = colByKey(columnKey);
+    if (col == null) return null;
+    final list = (rows ?? _sorted).toList();
+    return SuperColumnLogic.aggregate(col, list, agg: agg, aggregator: aggregator);
+  }
+
+  /// Grand totals over the entire data set: `columnKey → aggregate`. Honours the
+  /// active filter (+ sort) by default and covers every column with an
+  /// aggregate; pass [columns] to pick specific keys (hidden allowed), or
+  /// [filtered] = false to total the raw, unfiltered rows. The programmatic
+  /// form of the on-screen totals row.
+  Map<String, num?> grandTotals({Iterable<String>? columns, bool filtered = true}) {
+    final source = filtered ? _sorted : _rows;
+    return {
+      for (final col in _aggColumns(columns)) col.key: SuperColumnLogic.aggregate(col, source),
+    };
+  }
+
+  /// Bucket the rows by [groupColumnKey] and aggregate [valueColumnKey] within
+  /// each bucket — a single-level group-by computed **programmatically**,
+  /// independent of the table's live grouping. Either column may be
+  /// [SuperColumn.hidden]. Override the value column's reducer with [agg] /
+  /// [aggregator]; pass [filtered] = false to bucket the raw rows. Returns
+  /// `groupValue → aggregate`, preserving first-seen group order.
+  Map<String, num?> aggregateBy(
+    String groupColumnKey,
+    String valueColumnKey, {
+    SuperAgg? agg,
+    SuperAggregator? aggregator,
+    bool filtered = true,
+  }) {
+    final gcol = colByKey(groupColumnKey);
+    final vcol = colByKey(valueColumnKey);
+    if (gcol == null || vcol == null) return const {};
+    final source = filtered ? _sorted : _rows;
+    final buckets = <String, List<SuperRow<R>>>{};
+    for (final row in source) {
+      final v = SuperColumnLogic.toText(gcol, gcol.rawValue(row), row);
+      buckets.putIfAbsent(v, () => <SuperRow<R>>[]).add(row);
+    }
+    return {
+      for (final e in buckets.entries)
+        e.key: SuperColumnLogic.aggregate(vcol, e.value, agg: agg, aggregator: aggregator),
+    };
+  }
+
+  /// A nested tree of group aggregates honouring the active filter (+ sort).
+  /// [groupBy] defaults to the table's live [groupKeys]; each level buckets its
+  /// parent's rows, and every node carries an `aggregates` map for the requested
+  /// [aggregateColumns] (default: all columns with an aggregate, **including
+  /// hidden** ones). Independent of collapse state — every group is included.
+  /// Returns an empty list when there is nothing to group by.
+  List<SuperGroupAggregate<R>> groupAggregates({
+    Iterable<String>? groupBy,
+    Iterable<String>? aggregateColumns,
+  }) {
+    final keys =
+        (groupBy?.toList() ?? _groupKeys).map(colByKey).whereType<SuperColumn>().toList();
+    if (keys.isEmpty) return <SuperGroupAggregate<R>>[];
+    final aggCols = _aggColumns(aggregateColumns);
+
+    List<SuperGroupAggregate<R>> rec(List<SuperRow<R>> items, int depth, String prefix) {
+      final col = keys[depth];
+      final buckets = <String, List<SuperRow<R>>>{};
+      for (final row in items) {
+        final v = SuperColumnLogic.toText(col, col.rawValue(row), row);
+        buckets.putIfAbsent(v, () => <SuperRow<R>>[]).add(row);
+      }
+      final out = <SuperGroupAggregate<R>>[];
+      buckets.forEach((value, groupItems) {
+        final path = '$prefix/$depth:$value';
+        out.add(SuperGroupAggregate<R>(
+          columnKey: col.key,
+          columnLabel: col.label,
+          value: value,
+          depth: depth,
+          path: path,
+          count: groupItems.length,
+          rows: groupItems,
+          aggregates: {
+            for (final ac in aggCols) ac.key: SuperColumnLogic.aggregate(ac, groupItems),
+          },
+          children:
+              depth + 1 < keys.length ? rec(groupItems, depth + 1, path) : <SuperGroupAggregate<R>>[],
+        ));
+      });
+      return out;
+    }
+
+    return rec(_sorted, 0, '');
   }
 
   // ── cell scaffolding ──
@@ -546,7 +669,7 @@ class SuperTableController<R> extends ChangeNotifier {
   int get visibleColumnCount => _baseCols.length;
 
   void hideColumn(String key) {
-    final cur = _visibleKeys ?? _rawColumns.map((c) => c.key).toList();
+    final cur = _visibleKeys ?? dataColumns.map((c) => c.key).toList();
     final next = cur.where((k) => k != key).toList();
     if (next.isEmpty) return;
     onVisibleChange?.call(next);
@@ -655,8 +778,10 @@ class SuperTableController<R> extends ChangeNotifier {
   }
 
   // ── column resolution ──
+  /// The columns eligible to render: never the [SuperColumn.hidden] ones, and —
+  /// when a visible-key allow-list is set — only the keys it includes.
   List<SuperColumn> get _baseCols =>
-      _rawColumns.where((c) => _visibleKeys == null || _visibleKeys!.contains(c.key)).toList();
+      _rawColumns.where((c) => !c.hidden && (_visibleKeys == null || _visibleKeys!.contains(c.key))).toList();
   List<SuperColumn> get _leftPins => _baseCols.where((c) => c.pin == SuperPin.left).toList();
   List<SuperColumn> get _rightPins => _baseCols.where((c) => c.pin == SuperPin.right).toList();
   List<SuperColumn> get _midBase => _baseCols.where((c) => c.pin == SuperPin.none).toList();

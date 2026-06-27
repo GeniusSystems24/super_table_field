@@ -3,6 +3,60 @@
 All notable changes to **super_table_field** are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/); versioning is [SemVer](https://semver.org/).
 
+## [1.1.0] — 2026-06-27
+
+Additive, **fully backward compatible**. Two cooperating capabilities for
+report-style grids: aggregate **in code**, and keep dimensions that drive those
+aggregates **off the screen**.
+
+### Added — Programmatic group aggregation
+- **`controller.groupAggregates({groupBy, aggregateColumns})`** returns a nested
+  tree of **`SuperGroupAggregate`** nodes (one per group, with `children` for
+  multi-level grouping). Each node carries its `rows`, `count`, and an
+  `aggregates` map (`columnKey → num?`). Honours the active filter (+ sort) and
+  is independent of the on-screen group headers and collapse state. `groupBy`
+  defaults to the live `groupKeys`; `aggregateColumns` defaults to every column
+  with an aggregate.
+- **`controller.aggregateBy(groupColumnKey, valueColumnKey, {agg, aggregator, filtered})`**
+  — a single-level group-by → `groupValue → aggregate` map, computed
+  independently of the table's live grouping.
+- **`controller.grandTotals({columns, filtered})`** — the programmatic form of
+  the totals row (`columnKey → aggregate` over the whole filtered set).
+- **`controller.aggregateColumn(key, {rows, agg, aggregator})`** — aggregate one
+  column over any row set (defaults to the live view).
+- **`SuperColumnLogic.aggregate(col, rows, {agg, aggregator})`** now accepts
+  optional overrides, so any reducer can be applied to any column on demand.
+- New entity: **`SuperGroupAggregate`** (`flatten()`, `aggregate(key)`,
+  `toJson()`).
+
+### Added — Permanently-hidden columns
+- **`SuperColumn(hidden: true)`** (on the base column and every typed subclass).
+  A hidden column is **never rendered** (header, body, filter row, totals, group
+  headers), is excluded from **export** and the **column chooser**, and **cannot
+  be revealed** via `setVisibleKeys` / `hideColumn` — yet it stays fully usable
+  **by key** for **filtering** (`setColumnFilter` / advanced clauses),
+  **grouping** (`toggleGroup` / `groupBy`), and **aggregation** (all of the APIs
+  above). Use it for backing dimensions (region, supplier, normalized keys) that
+  steer the data without occupying a column.
+- **`controller.dataColumns`** (everything renderable) and
+  **`controller.hiddenColumns`** getters.
+
+### Added — Display formatter
+- **`SuperColumn(formatter: (value, row) => String)`** on the base column and
+  every typed subclass — overrides the built-in cell rendering (pills, bars,
+  currency, …) with the plain text it returns. **Display-only**: sorting,
+  filtering, grouping, export and editing all keep the raw value. New typedef
+  **`SuperColumnFormatter`**.
+
+### Changed — Header
+- Column headers **no longer display the data-type tag** (`TEXT` / `NUMBER` / …).
+  Each header now shows just the column label and its sort / pin / group / drag
+  affordances, at a single flat height. **`SuperTable(showTypeTags:)` is
+  deprecated and ignored** — kept for source compatibility.
+
+### Notes
+- One new runnable example (13 — group aggregates + hidden columns).
+
 ## [1.0.0] — 2026-06-19
 
 The **ERP release** — first stable. A focused set of additions that turn the

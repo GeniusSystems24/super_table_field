@@ -4,8 +4,7 @@ description: >
   SuperTable includes readable and editable modes, typed columns, filtering,
   grouping, totals, pagination, export, change tracking, undo/redo, row
   reordering, and AutoSuggestionsBox-powered combo cells.
-
-version: 1.0.0
+version: 1.1.0
 homepage: https://geniussystems24.github.io/super_table_field
 repository: https://github.com/GeniusSystems24/super_table_field
 issue_tracker: https://github.com/GeniusSystems24/super_table_field/issues

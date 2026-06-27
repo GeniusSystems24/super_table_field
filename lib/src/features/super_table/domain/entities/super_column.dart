@@ -115,6 +115,15 @@ typedef SuperRowCondition = bool Function(
 /// for a group header) and returns the aggregate number, or null to show nothing.
 typedef SuperAggregator = num? Function(List<SuperRow> rows);
 
+/// Formats a column's value into the exact display string shown in its cell
+/// (readable mode, and non-editing cells in editable mode). When set, it
+/// **overrides** the built-in type rendering (pills, bars, swatches, currency,
+/// …) — the cell shows the plain text it returns. It is **display-only**: the
+/// stored value, the edit draft, sorting, filtering, grouping and export all
+/// keep using the raw value. Receives the column's raw value (for a computed
+/// column, the `compute` result) and the whole row.
+typedef SuperColumnFormatter = String Function(Object? value, SuperRow row);
+
 /// The flexible base column. `T` is the cell value type. Use the typed
 /// subclasses (`SuperTextColumn`, `SuperNumberColumn<T>`, …) for the common
 /// types; instantiate `SuperColumn` directly (with [SuperColumnType.custom] and
@@ -137,6 +146,15 @@ class SuperColumn<T> {
   final bool filterable;
   final bool required;
   final bool mono;
+
+  /// When true the column is **never rendered** anywhere in the grid (header,
+  /// filter row, body, totals, group headers), is excluded from export and the
+  /// column chooser, and **cannot be revealed** via
+  /// `SuperTableController.setVisibleKeys` / `hideColumn` — yet it remains fully
+  /// available, **by key**, to filtering, grouping, and aggregation. Use it for
+  /// backing fields that should drive group-bys / filters / programmatic
+  /// aggregates without occupying a visible slot. Defaults to false.
+  final bool hidden;
 
   // ── numeric / display knobs (used by the type logic) ──
   final bool colorSign;
@@ -168,6 +186,11 @@ class SuperColumn<T> {
   final Object? Function(SuperRow row)? compute; // computed value
   final Object? Function(SuperRow row)? accessor; // custom raw read (sort/search)
   final String Function(Object? value, SuperRow row)? format; // computed display
+
+  /// Optional display formatter (see [SuperColumnFormatter]) — overrides the
+  /// built-in cell rendering with the plain text it returns. Display-only; null
+  /// keeps the type-aware rendering.
+  final SuperColumnFormatter? formatter;
 
   // ── value ⇄ backing projection ──
   /// Project the backing object → this cell's initial value. Defaults to
@@ -218,6 +241,7 @@ class SuperColumn<T> {
     this.filterable = true,
     this.required = false,
     this.mono = false,
+    this.hidden = false,
     this.colorSign = false,
     this.min,
     this.max,
@@ -232,6 +256,7 @@ class SuperColumn<T> {
     this.compute,
     this.accessor,
     this.format,
+    this.formatter,
     this.read,
     this.write,
     this.onChange,
@@ -307,6 +332,7 @@ class SuperColumn<T> {
         filterable: filterable,
         required: required,
         mono: mono,
+        hidden: hidden,
         colorSign: colorSign ?? this.colorSign,
         min: min,
         max: max,
@@ -321,6 +347,7 @@ class SuperColumn<T> {
         compute: compute,
         accessor: accessor,
         format: format,
+        formatter: formatter,
         read: read,
         write: write,
         onChange: onChange,

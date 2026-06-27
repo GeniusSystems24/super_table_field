@@ -11,6 +11,17 @@ In editable mode, the table's `combo` columns are edited **through the real `Aut
 
 Light + dark themes, full LTR + RTL.
 
+## What's new in 1.1.0
+
+Aggregate **in code**, and keep the dimensions that drive those aggregates **off the screen** — two cooperating, fully backward-compatible additions:
+
+- **Programmatic group aggregation** — `controller.groupAggregates(...)` returns a nested tree of `SuperGroupAggregate` nodes (group value, count, rows, and a per-column `aggregates` map), honouring the active filter and independent of the on-screen group headers. Plus `aggregateBy(groupKey, valueKey)` for a flat single-level roll-up, `grandTotals(...)` for the totals row in code, and `aggregateColumn(key, ...)` for one figure. Any reducer can be overridden per call.
+- **Permanently-hidden columns** — `SuperColumn(hidden: true)` declares a column that is **never rendered** and can't be revealed, yet stays fully available **by key** to filtering, grouping, and aggregation. Ideal for backing dimensions (region, supplier, a normalized sort key) that steer the data without taking a slot.
+- **Optional display formatter** — any column takes a `formatter: (value, row) => String` that overrides the built-in cell rendering with custom text (display-only: sorting, filtering, grouping, export and editing keep the raw value).
+- **No data-type tags** — column headers no longer print the data-type label; each header shows just the column name and its sort / pin / group / drag affordances.
+
+See the [CHANGELOG](CHANGELOG.md) and the new example 13.
+
 ## What's new in 1.0.0
 
 The **ERP release** — everything an accounting / inventory / document grid needs to stage edits and post them to a backend:
@@ -48,6 +59,9 @@ See the [CHANGELOG](CHANGELOG.md) for the full list and migration notes.
 - ✅ **Conditional styling** — row styles win over cell styles; first matching condition applies.
 - ✅ **Sticky row-number gutter** — frozen during horizontal scroll; click to select the whole row without moving the edit cursor.
 - ✅ **Grouping & aggregates** (sum / avg / count / **min / max / custom**), **totals**, **pagination** (pages / infinite / load-more).
+- ✅ **Programmatic aggregation** — `groupAggregates` (nested tree), `aggregateBy`, `grandTotals`, `aggregateColumn`; all honour the active filter.
+- ✅ **Hidden columns** — `hidden: true` columns drive filter / group / aggregate **by key** but never render.
+- ✅ **Display formatter** — per-column `formatter` for custom cell text (display-only).
 - ✅ **Change tracking** — opt-in add/modify/delete delta (`SuperChangeSet`) with dirty-cell markers and accept/reject.
 - ✅ **Export** — CSV / TSV / JSON of the live (filtered + sorted) view, plus copy-to-clipboard.
 - ✅ **Selection statistics** — spreadsheet-style running aggregate over selected cells.
@@ -177,6 +191,22 @@ SuperNumberColumn<int>(
     (context, controller, row, cell) => (cell.value as num) == 0:
         const CellStyle(foreground: Color(0xFFEF4444)),
   },
+);
+```
+
+### Display formatter
+
+Any column accepts a `formatter` that produces the exact text shown in its cell — handy for units, masks, relative dates, or any custom rendering. It overrides the built-in type rendering (pills, bars, currency, …) and is **display-only**: sorting, filtering, grouping and export still use the raw value, and editing still edits the raw value.
+
+```dart
+SuperNumberColumn<int>(
+  key: 'qty', label: 'Qty', agg: SuperAgg.sum,
+  formatter: (value, row) => '${value ?? 0} ${row['unit'] ?? 'u'}',   // "120 box"
+);
+
+SuperNumberColumn<num>(
+  key: 'margin', label: 'Margin',
+  formatter: (value, row) => '${((value as num) * 100).toStringAsFixed(1)}%',
 );
 ```
 
@@ -314,6 +344,58 @@ SuperComputedColumn<num>(
 SuperCurrencyColumn(key: 'cost', label: 'Unit Cost', agg: SuperAgg.min, aggLabel: 'MIN');
 ```
 
+## Programmatic aggregation & hidden columns
+
+Aggregate from code without rendering anything, and keep the dimensions that drive those aggregates off the grid.
+
+### Group aggregates in code
+
+`groupAggregates` returns a nested tree of `SuperGroupAggregate` nodes over the **live, filtered** view — independent of the on-screen group headers and collapse state.
+
+```dart
+// Nested region ▸ category roll-up of qty + value:
+final tree = c.groupAggregates(
+  groupBy: const ['region', 'category'],     // defaults to the live groupKeys
+  aggregateColumns: const ['qty', 'value'],  // defaults to every column with an agg
+);
+for (final region in tree) {
+  region.value;                 // 'North'
+  region.count;                 // rows in the group
+  region.aggregate('value');    // Σ value for the region
+  for (final cat in region.children) { /* one level down */ }
+}
+
+// One-level group-by → {groupValue: aggregate}, independent of the live grouping:
+final byRegion = c.aggregateBy('region', 'value', agg: SuperAgg.sum);
+
+// The totals row, in code; and a single figure:
+final totals = c.grandTotals(columns: const ['qty', 'value']);  // {qty: …, value: …}
+final avg    = c.aggregateColumn('value', agg: SuperAgg.avg);
+```
+
+All four honour the active filter by default (`filtered: false` to ignore it) and accept `hidden` column keys.
+
+### Hidden columns (filter / group / aggregate only)
+
+A column declared `hidden: true` is **never rendered** (header, body, filter row, totals, group headers), is left out of export and the column chooser, and **can't be revealed** — but it stays fully usable **by key** for filtering, grouping, and aggregation.
+
+```dart
+SuperTableController<Map<String, dynamic>>(
+  columns: [
+    SuperTextColumn(key: 'sku', label: 'SKU'),
+    SuperCurrencyColumn(key: 'value', label: 'Stock Value', agg: SuperAgg.sum),
+    SuperTextColumn(key: 'region', label: 'Region', hidden: true),  // ← never shown
+  ],
+  rows: [ /* … each row still carries a region … */ ],
+);
+
+c.setColumnFilter('region', 'North');   // filter by the invisible column
+c.toggleGroup('region');                // group by it
+c.aggregateBy('region', 'value');       // {North: …, South: …}
+c.dataColumns;                          // renderable columns (no hidden)
+c.hiddenColumns;                        // the hidden ones
+```
+
 ## Selection statistics
 
 In a cell-selection mode (`singleCell` / `multiCells`), `controller.selectionStats` returns a live aggregate over the selected numeric cells — the spreadsheet status-bar number. The grid footer renders it automatically when two or more numeric cells are selected; read it yourself to drive a custom status bar.
@@ -441,6 +523,7 @@ A runnable gallery lives in `example/` with twelve focused examples:
 10. **Aggregations** — `min` / `max` / `custom` aggregator (weighted average), `aggLabel`.
 11. **Cell locking** — `cellEditable` to freeze posted rows.
 12. **Row reordering** — `moveRowUp` / `moveRowDown` / `moveRow` with undo.
+13. **Group aggregates & hidden columns** — `groupAggregates` / `aggregateBy` / `grandTotals` over a `hidden:` dimension.
 
 ```bash
 cd example
@@ -454,7 +537,7 @@ Planned for upcoming releases (ordered, not committed):
 - **Frozen / pinned columns at the edges** beyond the row-number gutter (left & right pins for ERP key + action columns).
 - **Column-level CSV/Excel formatters** and an `.xlsx` export helper (styled headers, number formats, frozen header row).
 - **Server-side data source** — a `SuperTableDataSource` interface for server-driven sort / filter / page over large datasets, with built-in debounce.
-- **Footer (group) aggregation rows** rendered inline under each group, not just in the header.
+- **Inline footer (group) aggregation rows** rendered under each group (the figures are already available in code via `groupAggregates` — this is the in-grid UI on top of it).
 - **Cell-level change history & per-cell revert** UI (right-click → *Revert cell*), building on the 1.0.0 baseline.
 - **Validation summary panel** — collect every cell error into a dismissible list with jump-to-cell.
 - **Fill handle & range fill** (drag the selection corner to copy down / right).

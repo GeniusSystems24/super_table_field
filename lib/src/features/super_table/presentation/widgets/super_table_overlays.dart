@@ -117,6 +117,7 @@ class _MenuPanelState extends State<_MenuPanel> {
     _openEntry = e;
     final box = rowContext.findRenderObject() as RenderBox;
     final origin = box.localToGlobal(Offset.zero);
+    final rowH = box.size.height;
     final s = widget.screen;
     var left = origin.dx + widget.width - 6;
     final flip = left + widget.width > s.width - 8;

@@ -57,6 +57,13 @@ class SuperCellDisplay extends StatelessWidget {
     final mono = TextStyle(fontFamily: SuperTokensFonts.mono, fontSize: 12.5, color: baseColor, fontWeight: weight);
     final body = TextStyle(fontFamily: SuperTokensFonts.body, fontSize: 12.5, color: baseColor, fontWeight: weight);
 
+    // An explicit column formatter wins over the built-in type rendering and
+    // shows its returned string as plain text (display-only — see [SuperColumnFormatter]).
+    final fmt = col.formatter;
+    if (fmt != null) {
+      return Text(fmt(v, row), maxLines: 1, overflow: TextOverflow.ellipsis, style: col.mono ? mono : body);
+    }
+
     switch (col.type) {
       case SuperColumnType.text:
       case SuperColumnType.custom:

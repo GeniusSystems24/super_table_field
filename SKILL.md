@@ -4,8 +4,10 @@ description: >
   Use the super_table_field Flutter package to build GeniusLink design-system
   data grids and typeahead inputs — SuperTable<R> (a generic readable/editable
   keyboard-first grid with a typed column hierarchy, onChange/validator,
-  per-column + advanced filtering, conditional row/cell styling, grouping,
-  totals, pagination, change tracking, CSV/TSV/JSON export, custom aggregations,
+  per-column + advanced filtering, conditional row/cell styling, display
+  formatters, grouping,
+  totals, pagination, change tracking, CSV/TSV/JSON export, custom +
+  programmatic aggregations, hidden filter/group columns,
   selection statistics, per-cell edit locking, row reordering, undo/redo) and
   AutoSuggestionsBox (a filtering combobox).
   Apply when a Flutter app needs a themed (light/dark, LTR/RTL) table, a typeahead
@@ -37,7 +39,8 @@ come for free.
 
 ```yaml
 dependencies:
-  super_table_field: ^1.0.0
+  super_table_field:
+    path: ../super_table_field
 ```
 
 ```dart
@@ -96,6 +99,10 @@ Rules:
   editable **cell-data** object (`value` + `error`), reached via `row.cells['key']`.
 - `combo` allows free text; `enumeration` is pick-only. Numeric columns may set
   `agg:` for the totals row and `min`/`max` to clamp (and scale `progress`).
+- Any column can set `formatter: (value, row) => String` to fully control its
+  **displayed** text (overrides the built-in type rendering; display-only —
+  sort / filter / group / export and editing all use the raw value). Column
+  headers never show a column's data type.
 - Read state back from the controller; call its mutators (never mutate the row
   list directly) so undo/redo + notifications stay correct.
 - Switch mode at runtime with `controller.setMode(...)` / `toggleMode()`.
@@ -217,6 +224,36 @@ field editable. Also exposed as `c.canEditRow(col, row)`.
 `c.moveRowDown([viewR])`, plus *Move row up / down* in the editable row menu.
 Records undo; no-op while grouped.
 
+## Programmatic aggregation & hidden columns (1.1.0)
+
+**Aggregate in code** over the live, filtered (+ sorted) view, independent of the
+on-screen group headers:
+
+```dart
+// Nested group tree — defaults to the live groupKeys / all agg columns:
+final tree = c.groupAggregates(groupBy: ['region', 'category'], aggregateColumns: ['qty', 'value']);
+tree.first.value;              // 'North'
+tree.first.aggregate('value'); // Σ value for that group; .children = next level
+
+c.aggregateBy('region', 'value', agg: SuperAgg.sum); // flat {groupValue: num?}
+c.grandTotals(columns: ['qty', 'value']);            // totals row as a map
+c.aggregateColumn('value', agg: SuperAgg.avg);       // one figure over the view
+```
+All default to the active filter; pass `filtered: false` to ignore it, or `rows:`
+to aggregate an explicit set. `SuperColumnLogic.aggregate(col, rows, {agg, aggregator})`
+takes the same overrides. Returns `SuperGroupAggregate` nodes (`value` / `count` /
+`rows` / `aggregates` / `children`, plus `flatten()` / `toJson()`).
+
+**Hidden columns.** `SuperColumn(hidden: true)` — on the base column and **every**
+typed subclass — declares a column that **never renders** (header, body, filter
+row, totals, group headers), is excluded from export + the column chooser, and
+**cannot be revealed** via `setVisibleKeys` / `hideColumn`. It stays fully usable
+**by key** for filtering (`setColumnFilter`, advanced clauses), grouping
+(`toggleGroup`, `groupBy:`) and every aggregation API above — perfect for backing
+dimensions (region, supplier, a normalized sort key) that steer the data without
+a visible slot. Read the partitions via `c.dataColumns` (renderable) /
+`c.hiddenColumns`.
+
 ## Grouping & the row context menu (readable mode)
 
 Group by any column whose `groupable` is true (default). **Right-click** a row
@@ -305,3 +342,7 @@ package's barrel. Add new column behavior in
   `c.changes` is empty and `c.hasChanges` is false until you opt in.
 - Reading `selectionStats` in a row-selection mode → it aggregates *cell*
   selections; use `singleCell`/`multiCells`. It also ignores non-numeric cells.
+- Expecting a `hidden: true` column to appear when added to `setVisibleKeys` →
+  `hidden` is absolute and never renders; it exists for filter / group /
+  aggregate **by key** only. (User-toggleable show/hide is a *separate* concern —
+  use the visible-keys allow-list for that.)
