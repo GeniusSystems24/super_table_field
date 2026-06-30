@@ -19,6 +19,7 @@
 // filter, ↑/↓ to move, Enter/click to pick, or type a free value and commit.
 // ============================================================
 
+export 'domain/entities/super_row_expansion.dart';
 export 'domain/entities/super_column.dart';
 export 'domain/entities/super_columns.dart';
 export 'domain/entities/super_row.dart';

@@ -26,6 +26,7 @@ import 'examples/example_10_aggregations.dart';
 import 'examples/example_11_cell_locking.dart';
 import 'examples/example_12_row_reorder.dart';
 import 'examples/example_13_group_aggregates.dart';
+import 'examples/example_14_expandable_rows.dart';
 
 void main() => runApp(const ExampleApp());
 
@@ -126,6 +127,8 @@ class _Launcher extends StatelessWidget {
         Icons.swap_vert_outlined, (_) => const RowReorderExample()),
     _Demo('13 · Group aggregates · Hidden columns', 'groupAggregates / aggregateBy / grandTotals · filter+group-only columns',
         Icons.account_tree_outlined, (_) => const GroupAggregatesExample()),
+    _Demo('14 · Expandable rows', 'SuperRowExpansion · multi & single mode · per-row heights · animated panels',
+        Icons.unfold_more_outlined, (_) => const ExpandableRowsExample()),
     _Demo('Auto Suggestion Box', 'Typeahead · groups · multi-select · fuzzy',
         Icons.manage_search_outlined, (_) => const AutoSuggestionBoxDemo()),
   ];

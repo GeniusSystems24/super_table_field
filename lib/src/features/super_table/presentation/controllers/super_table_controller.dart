@@ -958,7 +958,25 @@ class SuperTableController<R> extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Remove any active sort, returning the table to its natural row order.
+  void clearSort() {
+    _sort = const SortSpec();
+    notifyListeners();
+  }
+
   // ── grouping ──
+  /// Replace the current group-by set with [keys] in one call. Accepts hidden
+  /// column keys — the table renders a group header row for each group even
+  /// when the grouping column is never visible. Pass an empty list to clear all
+  /// groups (equivalent to [clearGroups]). Resets the collapse state.
+  void setGroupKeys(List<String> keys) {
+    _groupKeys
+      ..clear()
+      ..addAll(keys);
+    _collapsed.clear();
+    notifyListeners();
+  }
+
   void toggleGroup(String key) {
     if (_groupKeys.contains(key)) {
       _groupKeys.remove(key);

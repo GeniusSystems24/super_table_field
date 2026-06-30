@@ -3,6 +3,64 @@
 All notable changes to **super_table_field** are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/); versioning is [SemVer](https://semver.org/).
 
+## [2.0.0] — 2026-06-30
+
+Additive, **fully backward compatible**. Expandable row panels for Readable
+Mode with configurable keyboard shortcuts.
+
+### Added — Expandable rows (`SuperRowExpansion`)
+- **`SuperTable(expansion: SuperRowExpansion(...))`** — attach animated
+  expand/collapse panels to every data row in Readable Mode. Panels are built
+  on demand by `SuperRowExpansionBuilder<R>` receiving the live `BuildContext`,
+  controller, and `SuperRow<R>`. Has zero effect in Editable Mode.
+- **`SuperRowExpansion`** — immutable configuration object:
+  - `builder` — required content builder.
+  - `defaultHeight` (120 px) — panel height when `heightBuilder` returns null.
+  - `heightBuilder` — per-row `double?` override, so each row can declare its
+    own panel size independently of others.
+  - `mode` — `SuperRowExpansionMode.multi` (default, any number of rows open)
+    or `SuperRowExpansionMode.single` (accordion: opening a new row collapses
+    the previous one).
+  - `animationDuration` (220 ms) and `animationCurve` (easeInOut).
+  - `keymap` — see below.
+- Animation uses `ClipRect` + `AnimatedAlign(heightFactor: 0 → 1)`, the same
+  technique as Flutter's `ExpansionTile`. The pinned gutter pane mirrors the
+  height via `AnimatedContainer(height: 0 → panelH)` with identical parameters,
+  keeping both lists in pixel-perfect sync at every animation frame.
+- Expansion state lives entirely in `_SuperTableState` (`Set<int>` of
+  `SuperRow.id`). It is decoupled from the controller — data, undo/redo,
+  selection, and change-tracking are unaffected.
+- `itemExtent` on both body and gutter `ListView.builder`s is set to `null`
+  when `expansion != null`, allowing variable-height items. `_ensureVisible`
+  skips the vertical scroll calculation in this mode.
+
+### Added — Expansion keyboard shortcuts (`SuperRowExpansionKeymap`)
+- **`SuperRowExpansion(keymap: SuperRowExpansionKeymap())`** — opt in to
+  keyboard control. When `keymap` is null (default) no shortcuts are registered
+  and the existing navigation (arrow keys, Tab, etc.) is completely unchanged.
+- **`SuperRowExpansionKeymap`** — a configurable pair of shortcuts:
+
+  | Action | Default |
+  |--------|---------|
+  | Expand focused row | **Ctrl+Shift+↓** (⌘+Shift+↓ on macOS) |
+  | Collapse focused row | **Ctrl+Shift+↑** (⌘+Shift+↑ on macOS) |
+
+- **`SuperExpansionShortcut`** — declarative shortcut descriptor: `key`
+  (`LogicalKeyboardKey`) + `ctrl` / `shift` / `alt` modifier flags. `ctrl:
+  true` matches both ⌃ Control and ⌘ Command on macOS, consistent with the
+  rest of SuperTable's key handling. Shortcuts are checked in `_onKey` before
+  the arrow-key `switch`, so `Ctrl+Shift+↓/↑` never leaks to `moveSel`.
+- Shortcuts respect `SuperRowExpansionMode`: expanding in `.single` mode
+  auto-collapses any other open row.
+- The footer status bar appends **⌘⇧↓ expand · ⌘⇧↑ collapse** hints when a
+  keymap is active.
+
+### Added — Example 14
+- `example_14_expandable_rows.dart` — a journal-entry ledger with a
+  `_LineItemsPanel` expansion widget, per-row heights driven by line-item
+  count, runtime Multi/Single mode toggle, and `SuperRowExpansionKeymap()`
+  enabled by default.
+
 ## [1.1.0] — 2026-06-27
 
 Additive, **fully backward compatible**. Two cooperating capabilities for
@@ -54,8 +112,18 @@ aggregates **off the screen**.
   affordances, at a single flat height. **`SuperTable(showTypeTags:)` is
   deprecated and ignored** — kept for source compatibility.
 
-### Notes
-- One new runnable example (13 — group aggregates + hidden columns).
+### Added — Sort cycling on column header left-click
+- **Left-clicking a sortable column header** now cycles through three states:
+  1st click → ascending ↑ · 2nd click → descending ↓ · 3rd click → **clear sort**
+  (returns to natural row order). The right-click / touch header menu gains a
+  contextual **Clear sort** entry when that column is the active sort column.
+- **`controller.clearSort()`** — programmatically remove any active sort.
+- **`controller.setGroupKeys(List<String> keys)`** — set the active group-by
+  columns in one call (replaces the current set, resets collapse state). Accepts
+  **hidden column keys**: `c.setGroupKeys(['region'])` groups the table by the
+  invisible `region` column and the table **immediately renders group-header rows**
+  with the column label, group value, count, and visible-column aggregates — the
+  column itself remains absent from the header and body.
 
 ## [1.0.0] — 2026-06-19
 

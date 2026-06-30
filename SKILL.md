@@ -4,11 +4,10 @@ description: >
   Use the super_table_field Flutter package to build GeniusLink design-system
   data grids and typeahead inputs — SuperTable<R> (a generic readable/editable
   keyboard-first grid with a typed column hierarchy, onChange/validator,
-  per-column + advanced filtering, conditional row/cell styling, display
-  formatters, grouping,
-  totals, pagination, change tracking, CSV/TSV/JSON export, custom +
-  programmatic aggregations, hidden filter/group columns,
-  selection statistics, per-cell edit locking, row reordering, undo/redo) and
+  per-column + advanced filtering, conditional row/cell styling, display formatters,
+  grouping, totals, pagination, change tracking, CSV/TSV/JSON export, custom +
+  programmatic aggregations, hidden filter/group columns, selection statistics,
+  per-cell edit locking, row reordering, undo/redo) and
   AutoSuggestionsBox (a filtering combobox).
   Apply when a Flutter app needs a themed (light/dark, LTR/RTL) table, a typeahead
   field, or an editable table whose `combo` columns are edited through the
@@ -212,6 +211,12 @@ records deletions. Entities: `SuperChangeSet`, `SuperRowChange`, `SuperCellChang
 `SuperAgg.max`, and `SuperAgg.custom` + `aggregator: (List<SuperRow> rows) => num?`
 (e.g. a quantity-weighted average). `aggLabel:` renames the figure in group headers.
 
+**Sort.** `c.sortBy(col, ascending)` sorts the view; `c.clearSort()` removes any
+active sort. The column **header responds to left-click** with a 3-state cycle:
+1st click → ascending ↑, 2nd click → descending ↓, 3rd click → clear sort.
+Right-click (or touch double-tap) opens the header menu which also has
+*Sort ascending* / *Sort descending* / *Clear sort* entries.
+
 **Selection statistics.** In a cell-selection mode, `c.selectionStats` returns a
 `SuperSelectionStats` (`sum`/`average`/`min`/`max`/`count`/`numericCount`) over the
 selected numeric cells; the footer shows it for 2+ numeric cells.
@@ -249,10 +254,20 @@ typed subclass — declares a column that **never renders** (header, body, filte
 row, totals, group headers), is excluded from export + the column chooser, and
 **cannot be revealed** via `setVisibleKeys` / `hideColumn`. It stays fully usable
 **by key** for filtering (`setColumnFilter`, advanced clauses), grouping
-(`toggleGroup`, `groupBy:`) and every aggregation API above — perfect for backing
-dimensions (region, supplier, a normalized sort key) that steer the data without
-a visible slot. Read the partitions via `c.dataColumns` (renderable) /
-`c.hiddenColumns`.
+(`toggleGroup`, `setGroupKeys`, `groupBy:`) and every aggregation API above —
+perfect for backing dimensions (region, supplier, a normalized sort key) that
+steer the data without a visible slot. Read the partitions via `c.dataColumns`
+(renderable) / `c.hiddenColumns`.
+
+Grouping by a hidden column **does show group-header rows** in the table — the
+column's label and group value still appear in the header stripe; only the
+column slot itself is absent. Set one or more group keys at once (including
+hidden column keys) with:
+
+```dart
+c.setGroupKeys(['region', 'category']);  // replaces current groups; resets collapse
+c.setGroupKeys([]);                      // clear all groups
+```
 
 ## Grouping & the row context menu (readable mode)
 
@@ -346,3 +361,11 @@ package's barrel. Add new column behavior in
   `hidden` is absolute and never renders; it exists for filter / group /
   aggregate **by key** only. (User-toggleable show/hide is a *separate* concern —
   use the visible-keys allow-list for that.)
+- Passing `showTypeTags: true` to `SuperTable` and expecting a data-type label in
+  the header → the prop is **deprecated and ignored** as of 1.1.0; column headers
+  never display the data type. Remove it from existing call-sites.
+- Confusing `formatter:` with the older `format:` field. `format:` is the
+  computed-column display string (a specialised output of `SuperComputedColumn`);
+  `formatter:` is the new 1.1.0 per-column display override that works on **any**
+  column type and is display-only. Both are `(value, row) → String` callbacks but
+  they serve different roles — `formatter` takes priority in cell rendering.

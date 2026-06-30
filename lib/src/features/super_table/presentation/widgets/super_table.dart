@@ -33,6 +33,7 @@ import '../controllers/super_table_controller.dart';
 import 'super_cell.dart';
 import 'super_table_overlays.dart';
 import 'super_table_skin.dart';
+import '../../domain/entities/super_row_expansion.dart';
 
 const double _kRowH = 40;
 const double _kRowHCompact = 32;
@@ -76,6 +77,15 @@ class SuperTable<R> extends StatefulWidget {
   final int skeletonRows;
   final double? maxHeight;
 
+  /// Expandable-row configuration (Readable mode only).
+  ///
+  /// When set, each data row gains a rotate-chevron in the gutter that toggles
+  /// a smoothly-animated panel below the row. Editable mode is unaffected —
+  /// the grid's editing behaviour is completely unchanged.
+  ///
+  /// See [SuperRowExpansion] and [SuperRowExpansionMode] for full docs.
+  final SuperRowExpansion<R>? expansion;
+
   const SuperTable({
     super.key,
     required this.controller,
@@ -93,6 +103,7 @@ class SuperTable<R> extends StatefulWidget {
     this.loading = false,
     this.skeletonRows = 6,
     this.maxHeight,
+    this.expansion,
   });
 
   @override
@@ -109,6 +120,10 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
   int? _overSlot;
   CellPos? _lastSel;
   bool _wasEditing = false;
+
+  /// IDs ([SuperRow.id]) of rows currently in the expanded state.
+  /// Lives in the View — expansion is a pure presentation concern.
+  final Set<int> _expandedRowIds = {};
 
   SuperTableController<R> get c => widget.controller;
 
@@ -205,7 +220,9 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
 
   void _ensureVisible() {
     final sel = c.sel;
-    if (_vScroll.hasClients) {
+    // Skip vertical auto-scroll when expansion is active: item heights are
+    // variable and a flat-index × rowH calculation would be wrong.
+    if (_vScroll.hasClients && widget.expansion == null) {
       final flat = c.renderList.indexWhere((it) => !it.isGroup && it.dataIndex == sel.r);
       if (flat >= 0) {
         final top = flat * _rowH, bottom = top + _rowH;
@@ -256,6 +273,25 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
     final meta = _meta(keys);
     final k = e.logicalKey;
     final ed = _editable;
+
+    // ── Expansion keyboard shortcuts ───────────────────────────────────────
+    // Checked here — before the meta/arrow blocks — so Ctrl+Shift+↓/↑ does
+    // not fall through to moveSel. Only fires when a keymap is configured and
+    // the table is in Readable mode.
+    {
+      final expConfig = widget.expansion;
+      final km = expConfig?.keymap;
+      if (km != null && c.mode == SuperTableMode.readable) {
+        if (km.expand.matches(e, keys)) {
+          _expandFocusedRow(expConfig!);
+          return KeyEventResult.handled;
+        }
+        if (km.collapse.matches(e, keys)) {
+          _collapseFocusedRow();
+          return KeyEventResult.handled;
+        }
+      }
+    }
 
     if (meta) {
       if (k == LogicalKeyboardKey.keyC) {
@@ -373,12 +409,28 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
     if (ok) c.deleteRow(vr);
   }
 
+  // ── header sort cycling (left-click) ──
+  /// Cycles sort for [col]: no-sort → ascending → descending → no-sort.
+  void _cycleSortForColumn(SuperColumn col) {
+    if (!col.sortable) return;
+    if (c.sort.key != col.key) {
+      c.sortBy(col, true);        // 1st click: ascending
+    } else if (c.sort.ascending) {
+      c.sortBy(col, false);       // 2nd click: descending
+    } else {
+      c.clearSort();              // 3rd click: clear
+    }
+  }
+
   // ── header menu (opens on RIGHT-click / touch double-tap) ──
   void _openHeaderMenu(SuperColumn col, Offset pos) {
     final entries = <SuperMenuEntry>[];
     if (col.sortable) {
       entries.add(SuperMenuEntry(icon: Icons.arrow_upward_rounded, label: 'Sort ascending', checked: c.sort.key == col.key && c.sort.ascending, onTap: () => c.sortBy(col, true)));
       entries.add(SuperMenuEntry(icon: Icons.arrow_downward_rounded, label: 'Sort descending', checked: c.sort.key == col.key && !c.sort.ascending, onTap: () => c.sortBy(col, false)));
+      if (c.sort.key == col.key) {
+        entries.add(SuperMenuEntry(icon: Icons.sort_rounded, label: 'Clear sort', onTap: c.clearSort));
+      }
     }
     if (c.mode == SuperTableMode.readable && col.groupable) {
       entries.add(SuperMenuEntry(icon: Icons.workspaces_outline, label: c.groupKeys.contains(col.key) ? 'Remove from grouping' : 'Group by this column', separatorBefore: true, checked: c.groupKeys.contains(col.key), onTap: () => c.toggleGroup(col.key)));
@@ -496,7 +548,8 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
                                               child: ListView.builder(
                                                 controller: _vScroll,
                                                 primary: false,
-                                                itemExtent: _rowH,
+                                                // itemExtent must be null when expansion is active.
+                                                itemExtent: widget.expansion == null ? _rowH : null,
                                                 itemCount: c.renderList.length + extraSkeleton,
                                                 itemBuilder: (ctx, i) => i < c.renderList.length
                                                     ? _buildRenderItem(skin, cols, c.renderList[i])
@@ -534,7 +587,9 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
         controller: _vScrollG,
         primary: false,
         physics: const NeverScrollableScrollPhysics(),
-        itemExtent: _rowH,
+        // itemExtent must be null when expansion is active: rows are variable
+        // height (base rowH + animated panel height).
+        itemExtent: widget.expansion == null ? _rowH : null,
         itemCount: c.renderList.length + extraSkeleton,
         itemBuilder: (ctx, i) => i < c.renderList.length ? _gutterItem(skin, c.renderList[i]) : _gutterSkeletonCell(skin),
       );
@@ -559,7 +614,32 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
     }
     final r = item.dataIndex;
     final rowActive = (c.rowMode ? c.selRows.contains(r) : c.sel.r == r) && c.focused;
-    return _rowGutter(skin, r, rowActive);
+    final exp = widget.expansion;
+    // Return the simple gutter cell when expansion is off or in editable mode.
+    if (exp == null || c.mode != SuperTableMode.readable) {
+      return _rowGutter(skin, r, rowActive);
+    }
+    // Expansion active: row-number gutter + animated spacer that matches the
+    // body's expansion panel height so the two lists stay in perfect sync.
+    final row = item.row!;
+    final expanded = _isExpanded(row);
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _rowGutterWithExpand(skin, r, row, rowActive, expanded, exp),
+        AnimatedContainer(
+          duration: exp.animationDuration,
+          curve: exp.animationCurve,
+          height: expanded ? exp.heightFor(row) : 0.0,
+          decoration: BoxDecoration(
+            color: skin.surface2,
+            border: BorderDirectional(
+              end: BorderSide(color: skin.borderStrong),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _gutterSkeletonCell(SuperTableSkin skin) => Container(
@@ -859,6 +939,8 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
     // Right-click (mouse) or double-tap (touch) opens the menu; left button drags.
     Widget cell = GestureDetector(
       behavior: HitTestBehavior.opaque,
+      // Left-click cycles sort: ascending → descending → clear (no-op for unsortable)
+      onTap: col.sortable ? () => _cycleSortForColumn(col) : null,
       onSecondaryTapDown: (d) => _openHeaderMenu(col, d.globalPosition),
       onDoubleTap: () {
         final box = context.findRenderObject() as RenderBox?;
@@ -987,7 +1069,9 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
     final r = item.dataIndex;
     final rowActive = (c.rowMode ? c.selRows.contains(r) : c.sel.r == r) && c.focused;
     final rowStyle = _rowStyle(item.row!);
-    return GestureDetector(
+    final exp = widget.expansion;
+
+    final rowWidget = GestureDetector(
       onSecondaryTapDown: (d) => _openRowMenu(r, d.globalPosition),
       child: Container(
         height: _rowH,
@@ -998,6 +1082,18 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
           if (_actionable) _actionCell(skin, r, rowActive),
         ]),
       ),
+    );
+
+    // No expansion feature, or currently in editable mode — return the bare row.
+    if (exp == null || c.mode != SuperTableMode.readable) return rowWidget;
+
+    final expanded = _isExpanded(item.row!);
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        rowWidget,
+        _buildExpansionPanel(skin, item.row!, exp, expanded),
+      ],
     );
   }
 
@@ -1148,6 +1244,160 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
         SuperAlign.start => TextAlign.left,
       };
 
+  // ── row expansion helpers (readable mode) ──────────────────────────────
+
+  /// Whether [row] is currently expanded.
+  bool _isExpanded(SuperRow<R> row) => _expandedRowIds.contains(row.id);
+
+  /// Toggle the expansion state of [row], honouring the [SuperRowExpansionMode]
+  /// policy set on [exp].
+  ///
+  /// [single] mode: clears all other expanded rows before opening the new one.
+  /// [multi]  mode: any number of rows may be open simultaneously.
+  void _toggleExpansion(SuperRow<R> row, SuperRowExpansion<R> exp) {
+    setState(() {
+      final id = row.id;
+      if (_expandedRowIds.contains(id)) {
+        _expandedRowIds.remove(id);
+      } else {
+        if (exp.mode == SuperRowExpansionMode.single) _expandedRowIds.clear();
+        _expandedRowIds.add(id);
+      }
+    });
+  }
+
+  /// Expand the currently focused row (keyboard shortcut handler).
+  /// No-op when the row is already expanded or the cursor is on a group header.
+  /// Respects [SuperRowExpansionMode]: in [single] mode any other open row is
+  /// collapsed first.
+  void _expandFocusedRow(SuperRowExpansion<R> exp) {
+    final viewR = c.sel.r;
+    if (viewR >= c.view.length) return;
+    final row = c.view[viewR].row;
+    if (row == null) return; // group-header row — not expandable
+    final id = row.id;
+    if (!_expandedRowIds.contains(id)) {
+      setState(() {
+        if (exp.mode == SuperRowExpansionMode.single) _expandedRowIds.clear();
+        _expandedRowIds.add(id);
+      });
+    }
+  }
+
+  /// Collapse the currently focused row (keyboard shortcut handler).
+  /// No-op when the row is already collapsed or the cursor is on a group header.
+  void _collapseFocusedRow() {
+    final viewR = c.sel.r;
+    if (viewR >= c.view.length) return;
+    final row = c.view[viewR].row;
+    if (row == null) return;
+    final id = row.id;
+    if (_expandedRowIds.contains(id)) {
+      setState(() => _expandedRowIds.remove(id));
+    }
+  }
+
+  /// Builds the animated expansion panel for [row].
+  ///
+  /// Uses [ClipRect] + [AnimatedAlign] with a `heightFactor` tween so the
+  /// child is always laid out at the full panel height and smoothly
+  /// revealed/hidden — the same technique Flutter's own [ExpansionTile] uses.
+  /// The gutter's [AnimatedContainer] uses an identical height tween so both
+  /// animate in perfect lock-step regardless of curve or duration.
+  Widget _buildExpansionPanel(
+    SuperTableSkin skin,
+    SuperRow<R> row,
+    SuperRowExpansion<R> exp,
+    bool expanded,
+  ) {
+    final panelH = exp.heightFor(row);
+    return ClipRect(
+      child: AnimatedAlign(
+        alignment: Alignment.topCenter,
+        heightFactor: expanded ? 1.0 : 0.0,
+        duration: exp.animationDuration,
+        curve: exp.animationCurve,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: skin.surface2,
+            border: Border(bottom: BorderSide(color: skin.border)),
+          ),
+          child: SizedBox(
+            width: double.infinity,
+            height: panelH,
+            child: exp.builder(context, c, row),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Gutter cell variant used when expansion is enabled. Shows a rotating
+  /// chevron alongside the row number. The chevron's [GestureDetector] consumes
+  /// the tap so it does NOT also trigger the parent's row-select handler.
+  Widget _rowGutterWithExpand(
+    SuperTableSkin skin,
+    int r,
+    SuperRow<R> row,
+    bool rowActive,
+    bool expanded,
+    SuperRowExpansion<R> exp,
+  ) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTapDown: (_) => _focus.requestFocus(),
+      onTap: () => c.selectGutterRow(
+        r,
+        shift: HardwareKeyboard.instance.isShiftPressed,
+        meta: _meta(HardwareKeyboard.instance.logicalKeysPressed),
+      ),
+      child: Container(
+        width: _gutterW,
+        height: _rowH,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: rowActive ? skin.accentWashOnBg(0.12) : skin.bg,
+          border: BorderDirectional(
+            end: BorderSide(color: skin.borderStrong),
+            bottom: BorderSide(color: skin.border),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Chevron tap is consumed here; does NOT propagate to row-select.
+            GestureDetector(
+              onTap: () => _toggleExpansion(row, exp),
+              child: Padding(
+                padding: const EdgeInsetsDirectional.only(end: 1),
+                child: AnimatedRotation(
+                  turns: expanded ? 0.5 : 0.0,
+                  duration: exp.animationDuration,
+                  curve: exp.animationCurve,
+                  child: Icon(
+                    Icons.expand_more_rounded,
+                    size: 13,
+                    color: expanded ? skin.accent : skin.fg4,
+                  ),
+                ),
+              ),
+            ),
+            Text(
+              '${(r + 1).toString().padLeft(2, '0')}',
+              style: TextStyle(
+                fontFamily: SuperTokensFonts.mono,
+                fontSize: 10,
+                fontWeight: rowActive ? FontWeight.w700 : FontWeight.w400,
+                color: rowActive ? skin.accent : skin.fg3,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildEmpty(SuperTableSkin skin) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 40),
@@ -1239,9 +1489,12 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
 
   Widget _buildStatusHint(SuperTableSkin skin) {
     final n = _editable ? c.rows.length : c.sortedRows.length;
+    final expKeys = !_editable && widget.expansion?.keymap != null
+        ? ' · ⌘⇧↓ expand · ⌘⇧↑ collapse'
+        : '';
     final hint = _editable
         ? '$n row${n == 1 ? '' : 's'} · ↵ edit · Tab next (new row at end) · ⌘↵ insert after · ⌘C/V JSON · ⌘Z undo'
-        : '$n row${n == 1 ? '' : 's'} · ⇧+arrows to range-select · right-click header for options · ⌘C copy';
+        : '$n row${n == 1 ? '' : 's'} · ⇧+arrows to range-select · right-click header for options · ⌘C copy$expKeys';
     final stats = c.selectionStats;
     String fmt(num v) => v == v.roundToDouble() ? v.toInt().toString() : v.toStringAsFixed(2);
     return Padding(
