@@ -6,7 +6,7 @@ description: >
   totals, pagination, export, row reordering, edit locking, clipboard support,
   undo/redo, AutoSuggestionsBox integration, and light/dark with LTR/RTL support.
 
-version: 2.0.0
+version: 2.0.1
 homepage: https://geniussystems24.github.io/super_table_field
 repository: https://github.com/GeniusSystems24/super_table_field
 issue_tracker: https://github.com/GeniusSystems24/super_table_field/issues
@@ -26,7 +26,7 @@ dependencies:
     sdk: flutter
   # Shared GeniusLink design-system foundation (theme, tokens, type, widgets).
   super_core: ^0.1.0
-  super_auto_suggestion_box: ^0.5.0
+  super_auto_suggestion_box: ^0.6.0
 
 dev_dependencies:
   flutter_test:
