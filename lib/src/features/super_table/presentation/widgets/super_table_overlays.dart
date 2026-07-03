@@ -8,6 +8,8 @@
 //   • showSuperConfirm     — the delete-row confirm dialog.
 //   • showSuperShortcuts   — the keyboard-shortcuts reference dialog.
 //   • showSuperAdvancedFilter — the cross-column advanced-filter editor (0.4.0).
+//   • showSuperValidationPanel — the table-wide validation summary with
+//     jump-to-cell (2.1.0).
 //   • SuperCellErrorBadge  — the per-cell validation badge with an overlay tip.
 // Pure presentation; all behaviour is passed in as callbacks.
 // ============================================================
@@ -15,6 +17,8 @@
 import 'package:flutter/material.dart';
 
 import '../../domain/entities/super_filter.dart';
+import '../../domain/entities/super_validation.dart';
+import '../controllers/super_table_controller.dart';
 import 'super_table_skin.dart';
 
 /// A single popup-menu entry.
@@ -600,7 +604,8 @@ Future<void> showSuperShortcuts(BuildContext context) {
     ('Rows & clipboard', [
       ('⌘Enter', 'Insert row after'),
       ('⌘⇧Enter', 'Insert row before'),
-      ('⌘D', 'Duplicate row'),
+      ('⌘D', 'Duplicate row · fill down (multi-row range)'),
+      ('⌘R', 'Fill right across the range'),
       ('⌘⌫', 'Delete row'),
       ('⌘C', 'Copy selection as JSON'),
       ('⌘X / ⌘V', 'Cut / paste (validated)'),
@@ -690,6 +695,157 @@ class _Kbd extends StatelessWidget {
             child: Text(part, style: TextStyle(fontFamily: SuperTokensFonts.mono, fontSize: 11.5, fontWeight: FontWeight.w600, color: skin.fg2)),
           ),
       ],
+    );
+  }
+}
+
+/// Validation-summary panel (2.1.0). Runs `controller.validateAll()` and
+/// lists every failing cell — row number, column, message — with jump-to-cell
+/// on tap. Wire it to a *Validate* button or the footer's issue chip; gate
+/// *Post* / *Save* on `controller.isValid`.
+Future<void> showSuperValidationPanel<R>(BuildContext context, SuperTableController<R> controller) {
+  final skin = SuperTableSkin.of(context);
+  final issues = controller.validateAll();
+  return showDialog<void>(
+    context: context,
+    barrierColor: Colors.black.withOpacity(0.5),
+    builder: (ctx) => Center(
+      child: Material(
+        color: Colors.transparent,
+        child: Container(
+          width: 560,
+          constraints: const BoxConstraints(maxWidth: 560, maxHeight: 560),
+          padding: const EdgeInsets.fromLTRB(26, 24, 26, 24),
+          decoration: BoxDecoration(
+            color: skin.surface,
+            border: Border.all(color: skin.borderStrong),
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: skin.popShadow,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(children: [
+                Container(
+                  width: 34,
+                  height: 34,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: (issues.isEmpty ? skin.success : skin.danger).withOpacity(0.14),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    issues.isEmpty ? Icons.check_circle_outline_rounded : Icons.rule_rounded,
+                    size: 19,
+                    color: issues.isEmpty ? skin.success : skin.danger,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    issues.isEmpty ? 'All rows valid' : '${issues.length} validation issue${issues.length == 1 ? '' : 's'}',
+                    style: TextStyle(fontFamily: SuperTokensFonts.display, fontWeight: FontWeight.w800, fontSize: 19, color: skin.fg1),
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () => Navigator.pop(ctx),
+                  child: Container(
+                    width: 32,
+                    height: 32,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(color: skin.inputBg, border: Border.all(color: skin.borderStrong), borderRadius: BorderRadius.circular(7)),
+                    child: Icon(Icons.close_rounded, size: 16, color: skin.fg2),
+                  ),
+                ),
+              ]),
+              const SizedBox(height: 16),
+              if (issues.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Text('Every cell passes the type rules, unique constraints and column validators.',
+                      style: TextStyle(fontSize: 13, color: skin.fg3, height: 1.5)),
+                )
+              else
+                Flexible(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        for (final issue in issues)
+                          _ValidationIssueTile(
+                            skin: skin,
+                            issue: issue,
+                            onJump: issue.cell == null
+                                ? null
+                                : () {
+                                    Navigator.pop(ctx);
+                                    controller.selectCellAt(issue.cell!.r, issue.cell!.c);
+                                  },
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+class _ValidationIssueTile extends StatelessWidget {
+  final SuperTableSkin skin;
+  final SuperValidationIssue issue;
+  final VoidCallback? onJump;
+  const _ValidationIssueTile({required this.skin, required this.issue, this.onJump});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 7),
+      child: GestureDetector(
+        onTap: onJump,
+        child: MouseRegion(
+          cursor: onJump == null ? MouseCursor.defer : SystemMouseCursors.click,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 10),
+            decoration: BoxDecoration(
+              color: skin.tint(skin.danger, 0.05),
+              border: Border.all(color: skin.danger.withOpacity(0.25)),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                decoration: BoxDecoration(color: skin.inputBg, border: Border.all(color: skin.borderStrong), borderRadius: BorderRadius.circular(5)),
+                child: Text('Row ${issue.sourceIndex + 1}',
+                    style: TextStyle(fontFamily: SuperTokensFonts.mono, fontSize: 11, fontWeight: FontWeight.w600, color: skin.fg2)),
+              ),
+              const SizedBox(width: 10),
+              SizedBox(
+                width: 110,
+                child: Text(issue.columnLabel,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: skin.fg1)),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(issue.message,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 12.5, color: skin.fg2, height: 1.35)),
+              ),
+              if (onJump != null) ...[
+                const SizedBox(width: 8),
+                Icon(Icons.arrow_outward_rounded, size: 14, color: skin.fg4),
+              ],
+            ]),
+          ),
+        ),
+      ),
     );
   }
 }

@@ -231,7 +231,7 @@ class _ExpandableRowsExampleState extends State<ExpandableRowsExample> {
         //   Ctrl/⌘ + Shift + ↓  →  expand the focused row
         //   Ctrl/⌘ + Shift + ↑  →  collapse the focused row
         // Pass a custom SuperRowExpansionKeymap(...) to override the defaults.
-        keymap: SuperRowExpansionKeymap(),
+        keymap: const SuperRowExpansionKeymap(),
         builder: (ctx, ctrl, row) => _LineItemsPanel(entry: row.value),
       );
 

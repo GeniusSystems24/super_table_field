@@ -11,6 +11,18 @@ In editable mode, the table's `combo` columns are edited **through the real `Aut
 
 Light + dark themes, full LTR + RTL.
 
+## What's new in 2.1.0
+
+Five roadmap items land at once — the **forms & views release**, everything opt-in and backward compatible:
+
+- **Validation summary** — `controller.validateAll()` runs the full pass (type rules, `unique:`, column `validator`s) over **every row** and returns `SuperValidationIssue`s; `controller.isValid` gates a *Post*; `showSuperValidationPanel(context, controller)` lists the issues with **jump-to-cell**, and the footer shows a live ⚠ issue chip. Columns take `unique: true` for natural keys (SKU, account code).
+- **Saved views** — `controller.viewState()` / `viewStateJson()` snapshot column order, widths, visibility, sort, group-bys, collapsed groups, and (optionally) filters as one JSON object; restore with `applyViewState` / `applyViewJson`; `resetViewState()` returns to the declarations. Persist per user/screen.
+- **Fill down / fill right** — Excel semantics: select a range, `⌘/Ctrl+D` copies the top row downward (`⌘/Ctrl+R` → rightward), honouring locks + validation, one undo step. Single cell pulls from the neighbour above/left. (`⌘D` on a single row still duplicates it.)
+- **Group footers** — `SuperTable(groupFooters: true)` closes each expanded group with a **Σ subtotal row**, aggregates aligned under their columns — the in-grid UI over `groupAggregates`.
+- **Per-cell / per-row revert** — with `trackChanges:` on, right-click → *Revert cell* / *Revert row* (an added row is removed); programmatic `revertCell(row, key)` / `revertRow(row)`.
+
+Also fixed: **undo/redo now restores cell values**, not just row membership; numeric commits are stored as numbers; clearing a not-set column filter no longer deactivates the advanced filter; deleted rows release their cached combo resources. See the [CHANGELOG](CHANGELOG.md) and examples 15–16.
+
 ## What's new in 1.1.0
 
 Aggregate **in code**, and keep the dimensions that drive those aggregates **off the screen** — two cooperating, fully backward-compatible additions:
@@ -68,6 +80,9 @@ See the [CHANGELOG](CHANGELOG.md) for the full list and migration notes.
 - ✅ **Per-cell edit locking** & **manual row reordering**.
 - ✅ **Combo ⇄ AutoSuggestionsBox** — with per-cell, rebuildable sources/controllers driven by the row `fingerPrint`.
 - ✅ **Clipboard** (JSON / TSV), **undo/redo**, **keyboard-first** with an `onKey` escape hatch.
+- ✅ **Validation** — per-column `validator` + built-in type rules + `unique:` constraints, a table-wide `validateAll()` summary with jump-to-cell, and an `isValid` posting gate (2.1.0).
+- ✅ **Saved views** — one JSON snapshot of order / widths / visibility / sort / groups / filters per user (2.1.0).
+- ✅ **Fill down / fill right** and **Σ group footers** (2.1.0).
 
 ## Getting started
 
@@ -477,6 +492,8 @@ Clicking the **row-number** cell selects the whole row **without** moving the ac
 | `⌘`/`Ctrl` + `Shift` + `Enter` | insert a row **before** the focused row |
 | `⌘`/`Ctrl` + `C` / `V` / `X` | copy / paste (validated) / cut as JSON / TSV |
 | `⌘`/`Ctrl` + `Z` / `Shift+Z` | undo / redo |
+| `⌘`/`Ctrl` + `D` | duplicate the focused row — or **fill down** when the selection spans rows (2.1.0) |
+| `⌘`/`Ctrl` + `R` | **fill right** across the selected range (2.1.0) |
 
 Intercept keys yourself with the controller's `onKey` (return `true` to consume):
 
@@ -505,11 +522,62 @@ c.moveRowUp();                       // reorder the focused row (1.0.0)
 c.acceptChanges();                   // re-baseline after a save (1.0.0)
 c.rejectChanges();                   // discard edits (1.0.0)
 c.copyCsvToClipboard();              // export the live view (1.0.0)
+c.validateAll();                     // full validation pass → issues (2.1.0)
+c.revertRow(row);                    // baseline one row back (2.1.0)
+final json = c.viewStateJson();      // save the user's view (2.1.0)
+c.applyViewJson(json);               // …and restore it (2.1.0)
+c.fillDown();                        // Excel ⌘D over the range (2.1.0)
 ```
+
+## Validation summary & unique columns (2.1.0)
+
+Editable grids validate on commit; before **posting** you want the whole table checked at once — including rows that were never touched, and rows on other pages.
+
+```dart
+SuperTextColumn(key: 'sku', label: 'SKU', required: true, unique: true), // natural key
+
+final issues = c.validateAll();      // type rules + unique + validators, EVERY row
+if (c.isValid) {
+  post(c.changes);
+} else {
+  await showSuperValidationPanel(context, c);  // list + jump-to-cell
+}
+```
+
+Each `SuperValidationIssue` carries the row, `sourceIndex`, `columnKey` / `columnLabel`, the message, and — when the cell is on screen — a `cell` position for `selectCellAt`. `validateAll` also lights the per-cell badges (pass `markCells: false` to keep it silent); the footer shows a tappable **⚠ N issues** chip whenever badges are lit. `unique:` compares display text case-insensitively and exempts blanks.
+
+## Saved views (2.1.0)
+
+Everything a user personalises about a grid — column order, widths, hidden columns, sort, group-bys, collapsed groups, filters — in one JSON-serialisable snapshot. Store it per user/screen; apply it on load.
+
+```dart
+final json = c.viewStateJson();               // → persist (prefs, backend…)
+c.applyViewJson(json);                        // restore later
+c.resetViewState();                           // back to the column declarations
+final noFilters = c.viewState(includeFilters: false);  // layout only
+```
+
+Unknown keys in a saved view (schema drift) are dropped; new columns append in natural order.
+
+## Fill down / fill right (2.1.0)
+
+Spreadsheet muscle memory for repetitive entry. Select a range: `⌘/Ctrl+D` copies the **top row** of the range into every row below; `⌘/Ctrl+R` copies the **left column** rightward (values are coerced to each target column's type; incompatible cells are skipped). With a single cell, the value is pulled from the neighbour above/left. Locked cells (`cellEditable`) are respected, every write is validated, and the whole fill is **one undo step**. Also available as `c.fillDown()` / `c.fillRight()`.
+
+## Group footers (2.1.0)
+
+```dart
+SuperTable(controller: c, groupFooters: true)
+```
+
+In readable mode with grouping active, each expanded group closes with a **Σ subtotal row**: the group label in the first column and each aggregate (`agg:` / `aggregator:`) aligned **under its own column** — a ledger subtotal line, complementing the inline chips in the group header.
+
+## Per-cell / per-row revert (2.1.0)
+
+With `trackChanges: true`, right-click a row → **Revert cell** (the focused cell) or **Revert row**. Reverting an *added* row removes it. Programmatic: `c.revertCell(row, 'price')`, `c.revertRow(row)`. Both sync the backing object, record undo, and fire `onChange`.
 
 ## Example
 
-A runnable gallery lives in `example/` with twelve focused examples:
+A runnable gallery lives in `example/` with sixteen focused examples:
 
 1. **Read-only report** — readable mode, typed model, conditional row styling.
 2. **Editable journal** — `validator` + `onChange`, Ctrl+Enter insert, live balance.
@@ -524,6 +592,9 @@ A runnable gallery lives in `example/` with twelve focused examples:
 11. **Cell locking** — `cellEditable` to freeze posted rows.
 12. **Row reordering** — `moveRowUp` / `moveRowDown` / `moveRow` with undo.
 13. **Group aggregates & hidden columns** — `groupAggregates` / `aggregateBy` / `grandTotals` over a `hidden:` dimension.
+14. **Expandable rows** — `SuperRowExpansion`, multi & single mode, per-row heights, animated panels.
+15. **Validation & saved views** — `validateAll` + `unique:`, the `isValid` gate, `viewStateJson` / `applyViewJson`.
+16. **Fill & group footers** — `⌘D`/`⌘R` range fill, `groupFooters:` Σ subtotal rows, revert cell/row.
 
 ```bash
 cd example
@@ -537,11 +608,7 @@ Planned for upcoming releases (ordered, not committed):
 - **Frozen / pinned columns at the edges** beyond the row-number gutter (left & right pins for ERP key + action columns).
 - **Column-level CSV/Excel formatters** and an `.xlsx` export helper (styled headers, number formats, frozen header row).
 - **Server-side data source** — a `SuperTableDataSource` interface for server-driven sort / filter / page over large datasets, with built-in debounce.
-- **Inline footer (group) aggregation rows** rendered under each group (the figures are already available in code via `groupAggregates` — this is the in-grid UI on top of it).
-- **Cell-level change history & per-cell revert** UI (right-click → *Revert cell*), building on the 1.0.0 baseline.
-- **Validation summary panel** — collect every cell error into a dismissible list with jump-to-cell.
-- **Fill handle & range fill** (drag the selection corner to copy down / right).
-- **Column chooser / show-hide + reorder persistence** to a saved view JSON.
+- **Fill handle** — the draggable selection-corner UI over 2.1.0's `fillDown` / `fillRight`.
 - **Virtualized rows** for very large in-memory datasets.
 - **Accessibility pass** — semantics for screen readers and high-contrast theming.
 

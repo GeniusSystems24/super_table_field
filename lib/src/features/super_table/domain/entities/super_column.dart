@@ -156,6 +156,13 @@ class SuperColumn<T> {
   /// aggregates without occupying a visible slot. Defaults to false.
   final bool hidden;
 
+  /// When true, the column's values must be **unique across all rows**
+  /// (editable mode). Enforced by the built-in validation — at commit time and
+  /// in `SuperTableController.validateAll()` — comparing display text
+  /// case-insensitively; blank values are exempt. Use it for natural keys:
+  /// SKU, account code, document number. Defaults to false.
+  final bool unique;
+
   // ── numeric / display knobs (used by the type logic) ──
   final bool colorSign;
   final num? min;
@@ -242,6 +249,7 @@ class SuperColumn<T> {
     this.required = false,
     this.mono = false,
     this.hidden = false,
+    this.unique = false,
     this.colorSign = false,
     this.min,
     this.max,
@@ -333,6 +341,7 @@ class SuperColumn<T> {
         required: required,
         mono: mono,
         hidden: hidden,
+        unique: unique,
         colorSign: colorSign ?? this.colorSign,
         min: min,
         max: max,

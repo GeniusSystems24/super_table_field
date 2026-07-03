@@ -61,10 +61,15 @@ class CellPos {
   String toString() => 'CellPos($r, $c)';
 }
 
-/// One entry of the flat render list: either a [group] header or a [data] row.
+/// One entry of the flat render list: a [group] header, a [data] row, or —
+/// when `SuperTable(groupFooters: true)` — a [groupFooter] subtotal row
+/// rendered after each expanded group's rows.
 @immutable
 class RenderItem<R> {
   final bool isGroup;
+
+  /// True for a per-group subtotal row (2.1.0, `groupFooters:`).
+  final bool isGroupFooter;
 
   // data-row fields
   final SuperRow<R>? row;
@@ -84,6 +89,7 @@ class RenderItem<R> {
     required this.dataIndex,
     required this.sourceIndex,
   })  : isGroup = false,
+        isGroupFooter = false,
         groupCol = null,
         groupValue = null,
         groupCount = 0,
@@ -99,6 +105,22 @@ class RenderItem<R> {
     required this.path,
     required this.groupRows,
   })  : isGroup = true,
+        isGroupFooter = false,
+        row = null,
+        dataIndex = -1,
+        sourceIndex = -1;
+
+  /// A subtotal row closing a group: carries the same group fields as the
+  /// header so the View can aggregate [groupRows] under each column.
+  const RenderItem.groupFooter({
+    required this.groupCol,
+    required this.groupValue,
+    required this.groupCount,
+    required this.depth,
+    required this.path,
+    required this.groupRows,
+  })  : isGroup = false,
+        isGroupFooter = true,
         row = null,
         dataIndex = -1,
         sourceIndex = -1;

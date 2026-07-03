@@ -86,6 +86,12 @@ class SuperTable<R> extends StatefulWidget {
   /// See [SuperRowExpansion] and [SuperRowExpansionMode] for full docs.
   final SuperRowExpansion<R>? expansion;
 
+  /// Render a subtotal row after each expanded group (2.1.0, readable mode).
+  /// The footer repeats the group's aggregates — [SuperColumn.agg] /
+  /// [SuperColumn.aggregator] — in the aggregate columns, aligned under them,
+  /// closing the group visually like a ledger subtotal line.
+  final bool groupFooters;
+
   const SuperTable({
     super.key,
     required this.controller,
@@ -104,6 +110,7 @@ class SuperTable<R> extends StatefulWidget {
     this.skeletonRows = 6,
     this.maxHeight,
     this.expansion,
+    this.groupFooters = false,
   });
 
   @override
@@ -319,7 +326,17 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
         return KeyEventResult.handled;
       }
       if (k == LogicalKeyboardKey.keyD && ed) {
-        c.duplicateRow();
+        // Excel semantics when a multi-row range is selected: fill down.
+        // Single row/cell keeps the long-standing duplicate-row behaviour.
+        if (c.cellMode && c.anchor.r != c.sel.r) {
+          c.fillDown();
+        } else {
+          c.duplicateRow();
+        }
+        return KeyEventResult.handled;
+      }
+      if (k == LogicalKeyboardKey.keyR && ed && c.cellMode) {
+        c.fillRight();
         return KeyEventResult.handled;
       }
       // Ctrl/⌘ + Enter → insert AFTER focus; + Shift → insert BEFORE focus.
@@ -452,6 +469,23 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
         SuperMenuEntry(icon: Icons.vertical_align_top_rounded, label: 'Insert row above', hint: '⌘⇧↵', separatorBefore: true, onTap: () => c.insertRow(viewR, after: false)),
         SuperMenuEntry(icon: Icons.vertical_align_bottom_rounded, label: 'Insert row below', hint: '⌘↵', onTap: () => c.insertRow(viewR, after: true)),
         SuperMenuEntry(icon: Icons.copy_all_rounded, label: 'Duplicate row', hint: '⌘D', onTap: () => c.duplicateRow(viewR)),
+        if (c.trackChanges) ...[
+          SuperMenuEntry(
+            icon: Icons.restore_rounded,
+            label: 'Revert cell',
+            separatorBefore: true,
+            disabled: !(c.sel.r == viewR &&
+                c.sel.c < c.cols.length &&
+                (row.cells[c.cols[c.sel.c].key]?.isDirty ?? false)),
+            onTap: () => c.revertCell(row, c.cols[c.sel.c].key),
+          ),
+          SuperMenuEntry(
+            icon: Icons.settings_backup_restore_rounded,
+            label: row.isNew ? 'Revert row (remove added)' : 'Revert row',
+            disabled: !c.isRowDirty(row),
+            onTap: () => c.revertRow(row),
+          ),
+        ],
         SuperMenuEntry(icon: Icons.arrow_upward_rounded, label: 'Move row up', separatorBefore: true, disabled: viewR == 0, onTap: () => c.moveRowUp(viewR)),
         SuperMenuEntry(icon: Icons.arrow_downward_rounded, label: 'Move row down', disabled: viewR >= c.view.length - 1, onTap: () => c.moveRowDown(viewR)),
         SuperMenuEntry(icon: Icons.delete_outline_rounded, label: 'Delete row', hint: '⌘⌫', danger: true, separatorBefore: true, onTap: () => _confirmDeleteRow(viewR)),
@@ -489,6 +523,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
   Widget build(BuildContext context) {
     // Expose the live context so the controller can invoke onChange/validator.
     c.viewContext = context;
+    c.groupFootersEnabled = widget.groupFooters && c.mode == SuperTableMode.readable;
     final skin = SuperTableSkin.of(context);
     final cols = c.cols;
     final colsW = cols.fold<double>(0, (a, col) => a + c.widthOf(col));
@@ -606,7 +641,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
   }
 
   Widget _gutterItem(SuperTableSkin skin, RenderItem<R> item) {
-    if (item.isGroup) {
+    if (item.isGroup || item.isGroupFooter) {
       return Container(
         height: _rowH,
         decoration: BoxDecoration(color: skin.surface2, border: BorderDirectional(end: BorderSide(color: skin.borderStrong), bottom: BorderSide(color: skin.borderStrong))),
@@ -921,7 +956,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
       ],
     );
 
-    Widget inner = Container(
+    final Widget inner = Container(
       width: w,
       height: _headH,
       padding: const EdgeInsets.symmetric(horizontal: 11),
@@ -1017,6 +1052,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
   // ── render item ──
   Widget _buildRenderItem(SuperTableSkin skin, List<SuperColumn> cols, RenderItem<R> item) {
     if (item.isGroup) return _buildGroupHeader(skin, cols, item);
+    if (item.isGroupFooter) return _buildGroupFooter(skin, cols, item);
     return _buildRow(skin, cols, item);
   }
 
@@ -1065,6 +1101,59 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
     return out;
   }
 
+  /// A subtotal row closing a group (2.1.0, `groupFooters:`). Unlike the
+  /// header's inline chips, the footer aligns each aggregate UNDER its own
+  /// column — a ledger subtotal line.
+  Widget _buildGroupFooter(SuperTableSkin skin, List<SuperColumn> cols, RenderItem<R> g) {
+    return Container(
+      height: _rowH,
+      decoration: BoxDecoration(
+        color: skin.surface2,
+        border: Border(bottom: BorderSide(color: skin.borderStrong)),
+      ),
+      child: Row(children: [
+        for (var ci = 0; ci < cols.length; ci++) _groupFooterCell(skin, cols[ci], g, ci),
+        if (_actionable) SizedBox(width: _actW),
+      ]),
+    );
+  }
+
+  Widget _groupFooterCell(SuperTableSkin skin, SuperColumn col, RenderItem<R> g, int ci) {
+    Widget? child;
+    if (ci == 0) {
+      final label = g.groupValue == null || g.groupValue!.isEmpty ? '—' : g.groupValue!;
+      child = Text(
+        'Σ $label',
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 0.2, color: skin.fg3),
+      );
+    }
+    if (col.agg != SuperAgg.none) {
+      final v = SuperColumnLogic.aggregate(col, g.groupRows);
+      String? txt;
+      if (col.agg == SuperAgg.count) {
+        txt = '${g.groupCount}';
+      } else if (v != null) {
+        final isCur = col.type == SuperColumnType.currency;
+        final isProgAvg = col.type == SuperColumnType.progress && col.agg == SuperAgg.avg;
+        final body = col.agg == SuperAgg.avg ? (v * 100).round() / 100 : v;
+        txt = '${isCur ? r'$' : ''}${SuperColumnLogic.fmtNum(body, col.copyWith(decimals: col.agg == SuperAgg.avg ? 2 : col.decimals))}${isProgAvg ? '%' : ''}';
+      }
+      if (txt != null) {
+        child = Text(txt, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: SuperTokensFonts.mono, fontSize: 11.5, fontWeight: FontWeight.w700, color: skin.fg1));
+      }
+    }
+    return Container(
+      width: c.widthOf(col),
+      height: _rowH,
+      alignment: col.align == SuperAlign.end && ci != 0 ? AlignmentDirectional.centerEnd : AlignmentDirectional.centerStart,
+      padding: const EdgeInsets.symmetric(horizontal: 11),
+      decoration: BoxDecoration(border: BorderDirectional(end: BorderSide(color: skin.border))),
+      child: child,
+    );
+  }
+
   Widget _buildRow(SuperTableSkin skin, List<SuperColumn> cols, RenderItem<R> item) {
     final r = item.dataIndex;
     final rowActive = (c.rowMode ? c.selRows.contains(r) : c.sel.r == r) && c.focused;
@@ -1111,7 +1200,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
         height: _rowH,
         alignment: Alignment.center,
         decoration: BoxDecoration(color: rowActive ? skin.accentWashOnBg(0.12) : skin.bg, border: BorderDirectional(end: BorderSide(color: skin.borderStrong), bottom: BorderSide(color: skin.border))),
-        child: Text('${(r + 1).toString().padLeft(2, '0')}', style: TextStyle(fontFamily: SuperTokensFonts.mono, fontSize: 11, fontWeight: rowActive ? FontWeight.w700 : FontWeight.w400, color: rowActive ? skin.accent : skin.fg3)),
+        child: Text((r + 1).toString().padLeft(2, '0'), style: TextStyle(fontFamily: SuperTokensFonts.mono, fontSize: 11, fontWeight: rowActive ? FontWeight.w700 : FontWeight.w400, color: rowActive ? skin.accent : skin.fg3)),
       ),
     );
   }
@@ -1171,7 +1260,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
       bg = Colors.transparent;
     }
 
-    Widget content = isEditing
+    final Widget content = isEditing
         ? SuperCellEditor(
             controller: c,
             col: col,
@@ -1384,7 +1473,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
               ),
             ),
             Text(
-              '${(r + 1).toString().padLeft(2, '0')}',
+              (r + 1).toString().padLeft(2, '0'),
               style: TextStyle(
                 fontFamily: SuperTokensFonts.mono,
                 fontSize: 10,
@@ -1496,11 +1585,16 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
         ? '$n row${n == 1 ? '' : 's'} · ↵ edit · Tab next (new row at end) · ⌘↵ insert after · ⌘C/V JSON · ⌘Z undo'
         : '$n row${n == 1 ? '' : 's'} · ⇧+arrows to range-select · right-click header for options · ⌘C copy$expKeys';
     final stats = c.selectionStats;
+    final issues = _editable ? c.errorCount : 0;
     String fmt(num v) => v == v.roundToDouble() ? v.toInt().toString() : v.toStringAsFixed(2);
     return Padding(
       padding: const EdgeInsets.only(top: 10),
       child: Row(children: [
         Expanded(child: Text(hint, style: TextStyle(fontSize: 12, color: skin.fg3))),
+        if (issues > 0) ...[
+          _ValidationChip(skin: skin, count: issues, onTap: () => showSuperValidationPanel<R>(context, c)),
+          const SizedBox(width: 14),
+        ],
         if (stats != null && stats.hasAggregate) ...[
           Text(
             'Sum ${fmt(stats.sum)}  ·  Avg ${fmt(stats.average)}  ·  Min ${fmt(stats.min!)}  ·  Max ${fmt(stats.max!)}  ·  Count ${stats.numericCount}',
@@ -1532,6 +1626,40 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
           ),
         if (_actionable) SizedBox(width: _actW),
       ]),
+    );
+  }
+}
+
+// ── footer validation chip (2.1.0) ──
+class _ValidationChip extends StatelessWidget {
+  final SuperTableSkin skin;
+  final int count;
+  final VoidCallback onTap;
+  const _ValidationChip({required this.skin, required this.count, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+          decoration: BoxDecoration(
+            color: skin.tint(skin.danger, 0.07),
+            border: Border.all(color: skin.danger.withOpacity(0.3)),
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Row(mainAxisSize: MainAxisSize.min, children: [
+            Icon(Icons.error_outline_rounded, size: 13, color: skin.danger),
+            const SizedBox(width: 5),
+            Text(
+              '$count issue${count == 1 ? '' : 's'}',
+              style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: skin.danger),
+            ),
+          ]),
+        ),
+      ),
     );
   }
 }

@@ -12,7 +12,9 @@
 //                              column `onChange` + `validator` pipeline
 //   • row ops                — add / insert (before/after focus) / duplicate / delete
 //   • clipboard              — copy/cut as JSON, paste (validated JSON or TSV)
-//   • history                — undo / redo snapshots (depth 200)
+//   • history                — undo / redo snapshots (depth 200) capturing row
+//                              membership AND per-cell values, so cell edits
+//                              revert correctly (fixed in 2.1.0)
 //   • mode                   — readable ⇄ editable, switchable at runtime
 //   • combo registries       — the per-cell AutoSuggestions source + controller,
 //                              rebuilt when a row's fingerPrint changes
@@ -35,6 +37,8 @@ import '../../domain/entities/super_filter.dart';
 import '../../domain/entities/super_group.dart';
 import '../../domain/entities/super_row.dart';
 import '../../domain/entities/super_table_state.dart';
+import '../../domain/entities/super_validation.dart';
+import '../../domain/entities/super_view_state.dart';
 import '../../domain/usecases/super_column_logic.dart';
 
 /// Host hook for raw key handling (readable + editable). Return `true` to mark
@@ -45,6 +49,18 @@ typedef SuperKeyHandler<R> = bool Function(
   FocusNode node,
   KeyEvent event,
 );
+
+/// One undo/redo history entry: the row list (membership + order, by
+/// reference) PLUS a per-cell value/error snapshot keyed by [SuperRow.id] —
+/// cells are mutated in place during editing, so restoring membership alone
+/// cannot revert a cell edit. Also carries the change-tracking deleted-row
+/// log so undoing a delete removes its ghost entry from `changes.deleted`.
+class _HistoryEntry<R> {
+  final List<SuperRow<R>> rows;
+  final Map<int, Map<String, ({Object? value, String? error})>> cells;
+  final List<({int index, SuperRow<R> row})> deletedLog;
+  const _HistoryEntry(this.rows, this.cells, this.deletedLog);
+}
 
 class SuperTableController<R> extends ChangeNotifier {
   SuperTableController({
@@ -116,6 +132,11 @@ class SuperTableController<R> extends ChangeNotifier {
   /// context). Null before the View mounts.
   BuildContext? viewContext;
 
+  /// Whether the render list should emit a [RenderItem.groupFooter] subtotal
+  /// row after each expanded group (2.1.0). Set by the View each build from
+  /// `SuperTable(groupFooters:)` — like [viewContext], not a reactive setting.
+  bool groupFootersEnabled = false;
+
   // ── load-more paging state (host-driven) ──
   bool _hasMore;
   bool _loadingMore;
@@ -157,8 +178,46 @@ class SuperTableController<R> extends ChangeNotifier {
   int _page = 0;
 
   // ── history ──
-  final List<List<SuperRow<R>>> _undo = [];
-  final List<List<SuperRow<R>>> _redo = [];
+  final List<_HistoryEntry<R>> _undo = [];
+  final List<_HistoryEntry<R>> _redo = [];
+
+  /// Capture the full undo state: row membership/order, every cell's
+  /// value + error, and the change-tracking deleted-row log.
+  _HistoryEntry<R> _snapshot() => _HistoryEntry<R>(
+        List.of(_rows),
+        {
+          for (final row in _rows)
+            row.id: {
+              for (final e in row.cells.entries)
+                e.key: (value: e.value.value, error: e.value.error),
+            },
+        },
+        List.of(_deletedRows),
+      );
+
+  /// Restore a captured [_HistoryEntry]: reinstate membership/order, write the
+  /// snapshotted values back into the SAME row/cell instances (keeping row
+  /// identity for selection, expansion, and combo registries), sync the
+  /// backing objects, and restore the deleted-row log.
+  void _restore(_HistoryEntry<R> s) {
+    _rows = List.of(s.rows);
+    for (final row in _rows) {
+      final vals = s.cells[row.id];
+      if (vals == null) continue;
+      vals.forEach((key, snap) {
+        final cell = row.cells[key] ??= SuperCell(columnKey: key);
+        if (cell.value != snap.value) {
+          cell.value = snap.value;
+          colByKey(key)?.writeBacking(row.value, snap.value);
+        }
+        cell.error = snap.error;
+      });
+    }
+    _deletedRows
+      ..clear()
+      ..addAll(s.deletedLog);
+    _clampSelection();
+  }
 
   // ── change tracking (1.0.0) ──
   final List<({int index, SuperRow<R> row})> _deletedRows = [];
@@ -241,6 +300,99 @@ class SuperTableController<R> extends ChangeNotifier {
 
   /// Apply a filter state from its JSON form.
   void applyFilterJson(Map<String, dynamic> json) => applyFilterState(SuperFilterState.fromJson(json));
+
+  // ── saved views (2.1.0) ──────────────────────────────────
+  /// Snapshot everything the user personalises about this grid — column order,
+  /// width overrides, the visible-keys allow-list, sort, group-bys, collapsed
+  /// groups, and (by default) the whole filter state — as one
+  /// [SuperViewState]. Persist `viewStateJson()` per user/screen and restore
+  /// it later with [applyViewJson].
+  SuperViewState viewState({bool includeFilters = true}) => SuperViewState(
+        order: List.of(_order),
+        widths: Map.of(_widths),
+        visibleKeys: _visibleKeys == null ? null : List.of(_visibleKeys!),
+        sortKey: _sort.key,
+        sortAscending: _sort.ascending,
+        groupKeys: List.of(_groupKeys),
+        collapsedPaths: [
+          for (final e in _collapsed.entries)
+            if (e.value) e.key,
+        ],
+        filters: includeFilters ? filterState : null,
+      );
+
+  /// [viewState] as JSON.
+  Map<String, dynamic> viewStateJson({bool includeFilters = true}) =>
+      viewState(includeFilters: includeFilters).toJson();
+
+  /// Apply a saved [SuperViewState]. Unknown column keys (the schema may have
+  /// changed since the view was saved) are dropped; columns missing from a
+  /// saved order are appended in their natural position. A null
+  /// [SuperViewState.filters] leaves the live filters untouched.
+  void applyViewState(SuperViewState s) {
+    if (s.visibleKeys != null) {
+      final valid = s.visibleKeys!.where((k) => colByKey(k) != null).toList();
+      _visibleKeys = valid.isEmpty ? null : valid;
+    } else {
+      _visibleKeys = null;
+    }
+    if (s.order != null) {
+      final baseKeys = _midBase.map((c) => c.key).toList();
+      final kept = s.order!.where(baseKeys.contains).toList();
+      _order = [...kept, ...baseKeys.where((k) => !kept.contains(k))];
+    }
+    _widths
+      ..clear()
+      ..addAll({
+        for (final e in s.widths.entries)
+          if (colByKey(e.key) != null) e.key: e.value.clamp(60.0, 520.0).toDouble(),
+      });
+    _sort = (s.sortKey != null && colByKey(s.sortKey!) != null)
+        ? SortSpec(key: s.sortKey, ascending: s.sortAscending)
+        : const SortSpec();
+    _groupKeys
+      ..clear()
+      ..addAll(s.groupKeys.where((k) => colByKey(k) != null));
+    _collapsed.clear();
+    for (final p in s.collapsedPaths) {
+      _collapsed[p] = true;
+    }
+    if (s.filters != null) {
+      _search = s.filters!.search;
+      _colFilters
+        ..clear()
+        ..addAll(s.filters!.columnFilters);
+      _advanced = List.of(s.filters!.advanced);
+      _advancedActive = s.filters!.advancedActive;
+    }
+    _page = 0;
+    _clampSelection();
+    notifyListeners();
+  }
+
+  /// Apply a saved view from its JSON form (see [viewStateJson]).
+  void applyViewJson(Map<String, dynamic> json) => applyViewState(SuperViewState.fromJson(json));
+
+  /// Reset every user personalisation back to the column declarations:
+  /// natural order, declared widths, all columns visible, no sort, no groups.
+  /// Pass [clearFilters] = false to keep the active search/filters.
+  void resetViewState({bool clearFilters = true}) {
+    _visibleKeys = null;
+    _order = _midBase.map((c) => c.key).toList();
+    _widths.clear();
+    _sort = const SortSpec();
+    _groupKeys.clear();
+    _collapsed.clear();
+    if (clearFilters) {
+      _search = '';
+      _colFilters.clear();
+      _advanced = [];
+      _advancedActive = false;
+    }
+    _page = 0;
+    _clampSelection();
+    notifyListeners();
+  }
 
   // ── change tracking (1.0.0) ────────────────────────────────────
   /// Whether any row was added, modified, or deleted since the last baseline.
@@ -330,6 +482,50 @@ class SuperTableController<R> extends ChangeNotifier {
     notifyListeners();
   }
 
+  // ── per-cell / per-row revert (2.1.0) ──────────────────────
+  /// Restore one cell of [row] to its change-tracking baseline (no-op unless
+  /// [trackChanges] is on and the cell is dirty). Syncs the backing object,
+  /// records undo, and fires [onChange] — the row-menu *Revert cell* action.
+  void revertCell(SuperRow<R> row, String columnKey) {
+    if (!trackChanges) return;
+    final cell = row.cells[columnKey];
+    if (cell == null || !cell.isDirty) return;
+    final snap = _snapshot();
+    cell.revertToBaseline();
+    colByKey(columnKey)?.writeBacking(row.value, cell.value);
+    _applyRows([..._rows], undoSnapshot: snap);
+    notifyListeners();
+  }
+
+  /// Restore every dirty cell of [row] to its baseline. For an **added** row
+  /// (no baseline exists) the row itself is removed — reverting an addition.
+  /// Records undo and fires [onChange].
+  void revertRow(SuperRow<R> row) {
+    if (!trackChanges) return;
+    if (row.isNew) {
+      final idx = _rows.indexOf(row);
+      if (idx < 0) return;
+      final snap = _snapshot();
+      _pruneCombos(row);
+      _applyRows([
+        for (var i = 0; i < _rows.length; i++)
+          if (i != idx) _rows[i]
+      ], undoSnapshot: snap);
+      _clampSelection();
+      notifyListeners();
+      return;
+    }
+    if (!isRowDirty(row)) return;
+    final snap = _snapshot();
+    for (final cell in row.cells.values) {
+      if (!cell.isDirty) continue;
+      cell.revertToBaseline();
+      colByKey(cell.columnKey)?.writeBacking(row.value, cell.value);
+    }
+    _applyRows([..._rows], undoSnapshot: snap);
+    notifyListeners();
+  }
+
   // ── selection statistics (1.0.0) ───────────────────────────────
   /// A running sum / average / count / min / max over the numeric cells in the
   /// current selection — the spreadsheet status-bar aggregate. Null when nothing
@@ -370,6 +566,94 @@ class SuperTableController<R> extends ChangeNotifier {
       max: mx,
     );
   }
+
+  // ── validation summary (2.1.0) ───────────────────────────
+  /// Run the FULL validation pass over **every row** (not just the current
+  /// page): built-in type rules, the `unique:` constraint, then each column's
+  /// `validator`. Returns one [SuperValidationIssue] per failing cell — gate a
+  /// *Post* / *Save* on [isValid] and feed the list to a summary panel with
+  /// jump-to-cell (`selectCellAt(issue.cell!.r, issue.cell!.c)`).
+  ///
+  /// [markCells] (default true) writes each result into `cell.error`, so the
+  /// per-cell badges light up, and notifies. Derived (computed / readonly)
+  /// columns are skipped; hidden columns are validated (they carry data).
+  List<SuperValidationIssue<R>> validateAll({bool markCells = true}) {
+    final issues = <SuperValidationIssue<R>>[];
+    final theCols = cols;
+    final theView = view;
+    final viewIndexOf = <int, int>{
+      for (var i = 0; i < theView.length; i++)
+        if (theView[i].row != null) theView[i].row!.id: i,
+    };
+    final colIndexOf = <String, int>{
+      for (var i = 0; i < theCols.length; i++) theCols[i].key: i,
+    };
+    final uniqueSeen = <String, Map<String, int>>{};
+    for (var si = 0; si < _rows.length; si++) {
+      final row = _rows[si];
+      for (final col in _rawColumns) {
+        if (col.type.isDerived) continue;
+        final cell = row.cells[col.key];
+        final value = cell?.value;
+        String? err = SuperColumnLogic.validateCell(col, value);
+        if (err == null && col.unique) {
+          final text = SuperColumnLogic.toText(col, value, row).trim().toLowerCase();
+          if (text.isNotEmpty) {
+            final bucket = uniqueSeen.putIfAbsent(col.key, () => <String, int>{});
+            final first = bucket[text];
+            if (first != null) {
+              err = '“${col.label}” must be unique — duplicates row ${first + 1}';
+            } else {
+              bucket[text] = si;
+            }
+          }
+        }
+        if (err == null && cell != null) {
+          final v = col.validator;
+          final ctx = viewContext;
+          if (v != null && ctx != null) {
+            try {
+              err = v(ctx, this, row, cell, value);
+            } catch (_) {
+              // A host validator with a narrower value type than the stored
+              // value — report it instead of crashing the pass.
+              err = '“${col.label}” has an invalid value';
+            }
+          }
+        }
+        if (markCells && cell != null) cell.error = err;
+        if (err != null) {
+          issues.add(SuperValidationIssue<R>(
+            row: row,
+            sourceIndex: si,
+            viewRow: viewIndexOf[row.id],
+            colIndex: colIndexOf[col.key],
+            columnKey: col.key,
+            columnLabel: col.label,
+            message: err,
+          ));
+        }
+      }
+    }
+    if (markCells) notifyListeners();
+    return issues;
+  }
+
+  /// Number of cells currently holding a validation error (the red badges).
+  /// Cheap enough for per-build footer chips; run [validateAll] first to
+  /// populate errors table-wide.
+  int get errorCount {
+    var n = 0;
+    for (final row in _rows) {
+      for (final cell in row.cells.values) {
+        if (cell.error != null) n++;
+      }
+    }
+    return n;
+  }
+
+  /// True when [validateAll] finds no issues (does not touch cell badges).
+  bool get isValid => validateAll(markCells: false).isEmpty;
 
   // ── export (1.0.0) ─────────────────────────────────────────────
   String _csvEscape(String s, String delimiter) {
@@ -621,6 +905,12 @@ class SuperTableController<R> extends ChangeNotifier {
     _rows = rows;
     _ensureCells();
     if (trackChanges) _captureBaseline();
+    // A wholesale replace invalidates history + per-row combo resources.
+    _undo.clear();
+    _redo.clear();
+    _comboCtrls.clear();
+    _comboSources.clear();
+    _comboFingerPrints.clear();
     _clampSelection();
     notifyListeners();
   }
@@ -640,12 +930,16 @@ class SuperTableController<R> extends ChangeNotifier {
   /// Remove every row (keeps columns + view config). Records undo.
   void clearTable() {
     if (_rows.isEmpty) return;
+    final snap = _snapshot(); // BEFORE the deleted-row log gains entries
     if (trackChanges) {
       for (var i = 0; i < _rows.length; i++) {
         _deletedRows.add((index: i, row: _rows[i]));
       }
     }
-    _applyRows(<SuperRow<R>>[]);
+    for (final row in _rows) {
+      _pruneCombos(row);
+    }
+    _applyRows(<SuperRow<R>>[], undoSnapshot: snap);
     _clampSelection();
     notifyListeners();
   }
@@ -707,13 +1001,9 @@ class SuperTableController<R> extends ChangeNotifier {
   void setColumnFilter(String key, Object? value) {
     final blank = value == null || '$value'.trim().isEmpty;
     if (blank) {
-      if (!_colFilters.containsKey(key)) {
-        if (_advancedActive) {
-          _advancedActive = false;
-          notifyListeners();
-        }
-        return;
-      }
+      // Clearing a filter that isn't set is a no-op (2.1.0 fix: it used to
+      // deactivate the advanced filter as a side effect).
+      if (!_colFilters.containsKey(key)) return;
       _colFilters.remove(key);
     } else {
       _colFilters[key] = value;
@@ -930,6 +1220,16 @@ class SuperTableController<R> extends ChangeNotifier {
             list.add(item);
           }
         }
+        if (groupFootersEnabled) {
+          list.add(RenderItem<R>.groupFooter(
+            groupCol: col,
+            groupValue: value,
+            groupCount: groupItems.length,
+            depth: depth,
+            path: path,
+            groupRows: groupItems,
+          ));
+        }
       });
     }
 
@@ -1005,7 +1305,7 @@ class SuperTableController<R> extends ChangeNotifier {
 
   // ── widths / reorder ──
   void setWidth(String key, double w) {
-    _widths[key] = w.clamp(60.0, 520.0);
+    _widths[key] = w.clamp(60.0, 520.0).toDouble();
     notifyListeners();
   }
 
@@ -1298,9 +1598,13 @@ class SuperTableController<R> extends ChangeNotifier {
   }
 
   // ── history ──
-  void _applyRows(List<SuperRow<R>> next, {bool record = true}) {
+  /// Commit [next] as the new row list. When [record] is true an undo entry is
+  /// pushed — [undoSnapshot] lets mutation sites that change cell values
+  /// in place capture the state BEFORE the mutation (a snapshot taken here
+  /// would already contain the new values and undo would be a no-op).
+  void _applyRows(List<SuperRow<R>> next, {bool record = true, _HistoryEntry<R>? undoSnapshot}) {
     if (record) {
-      _undo.add(_rows);
+      _undo.add(undoSnapshot ?? _snapshot());
       if (_undo.length > 200) _undo.removeAt(0);
       _redo.clear();
     }
@@ -1310,16 +1614,16 @@ class SuperTableController<R> extends ChangeNotifier {
 
   void undo() {
     if (_undo.isEmpty) return;
-    _redo.add(_rows);
-    _rows = _undo.removeLast();
+    _redo.add(_snapshot());
+    _restore(_undo.removeLast());
     onChange?.call(_rows);
     notifyListeners();
   }
 
   void redo() {
     if (_redo.isEmpty) return;
-    _undo.add(_rows);
-    _rows = _redo.removeLast();
+    _undo.add(_snapshot());
+    _restore(_redo.removeLast());
     onChange?.call(_rows);
     notifyListeners();
   }
@@ -1374,9 +1678,30 @@ class SuperTableController<R> extends ChangeNotifier {
   String? _validate(SuperColumn col, SuperRow<R> row, SuperCell cell, Object? value) {
     final builtin = SuperColumnLogic.validateCell(col, value);
     if (builtin != null) return builtin;
+    if (col.unique) {
+      final u = _uniqueError(col, row, value);
+      if (u != null) return u;
+    }
     final v = col.validator;
     final ctx = viewContext;
     if (v != null && ctx != null) return v(ctx, this, row, cell, value);
+    return null;
+  }
+
+  /// The `unique:` constraint for one candidate [value] of [col] in [row]:
+  /// case-insensitive display-text comparison against every OTHER row.
+  /// Blank values are exempt.
+  String? _uniqueError(SuperColumn col, SuperRow<R> row, Object? value) {
+    final text = SuperColumnLogic.toText(col, value, row).trim().toLowerCase();
+    if (text.isEmpty) return null;
+    for (final other in _rows) {
+      if (identical(other, row)) continue;
+      final t = SuperColumnLogic
+          .toText(col, other.cells[col.key]?.value, other)
+          .trim()
+          .toLowerCase();
+      if (t == text) return '“${col.label}” must be unique';
+    }
     return null;
   }
 
@@ -1399,6 +1724,7 @@ class SuperTableController<R> extends ChangeNotifier {
     final cell = row.cells[col.key] ??= SuperCell(columnKey: col.key);
     final prev = cell.value;
 
+    final snap = _snapshot(); // BEFORE validation/onChange (which may mutate siblings)
     final err = _validate(col, row, cell, val);
     if (!_runOnChange(col, row, cell, prev, val)) {
       cell.error = err;
@@ -1408,7 +1734,7 @@ class SuperTableController<R> extends ChangeNotifier {
     cell.value = val;
     cell.error = err;
     col.writeBacking(row.value, val);
-    _applyRows([..._rows]); // snapshot for undo + notify host
+    _applyRows([..._rows], undoSnapshot: snap); // record undo + notify host
     notifyListeners();
   }
 
@@ -1425,15 +1751,22 @@ class SuperTableController<R> extends ChangeNotifier {
         final row = entry.row!;
         final cell = row.cells[col.key] ??= SuperCell(columnKey: col.key);
         final prev = cell.value;
-        var val = override ?? _draft;
-        // numeric coercion happens in the editor (clamped); here coerce paste-style.
+        Object? val = override ?? _draft;
+        // The editors commit typed overrides; the raw-draft fallback (e.g.
+        // committing by clicking another cell) coerces numerics here so the
+        // stored value keeps its type (change tracking stays clean).
+        if (override == null && col.type.isNumeric) {
+          final s = '$val'.trim();
+          val = s.isEmpty ? '' : SuperColumnLogic.clampNum(SuperColumnLogic.numVal(s), col);
+        }
+        final snap = _snapshot(); // BEFORE the in-place mutation (undo correctness)
         final err = _validate(col, row, cell, val);
         final accepted = _runOnChange(col, row, cell, prev, val);
         if (accepted) {
           cell.value = val;
           cell.error = err;
           col.writeBacking(row.value, val);
-          _applyRows([..._rows]);
+          _applyRows([..._rows], undoSnapshot: snap);
         } else {
           cell.error = err;
         }
@@ -1556,11 +1889,13 @@ class SuperTableController<R> extends ChangeNotifier {
     final vr = viewR ?? _sel.r;
     final entry = vr < view.length ? view[vr] : null;
     if (entry == null) return;
+    final snap = _snapshot(); // BEFORE the deleted-row log gains an entry
     if (trackChanges) _deletedRows.add((index: entry.sourceIndex, row: entry.row!));
+    _pruneCombos(entry.row!);
     _applyRows([
       for (var i = 0; i < _rows.length; i++)
         if (i != entry.sourceIndex) _rows[i]
-    ]);
+    ], undoSnapshot: snap);
     final n = nRows;
     _sel = CellPos(_sel.r.clamp(0, n == 0 ? 0 : n - 1), _sel.c);
     _anchor = _sel;
@@ -1602,6 +1937,83 @@ class SuperTableController<R> extends ChangeNotifier {
   void moveRowDown([int? viewR]) {
     final vr = viewR ?? _sel.r;
     if (vr < view.length - 1) moveRow(vr, vr + 1);
+  }
+
+  // ── fill down / fill right (2.1.0) ─────────────────────────
+  /// Excel-style **fill down** (⌘/Ctrl+D): copy the top row of the selected
+  /// range into every row below it, column by column. With a single cell
+  /// selected, copies the cell directly above into it. Editable cell modes
+  /// only; respects [cellEditable] locks, validates each write, skips
+  /// `onChange` (like paste), and records ONE undo step.
+  void fillDown() => _fill(vertical: true);
+
+  /// Excel-style **fill right** (⌘/Ctrl+R): copy the leading column of the
+  /// selected range into the columns to its right, row by row (values are
+  /// coerced to each target column's type; incompatible cells are skipped).
+  /// With a single cell selected, copies the cell to its left.
+  void fillRight() => _fill(vertical: false);
+
+  void _fill({required bool vertical}) {
+    if (_mode != SuperTableMode.editable || !cellMode || nRows == 0) return;
+    var r0 = _min(_anchor.r, _sel.r);
+    final r1 = _max(_anchor.r, _sel.r);
+    var c0 = _min(_anchor.c, _sel.c);
+    final c1 = _max(_anchor.c, _sel.c);
+    if (vertical && r0 == r1) {
+      if (r0 == 0) return;
+      r0 -= 1; // single row: pull from the row above
+    }
+    if (!vertical && c0 == c1) {
+      if (c0 == 0) return;
+      c0 -= 1; // single column: pull from the column to the left
+    }
+    final theCols = cols;
+    final theView = view;
+    final snap = _snapshot(); // ONE undo step for the whole fill
+    var changed = 0;
+
+    void writeInto(SuperColumn col, SuperRow<R> row, Object? v) {
+      final cell = row.cells[col.key] ??= SuperCell(columnKey: col.key);
+      if (cell.value == v) return;
+      cell.value = v;
+      cell.error = _validate(col, row, cell, v);
+      col.writeBacking(row.value, v);
+      changed++;
+    }
+
+    if (vertical) {
+      final src = r0 < theView.length ? theView[r0].row : null;
+      if (src == null) return;
+      for (var cc = c0; cc <= c1 && cc < theCols.length; cc++) {
+        final col = theCols[cc];
+        if (!canEdit(col)) continue;
+        final v = src.cells[col.key]?.value;
+        for (var rr = r0 + 1; rr <= r1 && rr < theView.length; rr++) {
+          final row = theView[rr].row!;
+          if (!canEditRow(col, row)) continue;
+          writeInto(col, row, v);
+        }
+      }
+    } else {
+      final srcCol = c0 < theCols.length ? theCols[c0] : null;
+      if (srcCol == null) return;
+      for (var rr = r0; rr <= r1 && rr < theView.length; rr++) {
+        final row = theView[rr].row!;
+        final v = row.cells[srcCol.key]?.value;
+        for (var cc = c0 + 1; cc <= c1 && cc < theCols.length; cc++) {
+          final col = theCols[cc];
+          if (!canEditRow(col, row)) continue;
+          final res = SuperColumnLogic.coercePaste(col, v);
+          if (!res.ok) continue; // incompatible target type — skip the cell
+          writeInto(col, row, res.value);
+        }
+      }
+    }
+
+    if (changed == 0) return;
+    _applyRows([..._rows], undoSnapshot: snap);
+    onNotify?.call(SuperNotifyKind.ok, 'Filled $changed cell${changed == 1 ? '' : 's'}');
+    notifyListeners();
   }
 
   // ── clipboard ──
@@ -1646,6 +2058,7 @@ class SuperTableController<R> extends ChangeNotifier {
   void cutRange() {
     if (_mode != SuperTableMode.editable || nRows == 0) return;
     copyJson();
+    final snap = _snapshot(); // BEFORE the in-place cell clears
     final cells = selectedCells();
     var changed = false;
     for (final cell in cells) {
@@ -1659,7 +2072,7 @@ class SuperTableController<R> extends ChangeNotifier {
         changed = true;
       }
     }
-    if (changed) _applyRows([..._rows]);
+    if (changed) _applyRows([..._rows], undoSnapshot: snap);
     notifyListeners();
   }
 
@@ -1675,6 +2088,7 @@ class SuperTableController<R> extends ChangeNotifier {
         if (!res.ok) return 'Row ${i + 1}: ${res.error}';
       }
     }
+    final snap = _snapshot(); // BEFORE pasted values mutate cells in place
     final next = [..._rows];
     for (var i = 0; i < data.length; i++) {
       final obj = data[i] as Map;
@@ -1698,7 +2112,7 @@ class SuperTableController<R> extends ChangeNotifier {
         }
       }
     }
-    _applyRows(next);
+    _applyRows(next, undoSnapshot: snap);
     return null;
   }
 
@@ -1712,6 +2126,7 @@ class SuperTableController<R> extends ChangeNotifier {
         if (!res.ok) return 'Cell ${ri + 1}×${ci + 1}: ${res.error}';
       }
     }
+    final snap = _snapshot(); // BEFORE pasted values mutate cells in place
     final next = [..._rows];
     for (var ri = 0; ri < grid.length; ri++) {
       final vr = _sel.r + ri;
@@ -1734,7 +2149,7 @@ class SuperTableController<R> extends ChangeNotifier {
         }
       }
     }
-    _applyRows(next);
+    _applyRows(next, undoSnapshot: snap);
     return null;
   }
 
@@ -1833,6 +2248,16 @@ class SuperTableController<R> extends ChangeNotifier {
     _comboSources.remove(k);
     _comboCtrls.remove(k);
     _comboFingerPrints.remove(k);
+  }
+
+  /// Drop EVERY cached combo resource of [row] — called when the row leaves
+  /// the table (delete / clear / revert-added) so the registries don't grow
+  /// unbounded in long editing sessions.
+  void _pruneCombos(SuperRow<R> row) {
+    final prefix = '${row.id}:';
+    _comboSources.removeWhere((k, _) => k.startsWith(prefix));
+    _comboCtrls.removeWhere((k, _) => k.startsWith(prefix));
+    _comboFingerPrints.removeWhere((k, _) => k.startsWith(prefix));
   }
 
   @override

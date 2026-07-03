@@ -3,6 +3,84 @@
 All notable changes to **super_table_field** are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/); versioning is [SemVer](https://semver.org/).
 
+## [2.1.0] — 2026-07-03
+
+The **forms & views release** — five roadmap items land at once, everything
+opt-in and **fully backward compatible**, plus four correctness fixes.
+
+### Added — Validation summary & unique columns
+- **`controller.validateAll({markCells})`** — the full validation pass over
+  **every row** (not just the visible page): built-in type rules, the new
+  `unique:` constraint, then each column's `validator`. Returns one
+  **`SuperValidationIssue`** per failing cell (row + `sourceIndex`,
+  `columnKey` / `columnLabel`, message, and a `cell` view position when the
+  cell is on screen). `markCells:` (default true) lights the per-cell badges.
+- **`controller.isValid`** — `validateAll` with no side effects; gate a
+  *Post* / *Save* on it.
+- **`SuperColumn(unique: true)`** (and on all typed columns) — values must be
+  unique across rows, compared as display text, case-insensitively; blanks are
+  exempt. Enforced at commit time and in `validateAll`. For natural keys:
+  SKU, account code, document number.
+- **`showSuperValidationPanel(context, controller)`** — dialog listing every
+  issue with **jump-to-cell**; empty state confirms all rows valid.
+- **Footer issue chip** — editable grids show a tappable **⚠ N issues** chip
+  (backed by `controller.errorCount`) whenever cell badges are lit.
+
+### Added — Saved views (`SuperViewState`)
+- **`controller.viewState({includeFilters})` / `viewStateJson()`** — snapshot
+  the user's column order, width overrides, visible-keys list, sort,
+  group-bys, collapsed group paths, and (by default) the whole
+  `SuperFilterState`, as one JSON-serialisable **`SuperViewState`**.
+- **`applyViewState` / `applyViewJson`** — restore a saved view. Unknown
+  column keys (schema drift) are dropped; missing columns keep their natural
+  position; widths re-clamp; a null `filters` leaves live filters untouched.
+- **`resetViewState({clearFilters})`** — back to the column declarations.
+
+### Added — Fill down / fill right
+- **`controller.fillDown()` / `fillRight()`** + **`⌘/Ctrl+D`** (range spanning
+  rows) and **`⌘/Ctrl+R`** — Excel semantics: copy the range's top row
+  downward / leading column rightward. Values are coerced per target column
+  (incompatible cells skipped), `cellEditable` locks respected, every write
+  validated, **one undo step**, `onNotify` reports the fill count. With a
+  single cell, pulls from the neighbour above / to the left. `⌘D` on a
+  single row still **duplicates** it (unchanged since 0.3.0).
+
+### Added — Group footers
+- **`SuperTable(groupFooters: true)`** — in readable grouped mode, each
+  expanded group closes with a **Σ subtotal row**: group label in the first
+  column, each aggregate aligned **under its own column** (count → group row
+  count; avg → 2 decimals; currency → `$`), matching the totals-row grammar.
+  Render-list consumers: `RenderItem` gains `isGroupFooter` +
+  `RenderItem.groupFooter(...)`; footers never enter the selectable `view`.
+
+### Added — Per-cell / per-row revert
+- **`controller.revertCell(row, columnKey)`** and **`revertRow(row)`** —
+  restore dirty cells to the change-tracking baseline; reverting an **added**
+  row removes it. Both sync the backing object, record undo, fire `onChange`.
+- Row context menu (editable, `trackChanges:` on) gains **Revert cell** /
+  **Revert row**, enabled only when dirty.
+
+### Fixed
+- **Undo/redo now restores cell values.** History entries snapshot per-cell
+  values + errors (and the deleted-row log) keyed by `SuperRow.id`, instead of
+  only row membership — previously undoing a cell edit was a no-op because
+  cells are mutated in place. Snapshots are taken **before** each mutation;
+  row identity is preserved so selection / expansion / combo caches survive.
+- **Raw-draft commits coerce numerics.** Committing a number/currency cell by
+  clicking another cell stored the draft **String**; it now stores a clamped
+  `num`, keeping change tracking and export types clean.
+- **Column-filter clear no longer disables the advanced filter.** Clearing a
+  filter that was never set used to flip `advancedActive` off as a side
+  effect.
+- **Deleted rows release their combo resources.** `deleteRow` / `clearTable` /
+  `revertRow` prune the per-cell combo registries; `updateRows` resets them
+  and clears stale undo history from the previous dataset.
+
+### Changed
+- Keyboard-shortcuts dialog documents `⌘D` dual behaviour and `⌘R`.
+- `example/` gains **15 · Validation & saved views** and **16 · Fill · group
+  footers · revert**.
+
 ## [2.0.0] — 2026-06-30
 
 Additive, **fully backward compatible**. Expandable row panels for Readable

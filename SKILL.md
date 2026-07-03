@@ -5,10 +5,12 @@ description: >
   data grids and typeahead inputs — SuperTable<R> (a generic readable/editable
   keyboard-first grid with a typed column hierarchy, onChange/validator,
   per-column + advanced filtering, conditional row/cell styling, display formatters,
-  grouping, totals, pagination, change tracking, CSV/TSV/JSON export, custom +
-  programmatic aggregations, hidden filter/group columns, selection statistics,
-  per-cell edit locking, row reordering, undo/redo) and
-  AutoSuggestionsBox (a filtering combobox).
+  grouping (with Σ group-footer subtotals), totals, pagination, change tracking
+  with per-cell/per-row revert, CSV/TSV/JSON export, custom + programmatic
+  aggregations, hidden filter/group columns, selection statistics, per-cell edit
+  locking, row reordering, expandable row panels, fill down/right, a table-wide
+  validation summary with unique columns, saved view state (order/widths/sort/
+  filters as JSON), undo/redo) and AutoSuggestionsBox (a filtering combobox).
   Apply when a Flutter app needs a themed (light/dark, LTR/RTL) table, a typeahead
   field, or an editable table whose `combo` columns are edited through the
   AutoSuggestionsBox.
@@ -269,6 +271,68 @@ c.setGroupKeys(['region', 'category']);  // replaces current groups; resets coll
 c.setGroupKeys([]);                      // clear all groups
 ```
 
+## Expandable rows (2.0.0)
+
+Readable mode only: pass `SuperTable(expansion: SuperRowExpansion(builder: (ctx,
+controller, row) => …))` to give every data row an animated expand/collapse
+panel (gutter chevron). Options: `defaultHeight` / per-row `heightBuilder`,
+`mode: SuperRowExpansionMode.multi | .single` (accordion), animation duration/
+curve, and an opt-in `keymap: SuperRowExpansionKeymap()` (⌘⇧↓ expand · ⌘⇧↑
+collapse). Zero effect in editable mode.
+
+## Forms & views (2.1.0)
+
+All opt-in and additive.
+
+**Validation summary + unique columns.** Every typed column takes
+`unique: true` (natural keys — SKU, account code): enforced at commit and in the
+full pass, comparing display text case-insensitively, blanks exempt.
+
+```dart
+final issues = c.validateAll();   // EVERY row: type rules + unique + validators
+if (!c.isValid) {                 // silent variant (no badge changes)
+  await showSuperValidationPanel(context, c);   // list + jump-to-cell dialog
+  return;                         // gate the Post/Save on isValid
+}
+```
+
+`SuperValidationIssue` carries `row`, `sourceIndex`, `columnKey`/`columnLabel`,
+`message`, and `cell` (a `CellPos?` — null when filtered/paged off screen; use
+it with `selectCellAt`). `validateAll` lights the per-cell badges
+(`markCells: false` to skip); when badges are lit the footer shows a tappable
+**⚠ N issues** chip (`c.errorCount`). Column `validator`s run only after the
+View has mounted (they receive its `BuildContext`).
+
+**Saved views.** One JSON snapshot of the user's grid personalisation:
+
+```dart
+final json = c.viewStateJson();   // order, widths, visibility, sort, groups,
+c.applyViewJson(json);            //   collapsed paths, filters (opt-out:
+c.resetViewState();               //   viewState(includeFilters: false))
+```
+
+Restores drop unknown column keys (schema drift) and leave filters untouched
+when the snapshot has none. Entity: `SuperViewState` (`toJson`/`fromJson`).
+
+**Fill down / fill right.** Excel semantics in editable cell modes:
+`⌘/Ctrl+D` with a range spanning rows copies the top row downward; `⌘/Ctrl+R`
+copies the leading column rightward (values coerced per target column,
+incompatible cells skipped). Single cell pulls from the neighbour above/left.
+Respects `cellEditable`, validates every write, records **one** undo step.
+Programmatic: `c.fillDown()` / `c.fillRight()`. `⌘D` on a single row still
+**duplicates** the row.
+
+**Group footers.** `SuperTable(groupFooters: true)` closes each expanded group
+with a Σ subtotal row — the group label in the first column, each column's
+`agg:`/`aggregator:` figure aligned under its own column. Readable grouped mode
+only; render-list consumers see `RenderItem.isGroupFooter` items (they never
+enter the selectable `view`).
+
+**Per-cell / per-row revert.** Requires `trackChanges: true`. Right-click a row
+→ *Revert cell* (the focused cell) / *Revert row*; reverting an **added** row
+removes it. Programmatic: `c.revertCell(row, 'price')` / `c.revertRow(row)` —
+both sync the backing value, record undo, and fire `onChange`.
+
 ## Grouping & the row context menu (readable mode)
 
 Group by any column whose `groupable` is true (default). **Right-click** a row
@@ -369,3 +433,14 @@ package's barrel. Add new column behavior in
   `formatter:` is the new 1.1.0 per-column display override that works on **any**
   column type and is display-only. Both are `(value, row) → String` callbacks but
   they serve different roles — `formatter` takes priority in cell rendering.
+- Expecting `groupFooters:` subtotal rows in editable mode or without grouping →
+  they render only in **readable** mode while group keys are active (and only
+  for expanded groups).
+- Calling `revertCell` / `revertRow` (or expecting the row-menu revert entries)
+  without `trackChanges: true` → there is no baseline to revert to; they no-op.
+- Treating `viewStateJson()` as a data snapshot → it captures **view
+  personalisation only** (order/widths/visibility/sort/groups/filters), never
+  rows. Persist data separately.
+- Expecting `unique:` to compare raw values → it compares **display text**,
+  case-insensitively, and exempts blanks (use `required: true` alongside it for
+  a mandatory natural key).
