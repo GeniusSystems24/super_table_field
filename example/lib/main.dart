@@ -29,6 +29,9 @@ import 'examples/example_13_group_aggregates.dart';
 import 'examples/example_14_expandable_rows.dart';
 import 'examples/example_15_validation_views.dart';
 import 'examples/example_16_fill_and_footers.dart';
+import 'examples/example_17_interaction_events.dart';
+import 'examples/example_18_column_config.dart';
+import 'examples/example_19_showcase.dart';
 
 void main() => runApp(const ExampleApp());
 
@@ -135,6 +138,12 @@ class _Launcher extends StatelessWidget {
         Icons.rule_outlined, (_) => const ValidationViewsExample()),
     _Demo('16 · Fill · group footers · revert', '⌘D/⌘R fill · Σ subtotal rows · revert cell/row',
         Icons.south_outlined, (_) => const FillAndFootersExample()),
+    _Demo('17 · Interaction events', 'SuperInteractions · onRowActivate · cell/row taps · selection + sort',
+        Icons.ads_click_outlined, (_) => const InteractionEventsExample()),
+    _Demo('18 · Column config', 'showSuperColumnManager · reorder / pin / show-hide · pins persist in views',
+        Icons.view_column_outlined, (_) => const ColumnConfigExample()),
+    _Demo('19 · Showcase', 'Interactions + column manager + grouping + totals + tracking + export',
+        Icons.dashboard_outlined, (_) => const ShowcaseExample()),
     _Demo('Auto Suggestion Box', 'Typeahead · groups · multi-select · fuzzy',
         Icons.manage_search_outlined, (_) => const AutoSuggestionBoxDemo()),
   ];

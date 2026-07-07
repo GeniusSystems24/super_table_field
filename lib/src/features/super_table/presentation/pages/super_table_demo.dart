@@ -119,7 +119,7 @@ class _SuperTableDemoState extends State<SuperTableDemo> {
               background: Color(0x14EF4444),
               accentBar: Color(0xFFEF4444),
             ),
-        (ctx, c, row) => row['active'] == false: const SuperRowStyle(foreground: Color(0xFF8C92A4)),
+        (ctx, c, row) => row['active'] == false: SuperRowStyle(foreground: const Color(0xFF8C92A4)),
       };
 
   @override

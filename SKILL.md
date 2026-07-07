@@ -10,7 +10,9 @@ description: >
   aggregations, hidden filter/group columns, selection statistics, per-cell edit
   locking, row reordering, expandable row panels, fill down/right, a table-wide
   validation summary with unique columns, saved view state (order/widths/sort/
-  filters as JSON), undo/redo) and AutoSuggestionsBox (a filtering combobox).
+  pins/filters as JSON), interaction events (cell/row tap, activate, selection/
+  sort), runtime column config (reorder/pin/show-hide + a column manager),
+  undo/redo) and AutoSuggestionsBox (a filtering combobox).
   Apply when a Flutter app needs a themed (light/dark, LTR/RTL) table, a typeahead
   field, or an editable table whose `combo` columns are edited through the
   AutoSuggestionsBox.
@@ -333,6 +335,60 @@ enter the selectable `view`).
 removes it. Programmatic: `c.revertCell(row, 'price')` / `c.revertRow(row)` —
 both sync the backing value, record undo, and fire `onChange`.
 
+## Interaction events (2.2.0)
+
+Pass `SuperTable(interactions: SuperInteractions<R>(...))` to observe gestures
+and state changes and drive the surrounding screen. **Observers only** — they
+never change how the grid responds; a null callback costs nothing.
+
+```dart
+SuperTable<R>(
+  controller: c,
+  interactions: SuperInteractions<R>(
+    onRowActivate: (d) => openRecord(d.row.value),  // double-tap readable row / Enter
+    onCellTap: (d) => log(d.column.label, d.value, d.globalPosition),
+    onCellDoubleTap: (d) => ..., onCellSecondaryTap: (d) => ...,
+    onRowTap: (d) => ...,                            // row-number gutter tap
+    onSelectionChanged: (sel) => setState(() => _sum = sel.stats?.sum),
+    onSortChanged: (s) => ...,                       // s.columnKey / columnLabel / ascending
+  ),
+);
+```
+
+- `onCellTap` fires **after** the cell is selected; `onCellDoubleTap` fires
+  alongside the editor opening (editable) or the row activating (readable).
+- `onRowActivate` is the canonical “open record”: readable-mode double-tap or
+  Enter. In editable mode double-tap opens the cell editor (activate no-ops).
+- `onSelectionChanged` / `onSortChanged` are **diffed after the controller
+  settles**, so programmatic `selectCellAt` / `sortBy` / `clearSort` report too.
+- Details objects: `SuperCellInteraction` (`rowIndex`/`columnIndex`/`sourceIndex`,
+  `column`, `row`, `cell`, `value`, `controller`, `globalPosition`),
+  `SuperRowInteraction`, `SuperSelectionSnapshot` (`cursor`/`anchor`/
+  `selectedRows`/`cells`/`stats`), `SuperSortSnapshot`.
+
+## Column config (2.2.0)
+
+Runtime reorder / show-hide / pin, opt-in UI + a controller API. `SuperTable(
+columnManager: true)` (default) adds **Pin ▸ / Hide column / Manage columns…** to
+every header menu; `showSuperColumnManager(context, c)` opens the dialog (drag to
+reorder, eye to show/hide, pin left/none/right) from your own *Columns* button.
+
+```dart
+showSuperColumnManager(context, c);
+c.setColumnPin('code', SuperPin.left);   // runtime pin (overrides the declared pin:)
+c.cycleColumnPin('total');               // none → left → right → none
+c.pinOf(col);                            // effective pin
+c.showColumn('x'); c.hideColumn('x'); c.toggleColumnVisible('x'); c.isColumnVisible('x');
+c.moveColumn('region', 2);               // reorder by key; or c.setManagedOrder([...keys])
+c.managedColumns;                        // full renderable set (incl. user-hidden) in order
+```
+
+Pins persist in saved views: `SuperViewState` gains a `pins` map, so
+`viewStateJson()` / `applyViewJson()` round-trip pin overrides with order /
+widths / visibility; `resetViewState()` clears them. A **runtime pin** differs
+from a column's declared `pin:` (just the starting value) and from an absolute
+`hidden:` column (never renderable, never revealable).
+
 ## Grouping & the row context menu (readable mode)
 
 Group by any column whose `groupable` is true (default). **Right-click** a row
@@ -438,6 +494,19 @@ package's barrel. Add new column behavior in
   for expanded groups).
 - Calling `revertCell` / `revertRow` (or expecting the row-menu revert entries)
   without `trackChanges: true` → there is no baseline to revert to; they no-op.
+- Expecting `SuperInteractions` callbacks to *replace* the grid's behaviour →
+  they are observers that fire alongside it. `onCellTap` runs after selection
+  moves; to change selection/edit behaviour use `onKey` or `cellEditable`
+  instead.
+- Wiring `onRowActivate` and expecting it in editable mode → it fires only in
+  **readable** mode (double-tap / Enter); editable double-tap opens the cell
+  editor.
+- Confusing a runtime pin (`setColumnPin` / `pinOf`) with the declared `pin:`
+  (the initial value) or a `hidden:` column (absolute, never shown). Runtime
+  visibility/pin/order live in the controller and persist via `viewStateJson`.
+- Hiding the header column-config entries → set `SuperTable(columnManager:
+  false)`; the programmatic API (`setColumnPin`, `toggleColumnVisible`,
+  `moveColumn`, `showSuperColumnManager`) still works.
 - Treating `viewStateJson()` as a data snapshot → it captures **view
   personalisation only** (order/widths/visibility/sort/groups/filters), never
   rows. Persist data separately.

@@ -34,6 +34,7 @@ import 'super_cell.dart';
 import 'super_table_overlays.dart';
 import 'super_table_skin.dart';
 import '../../domain/entities/super_row_expansion.dart';
+import '../../domain/entities/super_interactions.dart';
 
 const double _kRowH = 40;
 const double _kRowHCompact = 32;
@@ -92,6 +93,17 @@ class SuperTable<R> extends StatefulWidget {
   /// closing the group visually like a ledger subtotal line.
   final bool groupFooters;
 
+  /// Host interaction callbacks (2.2.0) — cell/row taps, activation, and
+  /// selection / sort snapshots. Pure observers: they never change how the grid
+  /// itself responds to a gesture. Null (default) = no interaction work is done.
+  final SuperInteractions<R>? interactions;
+
+  /// Add a **Manage columns…** entry (and *Pin* / *Hide column* entries) to
+  /// every header menu (2.2.0); the entry opens [showSuperColumnManager]
+  /// (drag-reorder · show/hide · pin). Default true — set false to hide the
+  /// entries (the programmatic column-config API still works).
+  final bool columnManager;
+
   const SuperTable({
     super.key,
     required this.controller,
@@ -111,6 +123,8 @@ class SuperTable<R> extends StatefulWidget {
     this.maxHeight,
     this.expansion,
     this.groupFooters = false,
+    this.interactions,
+    this.columnManager = true,
   });
 
   @override
@@ -128,6 +142,12 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
   CellPos? _lastSel;
   bool _wasEditing = false;
 
+  // ── interaction-event diffing (2.2.0) ──
+  Offset _lastPointer = Offset.zero;
+  String? _lastSelSig;
+  String? _lastSortKey;
+  bool _lastSortAsc = true;
+
   /// IDs ([SuperRow.id]) of rows currently in the expanded state.
   /// Lives in the View — expansion is a pure presentation concern.
   final Set<int> _expandedRowIds = {};
@@ -142,6 +162,9 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
     _vScroll.addListener(_syncGutter);
     _lastSel = c.sel;
     _wasEditing = c.editCell != null;
+    _lastSelSig = _selSig();
+    _lastSortKey = c.sort.key;
+    _lastSortAsc = c.sort.ascending;
   }
 
   void _syncGutter() {
@@ -162,6 +185,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
   void _onModel() {
     if (!mounted) return;
     setState(() {});
+    _fireInteractionDiffs();
     if (_lastSel != c.sel) {
       _lastSel = c.sel;
       WidgetsBinding.instance.addPostFrameCallback((_) => _ensureVisible());
@@ -173,6 +197,76 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
       });
     }
     _wasEditing = editing;
+  }
+
+  // ── interaction events (2.2.0) ─────────────────────────────────────────
+  String _selSig() =>
+      '${c.sel.token}|${c.anchor.token}|${(c.selRows.toList()..sort()).join(',')}|${(c.rowBand.toList()..sort()).join(',')}';
+
+  /// Fire onSelectionChanged / onSortChanged when the controller settles into a
+  /// new state. Diffing here (rather than at each call-site) means programmatic
+  /// selection / sort changes are reported too.
+  void _fireInteractionDiffs() {
+    final it = widget.interactions;
+    if (it == null) return;
+    if (it.onSelectionChanged != null) {
+      final sig = _selSig();
+      if (sig != _lastSelSig) {
+        _lastSelSig = sig;
+        it.onSelectionChanged!(SuperSelectionSnapshot<R>(
+          cursor: c.sel,
+          anchor: c.anchor,
+          selectedRows: Set.of(c.selRows),
+          cells: c.selectedCells(),
+          stats: c.selectionStats,
+        ));
+      }
+    }
+    if (it.onSortChanged != null) {
+      final sk = c.sort.key;
+      final sa = c.sort.ascending;
+      if (sk != _lastSortKey || sa != _lastSortAsc) {
+        _lastSortKey = sk;
+        _lastSortAsc = sa;
+        it.onSortChanged!(SuperSortSnapshot(
+          columnKey: sk,
+          columnLabel: sk == null ? null : c.colByKey(sk)?.label,
+          ascending: sa,
+        ));
+      }
+    }
+  }
+
+  SuperCellInteraction<R> _cellInteraction(
+          SuperColumn col, SuperRow<R> row, int r, int ci, int sourceIndex, Offset pos) =>
+      SuperCellInteraction<R>(
+        rowIndex: r,
+        columnIndex: ci,
+        sourceIndex: sourceIndex,
+        column: col,
+        row: row,
+        cell: row.cells[col.key],
+        value: col.rawValue(row),
+        controller: c,
+        globalPosition: pos,
+      );
+
+  SuperRowInteraction<R> _rowInteraction(SuperRow<R> row, int r, int sourceIndex, [Offset? pos]) =>
+      SuperRowInteraction<R>(
+        rowIndex: r,
+        sourceIndex: sourceIndex,
+        row: row,
+        controller: c,
+        globalPosition: pos,
+      );
+
+  /// Fire onRowTap for a gutter row-number tap.
+  void _fireRowTap(int r) {
+    final it = widget.interactions;
+    if (it?.onRowTap == null || r >= c.view.length) return;
+    final entry = c.view[r];
+    final row = entry.row;
+    if (row != null) it!.onRowTap!(_rowInteraction(row, r, entry.sourceIndex, _lastPointer));
   }
 
   void _onVScroll() {
@@ -390,7 +484,20 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
         return KeyEventResult.handled;
     }
 
-    if (!ed) return KeyEventResult.ignored;
+    if (!ed) {
+      final it = widget.interactions;
+      if (it?.onRowActivate != null &&
+          (k == LogicalKeyboardKey.enter || k == LogicalKeyboardKey.numpadEnter) &&
+          c.sel.r < c.view.length) {
+        final entry = c.view[c.sel.r];
+        final row = entry.row;
+        if (row != null) {
+          it!.onRowActivate!(_rowInteraction(row, c.sel.r, entry.sourceIndex));
+          return KeyEventResult.handled;
+        }
+      }
+      return KeyEventResult.ignored;
+    }
 
     if (k == LogicalKeyboardKey.enter || k == LogicalKeyboardKey.numpadEnter || k == LogicalKeyboardKey.f2) {
       if ((k != LogicalKeyboardKey.f2) && c.advanceOnEnter) {
@@ -453,7 +560,23 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
       entries.add(SuperMenuEntry(icon: Icons.workspaces_outline, label: c.groupKeys.contains(col.key) ? 'Remove from grouping' : 'Group by this column', separatorBefore: true, checked: c.groupKeys.contains(col.key), onTap: () => c.toggleGroup(col.key)));
     }
     if (c.canHideColumns) {
-      entries.add(SuperMenuEntry(icon: Icons.visibility_off_outlined, label: 'Hide column', separatorBefore: true, disabled: c.visibleColumnCount <= 1, onTap: () => c.hideColumn(col.key)));
+      entries.add(SuperMenuEntry(icon: Icons.visibility_off_outlined, label: 'Hide column', separatorBefore: !widget.columnManager, disabled: c.visibleColumnCount <= 1, onTap: () => c.hideColumn(col.key)));
+    }
+    if (widget.columnManager) {
+      entries.add(SuperMenuEntry(
+        icon: c.pinOf(col) == SuperPin.none ? Icons.push_pin_outlined : Icons.push_pin_rounded,
+        label: 'Pin',
+        separatorBefore: true,
+        children: [
+          SuperMenuEntry(icon: Icons.first_page_rounded, label: 'Pin left', checked: c.pinOf(col) == SuperPin.left, onTap: () => c.setColumnPin(col.key, SuperPin.left)),
+          SuperMenuEntry(icon: Icons.last_page_rounded, label: 'Pin right', checked: c.pinOf(col) == SuperPin.right, onTap: () => c.setColumnPin(col.key, SuperPin.right)),
+          SuperMenuEntry(icon: Icons.remove_rounded, label: 'Unpinned', checked: c.pinOf(col) == SuperPin.none, onTap: () => c.setColumnPin(col.key, SuperPin.none)),
+        ],
+      ));
+      if (!c.canHideColumns) {
+        entries.add(SuperMenuEntry(icon: Icons.visibility_off_outlined, label: 'Hide column', disabled: c.visibleColumnCount <= 1, onTap: () => c.hideColumn(col.key)));
+      }
+      entries.add(SuperMenuEntry(icon: Icons.view_column_rounded, label: 'Manage columns…', onTap: () => showSuperColumnManager<R>(context, c)));
     }
     showSuperMenu(context, globalPos: pos, entries: entries);
   }
@@ -933,7 +1056,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
     final w = c.widthOf(col);
     final active = c.sort.key == col.key;
     final slot = c.slotOfKey(col.key);
-    final isPinned = col.pin != SuperPin.none;
+    final isPinned = c.pinOf(col) != SuperPin.none;
     final draggable = slot >= 0;
     final inGroup = c.groupKeys.contains(col.key);
     final isDropTarget = _overSlot == slot && _dragSlot != null && _dragSlot != slot;
@@ -956,7 +1079,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
       ],
     );
 
-    final Widget inner = Container(
+    Widget inner = Container(
       width: w,
       height: _headH,
       padding: const EdgeInsets.symmetric(horizontal: 11),
@@ -1189,18 +1312,22 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
   Widget _rowGutter(SuperTableSkin skin, int r, bool rowActive) {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTapDown: (_) => _focus.requestFocus(),
+      onTapDown: (d) {
+        _focus.requestFocus();
+        _lastPointer = d.globalPosition;
+      },
       // Clicking the row number selects the WHOLE row WITHOUT moving the edit
       // cursor (0.4.0). Shift/⌘ extend or toggle.
       onTap: () {
         c.selectGutterRow(r, shift: HardwareKeyboard.instance.isShiftPressed, meta: _meta(HardwareKeyboard.instance.logicalKeysPressed));
+        _fireRowTap(r);
       },
       child: Container(
         width: _gutterW,
         height: _rowH,
         alignment: Alignment.center,
         decoration: BoxDecoration(color: rowActive ? skin.accentWashOnBg(0.12) : skin.bg, border: BorderDirectional(end: BorderSide(color: skin.borderStrong), bottom: BorderSide(color: skin.border))),
-        child: Text((r + 1).toString().padLeft(2, '0'), style: TextStyle(fontFamily: SuperTokensFonts.mono, fontSize: 11, fontWeight: rowActive ? FontWeight.w700 : FontWeight.w400, color: rowActive ? skin.accent : skin.fg3)),
+        child: Text('${(r + 1).toString().padLeft(2, '0')}', style: TextStyle(fontFamily: SuperTokensFonts.mono, fontSize: 11, fontWeight: rowActive ? FontWeight.w700 : FontWeight.w400, color: rowActive ? skin.accent : skin.fg3)),
       ),
     );
   }
@@ -1260,7 +1387,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
       bg = Colors.transparent;
     }
 
-    final Widget content = isEditing
+    Widget content = isEditing
         ? SuperCellEditor(
             controller: c,
             col: col,
@@ -1314,15 +1441,34 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTapDown: (_) => _focus.requestFocus(),
+      onTapDown: (d) {
+        _focus.requestFocus();
+        _lastPointer = d.globalPosition;
+      },
       onTap: () {
         if (isEditing) return;
         if (c.editCell != null) c.commit();
         final keys = HardwareKeyboard.instance.logicalKeysPressed;
         c.pick(r, ci, shift: HardwareKeyboard.instance.isShiftPressed, meta: _meta(keys));
+        widget.interactions?.onCellTap?.call(_cellInteraction(col, item.row!, r, ci, item.sourceIndex, _lastPointer));
       },
-      onDoubleTap: editableCell ? () => c.beginEdit(r: r, c: ci) : null,
-      onSecondaryTapDown: (d) => _openRowMenu(r, d.globalPosition),
+      onDoubleTap: (editableCell ||
+              widget.interactions?.onCellDoubleTap != null ||
+              (widget.interactions?.onRowActivate != null && c.mode == SuperTableMode.readable))
+          ? () {
+              widget.interactions?.onCellDoubleTap?.call(_cellInteraction(col, item.row!, r, ci, item.sourceIndex, _lastPointer));
+              if (editableCell) {
+                c.beginEdit(r: r, c: ci);
+              } else if (c.mode == SuperTableMode.readable) {
+                widget.interactions?.onRowActivate?.call(_rowInteraction(item.row!, r, item.sourceIndex, _lastPointer));
+              }
+            }
+          : null,
+      onSecondaryTapDown: (d) {
+        _lastPointer = d.globalPosition;
+        widget.interactions?.onCellSecondaryTap?.call(_cellInteraction(col, item.row!, r, ci, item.sourceIndex, d.globalPosition));
+        _openRowMenu(r, d.globalPosition);
+      },
       child: MouseRegion(cursor: editableCell ? SystemMouseCursors.cell : SystemMouseCursors.basic, child: cell),
     );
   }
@@ -1434,12 +1580,18 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
   ) {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTapDown: (_) => _focus.requestFocus(),
-      onTap: () => c.selectGutterRow(
-        r,
-        shift: HardwareKeyboard.instance.isShiftPressed,
-        meta: _meta(HardwareKeyboard.instance.logicalKeysPressed),
-      ),
+      onTapDown: (d) {
+        _focus.requestFocus();
+        _lastPointer = d.globalPosition;
+      },
+      onTap: () {
+        c.selectGutterRow(
+          r,
+          shift: HardwareKeyboard.instance.isShiftPressed,
+          meta: _meta(HardwareKeyboard.instance.logicalKeysPressed),
+        );
+        _fireRowTap(r);
+      },
       child: Container(
         width: _gutterW,
         height: _rowH,
@@ -1473,7 +1625,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
               ),
             ),
             Text(
-              (r + 1).toString().padLeft(2, '0'),
+              '${(r + 1).toString().padLeft(2, '0')}',
               style: TextStyle(
                 fontFamily: SuperTokensFonts.mono,
                 fontSize: 10,

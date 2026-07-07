@@ -174,6 +174,9 @@ class SuperTableController<R> extends ChangeNotifier {
   final List<String> _groupKeys = [];
   final Map<String, bool> _collapsed = {};
   final Map<String, double> _widths = {};
+  /// Runtime pin overrides (2.2.0): columnKey → pin. Absent = use the column's
+  /// declared [SuperColumn.pin]. Drives [pinOf] and the column-resolution pipe.
+  final Map<String, SuperPin> _pinOverrides = {};
   late List<String> _order;
   int _page = 0;
 
@@ -311,6 +314,7 @@ class SuperTableController<R> extends ChangeNotifier {
         order: List.of(_order),
         widths: Map.of(_widths),
         visibleKeys: _visibleKeys == null ? null : List.of(_visibleKeys!),
+        pins: {for (final e in _pinOverrides.entries) e.key: e.value.name},
         sortKey: _sort.key,
         sortAscending: _sort.ascending,
         groupKeys: List.of(_groupKeys),
@@ -336,8 +340,15 @@ class SuperTableController<R> extends ChangeNotifier {
     } else {
       _visibleKeys = null;
     }
+    _pinOverrides
+      ..clear()
+      ..addAll({
+        for (final e in s.pins.entries)
+          if (colByKey(e.key) != null)
+            e.key: SuperPin.values.firstWhere((p) => p.name == e.value, orElse: () => SuperPin.none),
+      });
     if (s.order != null) {
-      final baseKeys = _midBase.map((c) => c.key).toList();
+      final baseKeys = dataColumns.map((c) => c.key).toList();
       final kept = s.order!.where(baseKeys.contains).toList();
       _order = [...kept, ...baseKeys.where((k) => !kept.contains(k))];
     }
@@ -378,6 +389,7 @@ class SuperTableController<R> extends ChangeNotifier {
   /// Pass [clearFilters] = false to keep the active search/filters.
   void resetViewState({bool clearFilters = true}) {
     _visibleKeys = null;
+    _pinOverrides.clear();
     _order = _midBase.map((c) => c.key).toList();
     _widths.clear();
     _sort = const SortSpec();
@@ -971,6 +983,103 @@ class SuperTableController<R> extends ChangeNotifier {
     notifyListeners();
   }
 
+  // ── column config (2.2.0) ────────────────────────────────────
+  /// The **effective** pin of [c]: a runtime override (see [setColumnPin]) if
+  /// one is set, else the column's declared [SuperColumn.pin].
+  SuperPin pinOf(SuperColumn c) => _pinOverrides[c.key] ?? c.pin;
+
+  /// Whether [key] is currently rendered: not a `hidden:` column and — if a
+  /// visible-keys allow-list is active — included in it.
+  bool isColumnVisible(String key) {
+    final col = colByKey(key);
+    if (col == null || col.hidden) return false;
+    return _visibleKeys == null || _visibleKeys!.contains(key);
+  }
+
+  /// Reveal a column previously hidden via [hideColumn]. No-op for a `hidden:`
+  /// column (absolute — never renderable) or one already visible. The column
+  /// returns to its natural order position.
+  void showColumn(String key) {
+    final col = colByKey(key);
+    if (col == null || col.hidden) return;
+    if (_visibleKeys == null || _visibleKeys!.contains(key)) return;
+    final natural = dataColumns.map((c) => c.key);
+    final next = natural.where((k) => k == key || _visibleKeys!.contains(k)).toList();
+    onVisibleChange?.call(next);
+    _visibleKeys = next;
+    notifyListeners();
+  }
+
+  /// Toggle one column's visibility ([showColumn] ⇄ [hideColumn]).
+  void toggleColumnVisible(String key) =>
+      isColumnVisible(key) ? hideColumn(key) : showColumn(key);
+
+  /// Freeze [key] to an edge at runtime (or [SuperPin.none] to unpin),
+  /// overriding the column's declaration. Setting the pin back to the declared
+  /// value drops the override. A newly-unpinned column is inserted into the
+  /// reorderable middle list so it renders and can be dragged.
+  void setColumnPin(String key, SuperPin pin) {
+    final col = colByKey(key);
+    if (col == null || col.hidden) return;
+    if (pin == col.pin) {
+      _pinOverrides.remove(key);
+    } else {
+      _pinOverrides[key] = pin;
+    }
+    if (pinOf(col) == SuperPin.none && !_order.contains(key)) _order.add(key);
+    notifyListeners();
+  }
+
+  /// Cycle a column's pin none → left → right → none (header-menu convenience).
+  void cycleColumnPin(String key) {
+    final col = colByKey(key);
+    if (col == null) return;
+    final next = switch (pinOf(col)) {
+      SuperPin.none => SuperPin.left,
+      SuperPin.left => SuperPin.right,
+      SuperPin.right => SuperPin.none,
+    };
+    setColumnPin(key, next);
+  }
+
+  /// Every renderable column in a stable order for the column manager: the
+  /// reorderable middle sequence first, then any remaining data columns
+  /// (declared pins) in natural order. **Includes user-hidden columns** so the
+  /// manager can offer to re-enable them; excludes only absolute `hidden:` ones.
+  List<SuperColumn> get managedColumns {
+    final byKey = {for (final c in dataColumns) c.key: c};
+    final out = <SuperColumn>[];
+    final seen = <String>{};
+    for (final k in _order) {
+      final c = byKey[k];
+      if (c != null && seen.add(k)) out.add(c);
+    }
+    for (final c in dataColumns) {
+      if (seen.add(c.key)) out.add(c);
+    }
+    return out;
+  }
+
+  /// Replace the column order with [keys] — the column manager's drag result.
+  /// Unknown keys are dropped; data columns missing from [keys] keep a natural
+  /// tail so nothing disappears.
+  void setManagedOrder(List<String> keys) {
+    final valid = keys.where((k) => colByKey(k) != null && !colByKey(k)!.hidden).toList();
+    final tail = dataColumns.map((c) => c.key).where((k) => !valid.contains(k));
+    _order = [...valid, ...tail];
+    notifyListeners();
+  }
+
+  /// Move the column [key] to index [toIndex] within [managedColumns].
+  void moveColumn(String key, int toIndex) {
+    final keys = managedColumns.map((c) => c.key).toList();
+    final from = keys.indexOf(key);
+    if (from < 0) return;
+    keys.removeAt(from);
+    keys.insert(toIndex.clamp(0, keys.length), key);
+    setManagedOrder(keys);
+  }
+
   void setLoadMoreState({bool? hasMore, bool? loadingMore}) {
     if (hasMore != null) _hasMore = hasMore;
     if (loadingMore != null) _loadingMore = loadingMore;
@@ -1072,9 +1181,9 @@ class SuperTableController<R> extends ChangeNotifier {
   /// when a visible-key allow-list is set — only the keys it includes.
   List<SuperColumn> get _baseCols =>
       _rawColumns.where((c) => !c.hidden && (_visibleKeys == null || _visibleKeys!.contains(c.key))).toList();
-  List<SuperColumn> get _leftPins => _baseCols.where((c) => c.pin == SuperPin.left).toList();
-  List<SuperColumn> get _rightPins => _baseCols.where((c) => c.pin == SuperPin.right).toList();
-  List<SuperColumn> get _midBase => _baseCols.where((c) => c.pin == SuperPin.none).toList();
+  List<SuperColumn> get _leftPins => _baseCols.where((c) => pinOf(c) == SuperPin.left).toList();
+  List<SuperColumn> get _rightPins => _baseCols.where((c) => pinOf(c) == SuperPin.right).toList();
+  List<SuperColumn> get _midBase => _baseCols.where((c) => pinOf(c) == SuperPin.none).toList();
   List<SuperColumn> get midCols {
     final base = _midBase;
     return _order

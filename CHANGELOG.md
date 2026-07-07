@@ -3,6 +3,68 @@
 All notable changes to **super_table_field** are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/); versioning is [SemVer](https://semver.org/).
 
+## [2.2.0] — 2026-07-06
+
+The **interaction & column-config release** — two cooperating additions, both
+opt-in and **fully backward compatible**: host interaction callbacks, and a
+runtime column manager (reorder · show/hide · pin) with the API and saved-view
+persistence behind it.
+
+### Added — Interaction events (`SuperInteractions`)
+- **`SuperTable(interactions: SuperInteractions<R>(...))`** — a bag of optional
+  host callbacks the View fires in response to gestures and state changes. They
+  are pure **observers**: the grid still selects, edits, sorts and opens its
+  menus exactly as before; a null callback costs nothing.
+  - **`onCellTap`** / **`onCellDoubleTap`** / **`onCellSecondaryTap`** — primary
+    / double / right-click on a body cell. Each receives a **`SuperCellInteraction<R>`**
+    (view + source index, `column`, `row`, `cell`, raw `value`, `controller`,
+    and the `globalPosition` for popping a host overlay at the tap).
+  - **`onRowTap`** — a row-number gutter tap (which selects the whole row).
+  - **`onRowActivate`** — the canonical "open this record" hook: a double-tap on
+    a readable-mode row **or** Enter with the cursor on a row in readable mode.
+    (Editable mode keeps double-tap for the cell editor; activation is a no-op
+    there.) Receives a **`SuperRowInteraction<R>`**.
+  - **`onSelectionChanged`** — a **`SuperSelectionSnapshot<R>`** (cursor, anchor,
+    selected rows, every selected `CellPos`, and the numeric `stats`).
+  - **`onSortChanged`** — a **`SuperSortSnapshot`** (`columnKey` / `columnLabel`
+    / `ascending`).
+- Selection + sort callbacks are **diffed after the controller settles**, so
+  they also fire for **programmatic** changes (`selectCellAt`, `sortBy`,
+  `clearSort`, …), not just pointer/keyboard ones.
+- New entities: `SuperInteractions`, `SuperCellInteraction`,
+  `SuperRowInteraction`, `SuperSelectionSnapshot`, `SuperSortSnapshot`.
+
+### Added — Runtime column config
+- **`showSuperColumnManager(context, controller)`** — a dialog to **drag-reorder**
+  columns, **toggle visibility** (eye), and **pin** each to an edge (left ·
+  none · right), with a live *N of M shown* count and a *Reset*.
+- **`SuperTable(columnManager: true)`** (default) — adds **Pin ▸**, **Hide
+  column**, and **Manage columns…** entries to every header menu. Set false to
+  hide the entries; the programmatic API still works.
+- Controller API:
+  - **`setColumnPin(key, SuperPin)`** / **`cycleColumnPin(key)`** — freeze a
+    column to an edge at runtime, overriding its declaration; **`pinOf(col)`**
+    reports the effective pin. Setting the pin back to the declared value drops
+    the override.
+  - **`showColumn(key)`** / **`toggleColumnVisible(key)`** — the inverse of the
+    existing `hideColumn`; **`isColumnVisible(key)`** queries it. (User-toggled
+    visibility stays distinct from absolute `hidden:` columns, which can never
+    be shown.)
+  - **`moveColumn(key, toIndex)`** / **`setManagedOrder(keys)`** — reorder by
+    key; **`managedColumns`** is the full renderable set (including user-hidden
+    columns) in manager order.
+- **Pins persist in saved views.** `SuperViewState` gains a `pins` map
+  (`columnKey → 'left'|'right'|'none'`); `viewStateJson()` captures runtime pin
+  overrides and `applyViewJson()` restores them alongside order / widths /
+  visibility. `resetViewState()` clears them.
+
+### Changed
+- Header cells now show the pin marker for **runtime** pins (`pinOf`), not only
+  declared ones.
+- `example/` gains **17 · Interaction events**, **18 · Column config**, and
+  **19 · Showcase** (an end-to-end ERP screen combining both new features with
+  grouping, totals, change tracking and export).
+
 ## [2.1.0] — 2026-07-03
 
 The **forms & views release** — five roadmap items land at once, everything

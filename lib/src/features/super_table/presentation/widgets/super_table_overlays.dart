@@ -16,6 +16,7 @@
 
 import 'package:flutter/material.dart';
 
+import '../../domain/entities/super_column.dart';
 import '../../domain/entities/super_filter.dart';
 import '../../domain/entities/super_validation.dart';
 import '../controllers/super_table_controller.dart';
@@ -922,6 +923,280 @@ class _SuperCellErrorBadgeState extends State<SuperCellErrorBadge> {
           child: Icon(Icons.error_outline_rounded, size: 15, color: skin.danger),
         ),
       ),
+    );
+  }
+}
+
+/// Column manager (2.2.0) — drag to reorder, toggle visibility, pin to an edge.
+/// Drives the controller's column-config API (`setManagedOrder` / `moveColumn`,
+/// `toggleColumnVisible` / `showColumn` / `hideColumn`, `setColumnPin`). Wire it
+/// to a *Columns* button, or reach it from any header menu (*Manage columns…*).
+Future<void> showSuperColumnManager<R>(BuildContext context, SuperTableController<R> controller) {
+  final skin = SuperTableSkin.of(context);
+  return showDialog<void>(
+    context: context,
+    barrierColor: Colors.black.withOpacity(0.5),
+    builder: (ctx) => Center(
+      child: Material(
+        color: Colors.transparent,
+        child: _ColumnManagerPanel<R>(skin: skin, controller: controller),
+      ),
+    ),
+  );
+}
+
+class _ColumnManagerPanel<R> extends StatefulWidget {
+  final SuperTableSkin skin;
+  final SuperTableController<R> controller;
+  const _ColumnManagerPanel({required this.skin, required this.controller});
+  @override
+  State<_ColumnManagerPanel<R>> createState() => _ColumnManagerPanelState<R>();
+}
+
+class _ColumnManagerPanelState<R> extends State<_ColumnManagerPanel<R>> {
+  SuperTableController<R> get c => widget.controller;
+
+  @override
+  void initState() {
+    super.initState();
+    c.addListener(_onModel);
+  }
+
+  @override
+  void dispose() {
+    c.removeListener(_onModel);
+    super.dispose();
+  }
+
+  void _onModel() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final s = widget.skin;
+    final cols = c.managedColumns;
+    final shown = cols.where((col) => c.isColumnVisible(col.key)).length;
+    return Container(
+      width: 480,
+      constraints: const BoxConstraints(maxWidth: 480, maxHeight: 600),
+      padding: const EdgeInsets.fromLTRB(24, 22, 24, 20),
+      decoration: BoxDecoration(
+        color: s.surface,
+        border: Border.all(color: s.borderStrong),
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: s.popShadow,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [
+            Container(
+              width: 34,
+              height: 34,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(color: s.accentWash(0.14), borderRadius: BorderRadius.circular(8)),
+              child: Icon(Icons.view_column_rounded, size: 18, color: s.accent),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text('Manage columns', style: TextStyle(fontFamily: SuperTokensFonts.display, fontWeight: FontWeight.w800, fontSize: 17, color: s.fg1)),
+                Text('Drag to reorder · toggle visibility · pin to an edge', style: TextStyle(fontSize: 11.5, color: s.fg3)),
+              ]),
+            ),
+            GestureDetector(
+              onTap: () => Navigator.pop(context),
+              child: Container(
+                width: 30,
+                height: 30,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(color: s.inputBg, border: Border.all(color: s.borderStrong), borderRadius: BorderRadius.circular(7)),
+                child: Icon(Icons.close_rounded, size: 15, color: s.fg2),
+              ),
+            ),
+          ]),
+          const SizedBox(height: 16),
+          Flexible(
+            child: ReorderableListView.builder(
+              shrinkWrap: true,
+              buildDefaultDragHandles: false,
+              itemCount: cols.length,
+              onReorder: (oldI, newI) {
+                if (newI > oldI) newI -= 1;
+                final keys = c.managedColumns.map((e) => e.key).toList();
+                final k = keys.removeAt(oldI);
+                keys.insert(newI, k);
+                c.setManagedOrder(keys);
+              },
+              proxyDecorator: (child, index, anim) => Material(
+                color: Colors.transparent,
+                child: child,
+              ),
+              itemBuilder: (ctx, i) => _ColumnManagerRow<R>(
+                key: ValueKey(cols[i].key),
+                skin: s,
+                controller: c,
+                col: cols[i],
+                index: i,
+              ),
+            ),
+          ),
+          const SizedBox(height: 14),
+          Row(children: [
+            Text('$shown of ${cols.length} shown', style: TextStyle(fontFamily: SuperTokensFonts.mono, fontSize: 11.5, color: s.fg3)),
+            const Spacer(),
+            _DialogBtn(skin: s, label: 'Reset', icon: Icons.restart_alt_rounded, onTap: () => c.resetViewState(clearFilters: false)),
+            const SizedBox(width: 9),
+            _DialogBtn(skin: s, label: 'Done', filled: true, icon: Icons.check_rounded, onTap: () => Navigator.pop(context)),
+          ]),
+        ],
+      ),
+    );
+  }
+}
+
+class _ColumnManagerRow<R> extends StatelessWidget {
+  final SuperTableSkin skin;
+  final SuperTableController<R> controller;
+  final SuperColumn col;
+  final int index;
+  const _ColumnManagerRow({super.key, required this.skin, required this.controller, required this.col, required this.index});
+
+  @override
+  Widget build(BuildContext context) {
+    final s = skin;
+    final visible = controller.isColumnVisible(col.key);
+    final pin = controller.pinOf(col);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 7),
+      child: Container(
+        height: 46,
+        padding: const EdgeInsetsDirectional.only(start: 8, end: 8),
+        decoration: BoxDecoration(
+          color: s.inputBg,
+          border: Border.all(color: s.borderStrong),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(children: [
+          ReorderableDragStartListener(
+            index: index,
+            child: MouseRegion(
+              cursor: SystemMouseCursors.grab,
+              child: Padding(
+                padding: const EdgeInsets.all(4),
+                child: Icon(Icons.drag_indicator_rounded, size: 17, color: s.fg4),
+              ),
+            ),
+          ),
+          const SizedBox(width: 4),
+          _MgrIconToggle(
+            skin: s,
+            icon: visible ? Icons.visibility_rounded : Icons.visibility_off_rounded,
+            active: visible,
+            tooltip: visible ? 'Hide column' : 'Show column',
+            onTap: () => controller.toggleColumnVisible(col.key),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              col.label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontFamily: SuperTokensFonts.body,
+                fontSize: 13.5,
+                fontWeight: FontWeight.w600,
+                color: visible ? s.fg1 : s.fg4,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          _PinSegment(skin: s, pin: pin, onChanged: (p) => controller.setColumnPin(col.key, p)),
+        ]),
+      ),
+    );
+  }
+}
+
+class _MgrIconToggle extends StatelessWidget {
+  final SuperTableSkin skin;
+  final IconData icon;
+  final bool active;
+  final String tooltip;
+  final VoidCallback onTap;
+  const _MgrIconToggle({required this.skin, required this.icon, required this.active, required this.tooltip, required this.onTap});
+  @override
+  Widget build(BuildContext context) {
+    final s = skin;
+    return Tooltip(
+      message: tooltip,
+      child: GestureDetector(
+        onTap: onTap,
+        child: MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: Container(
+            width: 30,
+            height: 30,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: active ? s.accentWash(0.14) : Colors.transparent,
+              borderRadius: BorderRadius.circular(7),
+            ),
+            child: Icon(icon, size: 16, color: active ? s.accent : s.fg4),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// A three-way segmented control for a column's pin: left · none · right.
+class _PinSegment extends StatelessWidget {
+  final SuperTableSkin skin;
+  final SuperPin pin;
+  final ValueChanged<SuperPin> onChanged;
+  const _PinSegment({required this.skin, required this.pin, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    final s = skin;
+    Widget seg(SuperPin p, IconData icon, String tip) {
+      final on = pin == p;
+      return Tooltip(
+        message: tip,
+        child: GestureDetector(
+          onTap: () => onChanged(p),
+          child: MouseRegion(
+            cursor: SystemMouseCursors.click,
+            child: Container(
+              width: 30,
+              height: 26,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: on ? s.accent : Colors.transparent,
+                borderRadius: BorderRadius.circular(5),
+              ),
+              child: Icon(icon, size: 14, color: on ? Colors.white : s.fg3),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(2),
+      decoration: BoxDecoration(
+        color: s.surface,
+        border: Border.all(color: s.borderStrong),
+        borderRadius: BorderRadius.circular(7),
+      ),
+      child: Row(mainAxisSize: MainAxisSize.min, children: [
+        seg(SuperPin.left, Icons.first_page_rounded, 'Pin left'),
+        seg(SuperPin.none, Icons.remove_rounded, 'Unpinned'),
+        seg(SuperPin.right, Icons.last_page_rounded, 'Pin right'),
+      ]),
     );
   }
 }

@@ -11,6 +11,15 @@ In editable mode, the table's `combo` columns are edited **through the real `Aut
 
 Light + dark themes, full LTR + RTL.
 
+## What's new in 2.2.0
+
+The **interaction & column-config release** — two cooperating additions, both opt-in and backward compatible:
+
+- **Interaction events** — `SuperTable(interactions: SuperInteractions(...))` hands you a bag of optional host callbacks that fire on gestures and state changes **without changing** the grid's own behaviour: `onCellTap` / `onCellDoubleTap` / `onCellSecondaryTap` (each with a `SuperCellInteraction` — view + source index, column, row, cell, raw value, controller, tap position), `onRowTap` (gutter), `onRowActivate` (the canonical *open record*: double-tap a readable row or press Enter), `onSelectionChanged` (a `SuperSelectionSnapshot` with cursor, rows, cells, numeric stats), and `onSortChanged`. Selection + sort fire for **programmatic** changes too.
+- **Runtime column config** — `showSuperColumnManager(context, controller)` opens a dialog to **drag-reorder**, **show/hide** (eye), and **pin** each column to an edge; `SuperTable(columnManager: true)` (default) also adds **Pin ▸ / Hide column / Manage columns…** to every header menu. The controller gains `setColumnPin` / `cycleColumnPin` / `pinOf`, `showColumn` / `toggleColumnVisible` / `isColumnVisible`, and `moveColumn` / `setManagedOrder` / `managedColumns`. **Pins persist in saved views** — `SuperViewState` gains a `pins` map, so `viewStateJson()` / `applyViewJson()` round-trip pin overrides alongside order / widths / visibility.
+
+See the [CHANGELOG](CHANGELOG.md) and examples 17–19.
+
 ## What's new in 2.1.0
 
 Five roadmap items land at once — the **forms & views release**, everything opt-in and backward compatible:
@@ -83,6 +92,8 @@ See the [CHANGELOG](CHANGELOG.md) for the full list and migration notes.
 - ✅ **Validation** — per-column `validator` + built-in type rules + `unique:` constraints, a table-wide `validateAll()` summary with jump-to-cell, and an `isValid` posting gate (2.1.0).
 - ✅ **Saved views** — one JSON snapshot of order / widths / visibility / sort / groups / filters per user (2.1.0).
 - ✅ **Fill down / fill right** and **Σ group footers** (2.1.0).
+- ✅ **Interaction events** — `SuperInteractions`: cell/row tap, double-tap/activate, secondary tap, selection + sort snapshots (2.2.0).
+- ✅ **Runtime column config** — drag-reorder / show-hide / pin via `showSuperColumnManager` + header menus + a controller API; pins persist in saved views (2.2.0).
 
 ## Getting started
 
@@ -575,9 +586,54 @@ In readable mode with grouping active, each expanded group closes with a **Σ su
 
 With `trackChanges: true`, right-click a row → **Revert cell** (the focused cell) or **Revert row**. Reverting an *added* row removes it. Programmatic: `c.revertCell(row, 'price')`, `c.revertRow(row)`. Both sync the backing object, record undo, and fire `onChange`.
 
+## Interaction events (2.2.0)
+
+Observe gestures and state changes to drive the surrounding screen — open a detail drawer, mirror the cursor into a preview, log an audit trail. Pass a `SuperInteractions` bag; every callback is optional and a null one costs nothing. **These never change what the grid itself does** — selection, editing, sorting and menus behave exactly as before.
+
+```dart
+SuperTable<Order>(
+  controller: c,
+  interactions: SuperInteractions<Order>(
+    // The canonical “open this record” hook: double-tap a readable row, or Enter.
+    onRowActivate: (d) => openDrawer(d.row.value),
+    onCellTap: (d) => print('tapped ${d.column.label} = ${d.value} @ ${d.globalPosition}'),
+    onCellSecondaryTap: (d) => showMyContextMenu(d.globalPosition, d.row),
+    onRowTap: (d) => print('row ${d.rowIndex} selected from the gutter'),
+    onSelectionChanged: (sel) => setState(() =>
+        _sum = sel.stats?.sum),         // cursor, anchor, rows, cells, numeric stats
+    onSortChanged: (s) => print(s.isSorted ? '${s.columnLabel} ${s.ascending ? '↑' : '↓'}' : 'unsorted'),
+  ),
+);
+```
+
+`onCellTap` fires **after** the cell is selected; `onCellDoubleTap` fires alongside the editor opening (editable) or the row activating (readable). Selection + sort callbacks are **diffed after the controller settles**, so they also report **programmatic** changes (`selectCellAt`, `sortBy`, `clearSort`). Each cell callback gets a `SuperCellInteraction` (`rowIndex` / `columnIndex` / `sourceIndex`, `column`, `row`, `cell`, `value`, `controller`, `globalPosition`); row callbacks get a `SuperRowInteraction`.
+
+## Column config (2.2.0)
+
+Let users reshape the grid at runtime — reorder, show/hide, and pin columns — with a ready-made dialog, header-menu entries, and a controller API. Pins, order and visibility all persist in a saved view.
+
+```dart
+// Open the manager (drag-reorder · eye show/hide · pin left/none/right):
+showSuperColumnManager(context, c);
+
+// … or drive it from code:
+c.setColumnPin('code', SuperPin.left);   // freeze to an edge (overrides declaration)
+c.cycleColumnPin('total');               // none → left → right → none
+c.pinOf(col);                            // the effective pin
+c.hideColumn('notes');                   // c.showColumn / toggleColumnVisible / isColumnVisible
+c.moveColumn('region', 2);               // reorder by key
+c.managedColumns;                        // full renderable set (incl. user-hidden) in manager order
+
+// Persist the whole layout — pins included:
+final json = c.viewStateJson();          // { order, widths, visible, pins, sort, groups, filters }
+c.applyViewJson(json);
+```
+
+`SuperTable(columnManager: true)` (the default) also adds **Pin ▸**, **Hide column**, and **Manage columns…** to every header menu; set it false to hide those entries while keeping the programmatic API. Runtime pins differ from a column's declared `pin:` (which is just the starting value) and from absolute `hidden:` columns (which can never be shown).
+
 ## Example
 
-A runnable gallery lives in `example/` with sixteen focused examples:
+A runnable gallery lives in `example/` with nineteen focused examples:
 
 1. **Read-only report** — readable mode, typed model, conditional row styling.
 2. **Editable journal** — `validator` + `onChange`, Ctrl+Enter insert, live balance.
@@ -595,6 +651,9 @@ A runnable gallery lives in `example/` with sixteen focused examples:
 14. **Expandable rows** — `SuperRowExpansion`, multi & single mode, per-row heights, animated panels.
 15. **Validation & saved views** — `validateAll` + `unique:`, the `isValid` gate, `viewStateJson` / `applyViewJson`.
 16. **Fill & group footers** — `⌘D`/`⌘R` range fill, `groupFooters:` Σ subtotal rows, revert cell/row.
+17. **Interaction events** — `SuperInteractions`: `onRowActivate`, cell/row taps, selection + sort snapshots.
+18. **Column config** — `showSuperColumnManager`, reorder / pin / show-hide, pins persisted in a saved view.
+19. **Showcase** — interactions + column manager + grouping + totals + change tracking + export in one screen.
 
 ```bash
 cd example

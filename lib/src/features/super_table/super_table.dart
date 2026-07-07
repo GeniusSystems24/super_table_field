@@ -20,12 +20,20 @@
 // right** (⌘D/⌘R), **Σ group footers** (`SuperTable(groupFooters:)`), and
 // **per-cell / per-row revert** on top of change tracking.
 //
+// 2.2.0 adds the interaction layer: host **interaction events**
+// (`SuperTable(interactions: SuperInteractions(...))` — cell/row tap,
+// double-tap/activate, secondary tap, selection + sort snapshots) and runtime
+// **column config** (`setColumnPin` / `showColumn` / `toggleColumnVisible` /
+// `moveColumn` / `setManagedOrder`, a `showSuperColumnManager` dialog, and
+// pin/visibility/order persisted through `SuperViewState`).
+//
 // In EDITABLE mode, `SuperColumnType.combo` cells are edited through the
 // design-system-native `AutoSuggestionsBox` (see `super_cell.dart`): type to
 // filter, ↑/↓ to move, Enter/click to pick, or type a free value and commit.
 // ============================================================
 
 export 'domain/entities/super_row_expansion.dart';
+export 'domain/entities/super_interactions.dart';
 export 'domain/entities/super_column.dart';
 export 'domain/entities/super_columns.dart';
 export 'domain/entities/super_row.dart';
