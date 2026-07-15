@@ -92,7 +92,7 @@ class SuperCellDisplay extends StatelessWidget {
         final neg = n < 0;
         final isCur = col.type == SuperColumnType.currency;
         final color = fg ??
-            (col.colorSign ? (neg ? skin.danger : (n > 0 ? skin.success : skin.fg3)) : skin.fg1);
+            (col.colorSign ? (neg ? skin.danger(context) : (n > 0 ? skin.success : skin.fg3)) : skin.fg1);
         final sign = neg ? '−' : (col.colorSign && n > 0 ? '+' : '');
         final prefix = col.prefix ?? (isCur ? r'$' : '');
         final txt = '$sign$prefix${SuperColumnLogic.fmtNum(n, col)}${col.suffix != null ? (isCur ? ' ${col.suffix}' : col.suffix) : ''}';
@@ -111,7 +111,7 @@ class SuperCellDisplay extends StatelessWidget {
         final max = (col.max ?? 100).toDouble();
         final frac = (SuperColumnLogic.numVal(v) / (max == 0 ? 1 : max)).clamp(0.0, 1.0);
         final pct = (frac * 100).round();
-        final tone = pct >= 90 ? skin.danger : (pct >= 70 ? skin.warning : skin.accent);
+        final tone = pct >= 90 ? skin.danger(context) : (pct >= 70 ? skin.warning : skin.accent(context));
         return Row(children: [
           Expanded(
             child: Container(
@@ -152,7 +152,7 @@ class SuperCellDisplay extends StatelessWidget {
         return Text('${v ?? ''}',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: mono.copyWith(color: fg ?? skin.accent, decoration: TextDecoration.underline));
+            style: mono.copyWith(color: fg ?? skin.accent(context), decoration: TextDecoration.underline));
 
       case SuperColumnType.checkbox:
         final on = v == true || v == 'true' || v == 'Yes' || v == 1;
@@ -298,7 +298,7 @@ class _SuperComboEditorState extends State<_SuperComboEditor> {
       fieldBgFocus: skin.surface,
       hover: skin.hover,
       border: skin.border,
-      borderFocus: skin.accent,
+      borderFocus: skin.accent(context),
       fg1: skin.fg1,
       fg2: skin.fg3,
       fg3: skin.fg4,
@@ -606,7 +606,7 @@ class _SuperCellEditorState extends State<SuperCellEditor> {
                 focusNode: _focus,
                 textAlign: align,
                 style: style,
-                cursorColor: skin.accent,
+                cursorColor: skin.accent(context),
                 decoration: InputDecoration(
                   isDense: true,
                   border: InputBorder.none,
@@ -791,7 +791,7 @@ class _OptionListState extends State<_OptionList> {
                 onTap: () => widget.onPick(widget.options[i]),
                 child: Row(children: [
                   Expanded(child: widget.builder(widget.options[i])),
-                  if (widget.options[i] == widget.selected) Icon(Icons.check_rounded, size: 14, color: skin.accent),
+                  if (widget.options[i] == widget.selected) Icon(Icons.check_rounded, size: 14, color: skin.accent(context)),
                 ]),
               ),
           ],
@@ -829,7 +829,7 @@ class _PopRowState extends State<_PopRow> {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 7),
           decoration: BoxDecoration(
-            color: lit ? s.hover : (widget.selected ? s.accentWash(0.12) : Colors.transparent),
+            color: lit ? s.hover : (widget.selected ? s.accentWash(context, 0.12) : Colors.transparent),
             borderRadius: BorderRadius.circular(6),
           ),
           child: widget.child,
@@ -974,7 +974,7 @@ class _MiniCalendarState extends State<_MiniCalendar> {
           child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
             GestureDetector(
               onTap: () => widget.onPick(todayIso),
-              child: Text('Today', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: skin.accent)),
+              child: Text('Today', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: skin.accent(context))),
             ),
           ]),
         ),
@@ -999,7 +999,7 @@ class _CalDayState extends State<_CalDay> {
   @override
   Widget build(BuildContext context) {
     final s = widget.skin;
-    final bg = widget.selected ? s.accent : (_h ? s.hover : Colors.transparent);
+    final bg = widget.selected ? s.accent(context) : (_h ? s.hover : Colors.transparent);
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       onEnter: (_) => setState(() => _h = true),

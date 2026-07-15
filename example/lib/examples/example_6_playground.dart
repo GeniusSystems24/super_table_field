@@ -189,6 +189,7 @@ class _PlaygroundExampleState extends State<PlaygroundExample> {
   @override
   Widget build(BuildContext context) {
     final t = context.superTheme;
+    final cs = Theme.of(context).colorScheme;
     return Scaffold(
       backgroundColor: t.bg,
       appBar: AppBar(title: const Text('Playground — one grid, two modes'), backgroundColor: t.surface),
@@ -274,6 +275,7 @@ class _PlaygroundExampleState extends State<PlaygroundExample> {
 
   Widget _seg(String label, List<(String, bool, VoidCallback)> opts) {
     final t = context.superTheme;
+    final cs = Theme.of(context).colorScheme;
     return Row(mainAxisSize: MainAxisSize.min, children: [
       Text('${label.toUpperCase()}  ', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, letterSpacing: 0.6, color: t.fg4)),
       Container(
@@ -285,7 +287,7 @@ class _PlaygroundExampleState extends State<PlaygroundExample> {
               onTap: o.$3,
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(color: o.$2 ? SuperTokens.accent : Colors.transparent, borderRadius: BorderRadius.circular(5)),
+                decoration: BoxDecoration(color: o.$2 ? cs.primary : Colors.transparent, borderRadius: BorderRadius.circular(5)),
                 child: Text(o.$1, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: o.$2 ? Colors.white : t.fg2)),
               ),
             ),
@@ -295,26 +297,28 @@ class _PlaygroundExampleState extends State<PlaygroundExample> {
   }
 
   Widget _chip(SuperThemeData t, String label, IconData icon, bool on, VoidCallback onTap) {
+    final cs = Theme.of(context).colorScheme;
     return GestureDetector(
       onTap: onTap,
       child: Container(
         height: 34,
         padding: const EdgeInsets.symmetric(horizontal: 12),
         decoration: BoxDecoration(
-          color: on ? SuperTokens.accent.withOpacity(0.12) : Colors.transparent,
-          border: Border.all(color: on ? SuperTokens.accent : t.borderStrong),
+          color: on ? cs.primary.withOpacity(0.12) : Colors.transparent,
+          border: Border.all(color: on ? cs.primary : t.borderStrong),
           borderRadius: BorderRadius.circular(6),
         ),
         child: Row(mainAxisSize: MainAxisSize.min, children: [
-          Icon(icon, size: 15, color: on ? SuperTokens.accent : t.fg3),
+          Icon(icon, size: 15, color: on ? cs.primary : t.fg3),
           const SizedBox(width: 7),
-          Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: on ? SuperTokens.accent : t.fg2)),
+          Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: on ? cs.primary : t.fg2)),
         ]),
       ),
     );
   }
 
   Widget _search(SuperThemeData t) {
+    final cs = Theme.of(context).colorScheme;
     return Container(
       height: 34,
       padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -326,7 +330,7 @@ class _PlaygroundExampleState extends State<PlaygroundExample> {
           child: TextField(
             onChanged: _c.setSearch,
             style: TextStyle(fontSize: 13, color: t.fg1),
-            cursorColor: SuperTokens.accent,
+            cursorColor: cs.primary,
             decoration: InputDecoration(isDense: true, border: InputBorder.none, contentPadding: EdgeInsets.zero, hintText: 'Search…', hintStyle: TextStyle(fontSize: 13, color: t.fg4)),
           ),
         ),

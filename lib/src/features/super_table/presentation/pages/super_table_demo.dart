@@ -119,12 +119,13 @@ class _SuperTableDemoState extends State<SuperTableDemo> {
               background: Color(0x14EF4444),
               accentBar: Color(0xFFEF4444),
             ),
-        (ctx, c, row) => row['active'] == false: SuperRowStyle(foreground: const Color(0xFF8C92A4)),
+        (ctx, c, row) => row['active'] == false: const SuperRowStyle(foreground: Color(0xFF8C92A4)),
       };
 
   @override
   Widget build(BuildContext context) {
     final t = context.superTheme;
+    final cs = Theme.of(context).colorScheme;
     return Scaffold(
       backgroundColor: t.bg,
       body: SafeArea(
@@ -136,7 +137,7 @@ class _SuperTableDemoState extends State<SuperTableDemo> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text('SUPER TABLE • UNIFIED DATA GRID', style: SuperText.eyebrow.copyWith(color: SuperTokens.accent)),
+                  Text('SUPER TABLE • UNIFIED DATA GRID', style: SuperText.eyebrow.copyWith(color: cs.primary)),
                   const SizedBox(height: SuperTokens.space2),
                   Text('Issue Inventory', style: SuperText.h1.copyWith(color: t.fg1)),
                   const SizedBox(height: SuperTokens.space6),
@@ -199,6 +200,7 @@ class _SuperTableDemoState extends State<SuperTableDemo> {
 
   Widget _seg(String label, List<(String, bool, VoidCallback)> opts) {
     final t = context.superTheme;
+    final cs = Theme.of(context).colorScheme;
     return Row(mainAxisSize: MainAxisSize.min, children: [
       Text('$label  ', style: SuperText.caption.copyWith(color: t.fg3)),
       Container(
@@ -210,7 +212,7 @@ class _SuperTableDemoState extends State<SuperTableDemo> {
               onTap: o.$3,
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
-                decoration: BoxDecoration(color: o.$2 ? SuperTokens.accent : Colors.transparent, borderRadius: BorderRadius.circular(5)),
+                decoration: BoxDecoration(color: o.$2 ? cs.primary : Colors.transparent, borderRadius: BorderRadius.circular(5)),
                 child: Text(o.$1, style: SuperText.caption.copyWith(color: o.$2 ? Colors.white : t.fg2, fontWeight: FontWeight.w600)),
               ),
             ),
@@ -220,22 +222,24 @@ class _SuperTableDemoState extends State<SuperTableDemo> {
   }
 
   Widget _toggle(SuperThemeData t, String label, bool on, VoidCallback onTap) {
+    final cs = Theme.of(context).colorScheme;
     return GestureDetector(
       onTap: onTap,
       child: Container(
         height: 34,
         padding: const EdgeInsets.symmetric(horizontal: 12),
-        decoration: BoxDecoration(color: on ? SuperTokens.accent.withOpacity(0.12) : Colors.transparent, border: Border.all(color: on ? SuperTokens.accent : t.borderStrong), borderRadius: BorderRadius.circular(6)),
+        decoration: BoxDecoration(color: on ? cs.primary.withOpacity(0.12) : Colors.transparent, border: Border.all(color: on ? cs.primary : t.borderStrong), borderRadius: BorderRadius.circular(6)),
         child: Row(mainAxisSize: MainAxisSize.min, children: [
-          Icon(on ? Icons.check_box_rounded : Icons.check_box_outline_blank_rounded, size: 15, color: on ? SuperTokens.accent : t.fg3),
+          Icon(on ? Icons.check_box_rounded : Icons.check_box_outline_blank_rounded, size: 15, color: on ? cs.primary : t.fg3),
           const SizedBox(width: 7),
-          Text(label, style: SuperText.caption.copyWith(color: on ? SuperTokens.accent : t.fg2, fontWeight: FontWeight.w600)),
+          Text(label, style: SuperText.caption.copyWith(color: on ? cs.primary : t.fg2, fontWeight: FontWeight.w600)),
         ]),
       ),
     );
   }
 
   Widget _searchField(SuperThemeData t) {
+    final cs = Theme.of(context).colorScheme;
     return Container(
       height: 34,
       padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -247,7 +251,7 @@ class _SuperTableDemoState extends State<SuperTableDemo> {
           child: TextField(
             onChanged: _c.setSearch,
             style: SuperText.caption.copyWith(color: t.fg1, fontSize: 13),
-            cursorColor: SuperTokens.accent,
+            cursorColor: cs.primary,
             decoration: InputDecoration(isDense: true, border: InputBorder.none, contentPadding: EdgeInsets.zero, hintText: 'Search rows…', hintStyle: SuperText.caption.copyWith(color: t.fg4)),
           ),
         ),

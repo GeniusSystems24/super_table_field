@@ -161,6 +161,7 @@ class _GroupAggregatesExampleState extends State<GroupAggregatesExample> {
   @override
   Widget build(BuildContext context) {
     final t = context.superTheme;
+    final cs = Theme.of(context).colorScheme;
 
     return Scaffold(
       backgroundColor: t.bg,
@@ -197,6 +198,7 @@ class _GroupAggregatesExampleState extends State<GroupAggregatesExample> {
   }
 
   Widget _intro(SuperThemeData t) {
+    final cs = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -211,12 +213,12 @@ class _GroupAggregatesExampleState extends State<GroupAggregatesExample> {
             width: 38,
             height: 38,
             decoration: BoxDecoration(
-              color: SuperTokens.accent.withValues(alpha: 0.12),
+              color: cs.primary.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.visibility_off_outlined,
-              color: SuperTokens.accent,
+              color: cs.primary,
             ),
           ),
           const SizedBox(width: 12),
@@ -256,6 +258,7 @@ class _GroupAggregatesExampleState extends State<GroupAggregatesExample> {
   }
 
   Widget _metric(SuperThemeData t, String label, String value, IconData icon) {
+    final cs = Theme.of(context).colorScheme;
     return Container(
       width: 180,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -266,7 +269,7 @@ class _GroupAggregatesExampleState extends State<GroupAggregatesExample> {
       ),
       child: Row(
         children: [
-          Icon(icon, size: 18, color: SuperTokens.accent),
+          Icon(icon, size: 18, color: cs.primary),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
@@ -324,7 +327,7 @@ class _GroupAggregatesExampleState extends State<GroupAggregatesExample> {
 
   Widget _chip(SuperThemeData t, String label, String? region) {
     final active = _activeRegion == region;
-
+    final cs = Theme.of(context).colorScheme;
     return InkWell(
       borderRadius: BorderRadius.circular(999),
       onTap: () => _filterRegion(region),
@@ -332,10 +335,10 @@ class _GroupAggregatesExampleState extends State<GroupAggregatesExample> {
         duration: const Duration(milliseconds: 160),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: active ? SuperTokens.accent : t.surface,
+          color: active ? cs.primary : t.surface,
           borderRadius: BorderRadius.circular(999),
           border: Border.all(
-            color: active ? SuperTokens.accent : t.borderStrong,
+            color: active ? cs.primary : t.borderStrong,
           ),
         ),
         child: Text(
@@ -496,7 +499,8 @@ class _GroupAggregatesExampleState extends State<GroupAggregatesExample> {
     bool indent = false,
     bool accent = false,
   }) {
-    final color = accent ? SuperTokens.accent : (bold ? t.fg1 : t.fg2);
+    final cs = Theme.of(context).colorScheme;
+    final color = accent ? cs.primary : (bold ? t.fg1 : t.fg2);
     final weight = bold ? FontWeight.w700 : FontWeight.w400;
 
     return Padding(

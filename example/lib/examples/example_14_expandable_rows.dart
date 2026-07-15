@@ -231,13 +231,14 @@ class _ExpandableRowsExampleState extends State<ExpandableRowsExample> {
         //   Ctrl/⌘ + Shift + ↓  →  expand the focused row
         //   Ctrl/⌘ + Shift + ↑  →  collapse the focused row
         // Pass a custom SuperRowExpansionKeymap(...) to override the defaults.
-        keymap: SuperRowExpansionKeymap(),
+        keymap: const SuperRowExpansionKeymap(),
         builder: (ctx, ctrl, row) => _LineItemsPanel(entry: row.value),
       );
 
   @override
   Widget build(BuildContext context) {
     final t = context.superTheme;
+    final cs = Theme.of(context).colorScheme;
     final isSingle = _expansionMode == SuperRowExpansionMode.single;
 
     return Scaffold(
@@ -347,6 +348,7 @@ class _LineItemsPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.superTheme;
+    final cs = Theme.of(context).colorScheme;
     final isDark = t.brightness == Brightness.dark;
     final headerBg = isDark
         ? Color.alphaBlend(const Color(0x0DFFFFFF), t.surface)
@@ -496,6 +498,7 @@ class _ModeChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.superTheme;
+    final cs = Theme.of(context).colorScheme;
     return GestureDetector(
       onTap: onTap,
       child: MouseRegion(
@@ -507,10 +510,10 @@ class _ModeChip extends StatelessWidget {
           decoration: BoxDecoration(
             color: active
                 ? Color.alphaBlend(
-                    SuperTokens.accent.withOpacity(0.16), t.surface)
+                    cs.primary.withOpacity(0.16), t.surface)
                 : t.inputBg,
             border: Border.all(
-              color: active ? SuperTokens.accent : t.borderStrong,
+              color: active ? cs.primary : t.borderStrong,
             ),
             borderRadius: BorderRadius.circular(SuperTokens.radiusControl),
           ),
@@ -521,7 +524,7 @@ class _ModeChip extends StatelessWidget {
               fontFamily: SuperTokensFonts.body,
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: active ? SuperTokens.accent : t.fg2,
+              color: active ? cs.primary : t.fg2,
             ),
           ),
         ),

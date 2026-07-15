@@ -7,7 +7,7 @@
 // build from context.
 // ============================================================
 
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 
 import 'package:super_auto_suggestion_box/super_auto_suggestion_box.dart';
 
@@ -29,10 +29,10 @@ class SuperTableSkin {
   Color get fg2 => t.fg2;
   Color get fg3 => t.fg3;
   Color get fg4 => t.fg4;
-  Color get accent => SuperTokens.accent;
+  Color accent(BuildContext context) => Theme.of(context).colorScheme.primary;
   Color get success => SuperTokens.success;
   Color get warning => SuperTokens.warning;
-  Color get danger => SuperTokens.danger;
+  Color  danger(BuildContext context) => Theme.of(context).colorScheme.error;
 
   /// A second surface tone (group headers, totals, gutter accents).
   Color get surface2 => isDark
@@ -40,10 +40,10 @@ class SuperTableSkin {
       : Color.alphaBlend(const Color(0x07000000), surface);
 
   /// `color-mix(accent N%, surface)` — the selection / active washes.
-  Color accentWash(double pct) => Color.alphaBlend(accent.withOpacity(pct), surface);
+  Color accentWash(BuildContext context, double pct) => Color.alphaBlend(accent(context).withOpacity(pct), surface);
 
   /// `color-mix(accent N%, bg)` — gutter highlight.
-  Color accentWashOnBg(double pct) => Color.alphaBlend(accent.withOpacity(pct), bg);
+  Color accentWashOnBg(BuildContext context, double pct) => Color.alphaBlend(accent(context).withOpacity(pct), bg);
 
   /// A semantic tint over the surface (enum pills, danger rows).
   Color tint(Color base, double pct) => Color.alphaBlend(base.withOpacity(pct), surface);

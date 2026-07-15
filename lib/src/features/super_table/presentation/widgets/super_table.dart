@@ -674,7 +674,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
                   color: skin.surface,
                   border: Border.all(color: skin.borderStrong),
                   borderRadius: BorderRadius.circular(SuperTokens.radiusCard),
-                  boxShadow: c.focused ? [BoxShadow(color: skin.accent, blurRadius: 0, spreadRadius: 1)] : null,
+                  boxShadow: c.focused ? [BoxShadow(color: skin.accent(context), blurRadius: 0, spreadRadius: 1)] : null,
                 ),
                 clipBehavior: Clip.antiAlias,
                 constraints: widget.maxHeight != null ? BoxConstraints(maxHeight: widget.maxHeight!) : const BoxConstraints(),
@@ -842,7 +842,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
         crossAxisAlignment: WrapCrossAlignment.center,
         children: [
           Row(mainAxisSize: MainAxisSize.min, children: [
-            Icon(Icons.workspaces_outline, size: 13, color: skin.accent),
+            Icon(Icons.workspaces_outline, size: 13, color: skin.accent(context)),
             const SizedBox(width: 6),
             Text('GROUPED BY', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, letterSpacing: 0.7, color: skin.fg3)),
           ]),
@@ -901,7 +901,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
                 Positioned(
                   right: 2,
                   top: 2,
-                  child: Container(width: 7, height: 7, decoration: BoxDecoration(color: skin.danger, shape: BoxShape.circle, border: Border.all(color: skin.bg, width: 1))),
+                  child: Container(width: 7, height: 7, decoration: BoxDecoration(color: skin.danger(context), shape: BoxShape.circle, border: Border.all(color: skin.bg, width: 1))),
                 ),
             ])
           : null,
@@ -999,10 +999,10 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
     final active = current.trim().isNotEmpty;
     return Container(
       height: _kFilterRowH,
-      color: active ? skin.accentWash(0.07) : Colors.transparent,
+      color: active ? skin.accentWash(context,0.07) : Colors.transparent,
       padding: const EdgeInsetsDirectional.only(start: 9, end: 4),
       child: Row(children: [
-        Icon(Icons.search_rounded, size: 13, color: active ? skin.accent : skin.fg4),
+        Icon(Icons.search_rounded, size: 13, color: active ? skin.accent(context) : skin.fg4),
         const SizedBox(width: 6),
         Expanded(
           child: TextField(
@@ -1011,7 +1011,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
             textAlign: isEnd ? TextAlign.right : TextAlign.left,
             textAlignVertical: TextAlignVertical.center,
             style: TextStyle(fontFamily: col.mono ? SuperTokensFonts.mono : SuperTokensFonts.body, fontSize: 12, color: skin.fg1),
-            cursorColor: skin.accent,
+            cursorColor: skin.accent(context),
             cursorHeight: 14,
             decoration: InputDecoration(isCollapsed: true, border: InputBorder.none, hintText: 'Filter…', hintStyle: TextStyle(fontSize: 12, color: skin.fg4)),
           ),
@@ -1041,12 +1041,12 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
       },
       child: Container(
         height: _kFilterRowH,
-        color: active ? skin.accentWash(0.07) : Colors.transparent,
+        color: active ? skin.accentWash(context,0.07) : Colors.transparent,
         padding: const EdgeInsetsDirectional.only(start: 9, end: 6),
         child: Row(children: [
           Expanded(child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 12, fontWeight: active ? FontWeight.w600 : FontWeight.w400, color: active ? skin.fg1 : skin.fg4))),
           const SizedBox(width: 2),
-          Icon(Icons.expand_more_rounded, size: 14, color: active ? skin.accent : skin.fg4),
+          Icon(Icons.expand_more_rounded, size: 14, color: active ? skin.accent(context) : skin.fg4),
         ]),
       ),
     );
@@ -1068,24 +1068,24 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
       mainAxisAlignment: isEnd ? MainAxisAlignment.end : MainAxisAlignment.start,
       children: [
         if (draggable) ...[Icon(Icons.drag_indicator_rounded, size: 11, color: skin.fg4), const SizedBox(width: 4)],
-        if (isPinned) ...[Icon(Icons.push_pin_outlined, size: 10, color: skin.accent), const SizedBox(width: 4)],
-        if (inGroup) ...[Icon(Icons.layers_rounded, size: 10, color: skin.accent), const SizedBox(width: 4)],
+        if (isPinned) ...[Icon(Icons.push_pin_outlined, size: 10, color: skin.accent(context)), const SizedBox(width: 4)],
+        if (inGroup) ...[Icon(Icons.layers_rounded, size: 10, color: skin.accent(context)), const SizedBox(width: 4)],
         Flexible(child: Text(col.label.toUpperCase(), maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontFamily: SuperTokensFonts.body, fontSize: 10, fontWeight: FontWeight.w700, letterSpacing: 0.5, color: active || inGroup ? skin.fg1 : skin.fg3))),
-        if (col.required) Text(' *', style: TextStyle(fontSize: 11, color: skin.danger)),
-        if (active) ...[const SizedBox(width: 3), Icon(c.sort.ascending ? Icons.arrow_upward_rounded : Icons.arrow_downward_rounded, size: 11, color: skin.accent)],
+        if (col.required) Text(' *', style: TextStyle(fontSize: 11, color: skin.danger(context))),
+        if (active) ...[const SizedBox(width: 3), Icon(c.sort.ascending ? Icons.arrow_upward_rounded : Icons.arrow_downward_rounded, size: 11, color: skin.accent(context))],
         if (!isEnd) const Spacer(),
         const SizedBox(width: 5),
         Icon(Icons.more_vert_rounded, size: 12, color: skin.fg4),
       ],
     );
 
-    Widget inner = Container(
+    final Widget inner = Container(
       width: w,
       height: _headH,
       padding: const EdgeInsets.symmetric(horizontal: 11),
       decoration: BoxDecoration(
-        color: isDropTarget ? skin.accentWash(0.12) : skin.bg,
-        border: BorderDirectional(start: isDropTarget ? BorderSide(color: skin.accent, width: 2) : BorderSide.none, end: BorderSide(color: skin.border)),
+        color: isDropTarget ? skin.accentWash(context,0.12) : skin.bg,
+        border: BorderDirectional(start: isDropTarget ? BorderSide(color: skin.accent(context), width: 2) : BorderSide.none, end: BorderSide(color: skin.border)),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -1159,7 +1159,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
                 width: w,
                 height: _headH,
                 alignment: Alignment.center,
-                decoration: BoxDecoration(color: skin.accent, borderRadius: BorderRadius.circular(5)),
+                decoration: BoxDecoration(color: skin.accent(context), borderRadius: BorderRadius.circular(5)),
                 child: Text(col.label.toUpperCase(), style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700)),
               ),
             ),
@@ -1194,7 +1194,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
           const SizedBox(width: 6),
           Flexible(child: Text(g.groupValue == null || g.groupValue!.isEmpty ? '—' : g.groupValue!, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: skin.fg1))),
           const SizedBox(width: 8),
-          SuperPill(text: '${g.groupCount}', color: skin.accent, dot: false),
+          SuperPill(text: '${g.groupCount}', color: skin.accent(context), dot: false),
           const SizedBox(width: 4),
           ..._groupAggregates(skin, cols, g.groupRows),
         ]),
@@ -1326,8 +1326,8 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
         width: _gutterW,
         height: _rowH,
         alignment: Alignment.center,
-        decoration: BoxDecoration(color: rowActive ? skin.accentWashOnBg(0.12) : skin.bg, border: BorderDirectional(end: BorderSide(color: skin.borderStrong), bottom: BorderSide(color: skin.border))),
-        child: Text('${(r + 1).toString().padLeft(2, '0')}', style: TextStyle(fontFamily: SuperTokensFonts.mono, fontSize: 11, fontWeight: rowActive ? FontWeight.w700 : FontWeight.w400, color: rowActive ? skin.accent : skin.fg3)),
+        decoration: BoxDecoration(color: rowActive ? skin.accentWashOnBg(context,0.12) : skin.bg, border: BorderDirectional(end: BorderSide(color: skin.borderStrong), bottom: BorderSide(color: skin.border))),
+        child: Text((r + 1).toString().padLeft(2, '0'), style: TextStyle(fontFamily: SuperTokensFonts.mono, fontSize: 11, fontWeight: rowActive ? FontWeight.w700 : FontWeight.w400, color: rowActive ? skin.accent(context) : skin.fg3)),
       ),
     );
   }
@@ -1336,7 +1336,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
     return Container(
       width: _actW,
       alignment: Alignment.center,
-      decoration: BoxDecoration(color: rowActive ? skin.accentWash(0.05) : skin.surface, border: BorderDirectional(start: BorderSide(color: skin.border), bottom: BorderSide(color: skin.border))),
+      decoration: BoxDecoration(color: rowActive ? skin.accentWash(context,0.05) : skin.surface, border: BorderDirectional(start: BorderSide(color: skin.border), bottom: BorderSide(color: skin.border))),
       child: _deleteCol
           ? _IconHoverButton(skin: skin, icon: Icons.delete_outline_rounded, tooltip: 'Delete row', danger: true, onTap: () => _confirmDeleteRow(r))
           : _IconHoverButton(skin: skin, icon: Icons.drag_indicator_rounded, tooltip: 'Row options', onTap: () {}),
@@ -1372,13 +1372,13 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
     if (isEditing) {
       bg = skin.surface;
     } else if (active) {
-      bg = skin.accentWash(0.14);
+      bg = skin.accentWash(context,0.14);
     } else if (selected) {
-      bg = skin.accentWash(0.09);
+      bg = skin.accentWash(context,0.09);
     } else if (cellStyle?.background != null && rowStyle?.background == null) {
       bg = cellStyle!.background!;
     } else if (rowActive) {
-      bg = skin.accentWash(0.05);
+      bg = skin.accentWash(context,0.05);
     } else if (rowStyle?.background != null) {
       bg = Colors.transparent; // row paints its own background
     } else if (dim) {
@@ -1387,7 +1387,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
       bg = Colors.transparent;
     }
 
-    Widget content = isEditing
+    final Widget content = isEditing
         ? SuperCellEditor(
             controller: c,
             col: col,
@@ -1411,13 +1411,13 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
 
     Border? outline;
     if (active) {
-      outline = Border.all(color: skin.accent, width: 2);
+      outline = Border.all(color: skin.accent(context), width: 2);
     } else if (selected) {
-      outline = Border.all(color: skin.accent.withOpacity(0.45), width: 1);
+      outline = Border.all(color: skin.accent(context).withOpacity(0.45), width: 1);
     } else if (selDim) {
       outline = Border.all(color: skin.borderStrong, width: 1);
     } else if (error != null && !isEditing) {
-      outline = Border.all(color: skin.danger.withOpacity(0.55), width: 1);
+      outline = Border.all(color: skin.danger(context).withOpacity(0.55), width: 1);
     }
     if (outline != null) {
       cell = Stack(children: [cell, Positioned.fill(child: IgnorePointer(child: DecoratedBox(decoration: BoxDecoration(border: outline))))]);
@@ -1434,7 +1434,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
         PositionedDirectional(
           top: 0,
           start: 0,
-          child: IgnorePointer(child: CustomPaint(size: const Size(8, 8), painter: _DirtyCornerPainter(skin.accent))),
+          child: IgnorePointer(child: CustomPaint(size: const Size(8, 8), painter: _DirtyCornerPainter(skin.accent(context)))),
         ),
       ]);
     }
@@ -1597,7 +1597,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
         height: _rowH,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: rowActive ? skin.accentWashOnBg(0.12) : skin.bg,
+          color: rowActive ? skin.accentWashOnBg(context, 0.12) : skin.bg,
           border: BorderDirectional(
             end: BorderSide(color: skin.borderStrong),
             bottom: BorderSide(color: skin.border),
@@ -1619,18 +1619,18 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
                   child: Icon(
                     Icons.expand_more_rounded,
                     size: 13,
-                    color: expanded ? skin.accent : skin.fg4,
+                    color: expanded ? skin.accent(context) : skin.fg4,
                   ),
                 ),
               ),
             ),
             Text(
-              '${(r + 1).toString().padLeft(2, '0')}',
+              (r + 1).toString().padLeft(2, '0'),
               style: TextStyle(
                 fontFamily: SuperTokensFonts.mono,
                 fontSize: 10,
                 fontWeight: rowActive ? FontWeight.w700 : FontWeight.w400,
-                color: rowActive ? skin.accent : skin.fg3,
+                color: rowActive ? skin.accent(context) : skin.fg3,
               ),
             ),
           ],
@@ -1750,11 +1750,11 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
         if (stats != null && stats.hasAggregate) ...[
           Text(
             'Sum ${fmt(stats.sum)}  ·  Avg ${fmt(stats.average)}  ·  Min ${fmt(stats.min!)}  ·  Max ${fmt(stats.max!)}  ·  Count ${stats.numericCount}',
-            style: TextStyle(fontFamily: SuperTokensFonts.mono, fontSize: 11.5, color: skin.accent),
+            style: TextStyle(fontFamily: SuperTokensFonts.mono, fontSize: 11.5, color: skin.accent(context)),
           ),
           const SizedBox(width: 14),
         ],
-        if (c.rowMode && c.selRows.isNotEmpty) Text('${c.selRows.length} selected', style: TextStyle(fontSize: 12, color: skin.accent)),
+        if (c.rowMode && c.selRows.isNotEmpty) Text('${c.selRows.length} selected', style: TextStyle(fontSize: 12, color: skin.accent(context))),
       ]),
     );
   }
@@ -1798,16 +1798,16 @@ class _ValidationChip extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
           decoration: BoxDecoration(
-            color: skin.tint(skin.danger, 0.07),
-            border: Border.all(color: skin.danger.withOpacity(0.3)),
+            color: skin.tint(skin.danger(context), 0.07),
+            border: Border.all(color: skin.danger(context).withOpacity(0.3)),
             borderRadius: BorderRadius.circular(6),
           ),
           child: Row(mainAxisSize: MainAxisSize.min, children: [
-            Icon(Icons.error_outline_rounded, size: 13, color: skin.danger),
+            Icon(Icons.error_outline_rounded, size: 13, color: skin.danger(context)),
             const SizedBox(width: 5),
             Text(
               '$count issue${count == 1 ? '' : 's'}',
-              style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: skin.danger),
+              style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: skin.danger(context)),
             ),
           ]),
         ),
@@ -1982,8 +1982,8 @@ class _IconHoverButtonState extends State<_IconHoverButton> {
   Widget build(BuildContext context) {
     final s = widget.skin;
     final color = widget.accent
-        ? s.accent
-        : (_h ? (widget.danger ? s.danger : s.accent) : (widget.danger ? s.fg3 : s.fg4));
+        ? s.accent(context)
+        : (_h ? (widget.danger ? s.danger(context) : s.accent(context)) : (widget.danger ? s.fg3 : s.fg4));
     return Tooltip(
       message: widget.tooltip,
       child: MouseRegion(
@@ -1996,7 +1996,7 @@ class _IconHoverButtonState extends State<_IconHoverButton> {
             width: 26,
             height: 26,
             alignment: Alignment.center,
-            decoration: BoxDecoration(color: (_h || widget.accent) ? (widget.danger ? s.tint(s.danger, 0.12) : s.accentWash(0.14)) : Colors.transparent, borderRadius: BorderRadius.circular(SuperTokens.radiusControl)),
+            decoration: BoxDecoration(color: (_h || widget.accent) ? (widget.danger ? s.tint(s.danger(context), 0.12) : s.accentWash(context,0.14)) : Colors.transparent, borderRadius: BorderRadius.circular(SuperTokens.radiusControl)),
             child: Icon(widget.icon, size: 14, color: color),
           ),
         ),
@@ -2020,7 +2020,7 @@ class _PageNumBtn extends StatelessWidget {
         height: 30,
         alignment: Alignment.center,
         padding: const EdgeInsets.symmetric(horizontal: 6),
-        decoration: BoxDecoration(color: active ? skin.accent : Colors.transparent, border: Border.all(color: active ? Colors.transparent : skin.borderStrong), borderRadius: BorderRadius.circular(5)),
+        decoration: BoxDecoration(color: active ? skin.accent(context) : Colors.transparent, border: Border.all(color: active ? Colors.transparent : skin.borderStrong), borderRadius: BorderRadius.circular(5)),
         child: Text('${n + 1}', style: TextStyle(fontFamily: SuperTokensFonts.mono, fontSize: 12, fontWeight: FontWeight.w600, color: active ? Colors.white : skin.fg2)),
       ),
     );

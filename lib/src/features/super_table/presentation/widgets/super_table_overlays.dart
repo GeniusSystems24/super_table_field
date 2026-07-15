@@ -223,7 +223,7 @@ class _MenuRowState extends State<_MenuRow> {
   Widget build(BuildContext context) {
     final s = widget.skin;
     final e = widget.entry;
-    final fg = e.disabled ? s.fg4 : (e.danger ? s.danger : s.fg1);
+    final fg = e.disabled ? s.fg4 : (e.danger ? s.danger(context) : s.fg1);
     final lit = (_h || widget.open) && !e.disabled;
     return MouseRegion(
       cursor: e.disabled ? SystemMouseCursors.basic : SystemMouseCursors.click,
@@ -238,14 +238,14 @@ class _MenuRowState extends State<_MenuRow> {
           height: 34,
           padding: const EdgeInsetsDirectional.only(start: 10, end: 10),
           decoration: BoxDecoration(
-            color: lit ? (e.danger ? s.tint(s.danger, 0.12) : s.hover) : Colors.transparent,
+            color: lit ? (e.danger ? s.tint(s.danger(context), 0.12) : s.hover) : Colors.transparent,
             borderRadius: BorderRadius.circular(6),
           ),
           child: Row(children: [
             SizedBox(width: 16, child: e.icon != null ? Icon(e.icon, size: 15, color: fg) : null),
             const SizedBox(width: 10),
             Expanded(child: Text(e.label, style: TextStyle(fontFamily: SuperTokensFonts.body, fontSize: 13, color: fg))),
-            if (e.checked) Icon(Icons.check_rounded, size: 14, color: s.accent),
+            if (e.checked) Icon(Icons.check_rounded, size: 14, color: s.accent(context)),
             if (e.hint != null) Text(e.hint!, style: TextStyle(fontFamily: SuperTokensFonts.mono, fontSize: 11, color: s.fg4)),
             if (e.hasChildren) Padding(padding: const EdgeInsets.only(left: 4), child: Icon(Icons.chevron_right_rounded, size: 16, color: s.fg3)),
           ]),
@@ -289,10 +289,10 @@ Future<bool> showSuperConfirm(
                   height: 38,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: danger ? skin.tint(skin.danger, 0.14) : skin.accentWash(0.14),
+                    color: danger ? skin.tint(skin.danger(context), 0.14) : skin.accentWash(context, 0.14),
                     borderRadius: BorderRadius.circular(9),
                   ),
-                  child: Icon(danger ? Icons.delete_outline_rounded : Icons.warning_amber_rounded, size: 19, color: danger ? skin.danger : skin.accent),
+                  child: Icon(danger ? Icons.delete_outline_rounded : Icons.warning_amber_rounded, size: 19, color: danger ? skin.danger(context) : skin.accent(context)),
                 ),
                 const SizedBox(width: 12),
                 Expanded(child: Text(title, style: TextStyle(fontFamily: SuperTokensFonts.display, fontWeight: FontWeight.w800, fontSize: 16, color: skin.fg1))),
@@ -324,7 +324,7 @@ class _DialogBtn extends StatelessWidget {
   const _DialogBtn({required this.skin, required this.label, this.filled = false, this.danger = false, this.icon, required this.onTap});
   @override
   Widget build(BuildContext context) {
-    final bg = filled ? (danger ? skin.danger : skin.accent) : Colors.transparent;
+    final bg = filled ? (danger ? skin.danger(context) : skin.accent(context)) : Colors.transparent;
     final fg = filled ? Colors.white : skin.fg1;
     return GestureDetector(
       onTap: onTap,
@@ -422,8 +422,8 @@ class _AdvancedFilterPanelState extends State<_AdvancedFilterPanel> {
               width: 34,
               height: 34,
               alignment: Alignment.center,
-              decoration: BoxDecoration(color: s.accentWash(0.14), borderRadius: BorderRadius.circular(8)),
-              child: Icon(Icons.tune_rounded, size: 18, color: s.accent),
+              decoration: BoxDecoration(color: s.accentWash(context, 0.14), borderRadius: BorderRadius.circular(8)),
+              child: Icon(Icons.tune_rounded, size: 18, color: s.accent(context)),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -457,9 +457,9 @@ class _AdvancedFilterPanelState extends State<_AdvancedFilterPanel> {
           GestureDetector(
             onTap: () => setState(() => _clauses.add(AdvancedFilterClause(columnKey: widget.columns.isNotEmpty ? widget.columns.first.key : ''))),
             child: Row(mainAxisSize: MainAxisSize.min, children: [
-              Icon(Icons.add_rounded, size: 15, color: s.accent),
+              Icon(Icons.add_rounded, size: 15, color: s.accent(context)),
               const SizedBox(width: 6),
-              Text('Add condition', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: s.accent)),
+              Text('Add condition', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: s.accent(context))),
             ]),
           ),
           const SizedBox(height: 20),
@@ -568,7 +568,7 @@ class _AdvancedFilterPanelState extends State<_AdvancedFilterPanel> {
         keyboardType: numeric ? const TextInputType.numberWithOptions(decimal: true, signed: true) : TextInputType.text,
         onChanged: onChanged,
         style: TextStyle(fontFamily: numeric ? SuperTokensFonts.mono : SuperTokensFonts.body, fontSize: 12.5, color: s.fg1),
-        cursorColor: s.accent,
+        cursorColor: s.accent(context),
         decoration: InputDecoration(
           isDense: true,
           contentPadding: const EdgeInsets.symmetric(horizontal: 9, vertical: 8),
@@ -577,7 +577,7 @@ class _AdvancedFilterPanelState extends State<_AdvancedFilterPanel> {
           hintText: hint,
           hintStyle: TextStyle(fontSize: 12.5, color: s.fg4),
           enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(5), borderSide: BorderSide(color: s.borderStrong)),
-          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(5), borderSide: BorderSide(color: s.accent, width: 2)),
+          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(5), borderSide: BorderSide(color: s.accent(context), width: 2)),
         ),
       ),
     );
@@ -639,8 +639,8 @@ Future<void> showSuperShortcuts(BuildContext context) {
                     width: 34,
                     height: 34,
                     alignment: Alignment.center,
-                    decoration: BoxDecoration(color: skin.accentWash(0.14), borderRadius: BorderRadius.circular(8)),
-                    child: Icon(Icons.keyboard_rounded, size: 19, color: skin.accent),
+                    decoration: BoxDecoration(color: skin.accentWash(context, 0.14), borderRadius: BorderRadius.circular(8)),
+                    child: Icon(Icons.keyboard_rounded, size: 19, color: skin.accent(context)),
                   ),
                   const SizedBox(width: 12),
                   Expanded(child: Text('Keyboard shortcuts', style: TextStyle(fontFamily: SuperTokensFonts.display, fontWeight: FontWeight.w800, fontSize: 19, color: skin.fg1))),
@@ -657,7 +657,7 @@ Future<void> showSuperShortcuts(BuildContext context) {
                 ]),
                 const SizedBox(height: 22),
                 for (final g in groups) ...[
-                  Text(g.$1.toUpperCase(), style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w700, letterSpacing: 1.0, color: skin.accent)),
+                  Text(g.$1.toUpperCase(), style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w700, letterSpacing: 1.0, color: skin.accent(context))),
                   const SizedBox(height: 10),
                   for (final row in g.$2)
                     Padding(
@@ -733,13 +733,13 @@ Future<void> showSuperValidationPanel<R>(BuildContext context, SuperTableControl
                   height: 34,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: (issues.isEmpty ? skin.success : skin.danger).withOpacity(0.14),
+                    color: (issues.isEmpty ? skin.success : skin.danger(context)).withOpacity(0.14),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
                     issues.isEmpty ? Icons.check_circle_outline_rounded : Icons.rule_rounded,
                     size: 19,
-                    color: issues.isEmpty ? skin.success : skin.danger,
+                    color: issues.isEmpty ? skin.success : skin.danger(context),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -813,8 +813,8 @@ class _ValidationIssueTile extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 10),
             decoration: BoxDecoration(
-              color: skin.tint(skin.danger, 0.05),
-              border: Border.all(color: skin.danger.withOpacity(0.25)),
+              color: skin.tint(skin.danger(context), 0.05),
+              border: Border.all(color: skin.danger(context).withOpacity(0.25)),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(children: [
@@ -882,7 +882,7 @@ class _SuperCellErrorBadgeState extends State<SuperCellErrorBadge> {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
                 decoration: BoxDecoration(
-                  color: skin.danger,
+                  color: skin.danger(context),
                   borderRadius: BorderRadius.circular(8),
                   boxShadow: const [BoxShadow(color: Color(0x73000000), blurRadius: 32, offset: Offset(0, 12))],
                 ),
@@ -920,7 +920,7 @@ class _SuperCellErrorBadgeState extends State<SuperCellErrorBadge> {
           height: 18,
           alignment: Alignment.center,
           decoration: BoxDecoration(color: skin.surface, borderRadius: BorderRadius.circular(5)),
-          child: Icon(Icons.error_outline_rounded, size: 15, color: skin.danger),
+          child: Icon(Icons.error_outline_rounded, size: 15, color: skin.danger(context)),
         ),
       ),
     );
@@ -996,8 +996,8 @@ class _ColumnManagerPanelState<R> extends State<_ColumnManagerPanel<R>> {
               width: 34,
               height: 34,
               alignment: Alignment.center,
-              decoration: BoxDecoration(color: s.accentWash(0.14), borderRadius: BorderRadius.circular(8)),
-              child: Icon(Icons.view_column_rounded, size: 18, color: s.accent),
+              decoration: BoxDecoration(color: s.accentWash(context, 0.14), borderRadius: BorderRadius.circular(8)),
+              child: Icon(Icons.view_column_rounded, size: 18, color: s.accent(context)),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -1141,10 +1141,10 @@ class _MgrIconToggle extends StatelessWidget {
             height: 30,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: active ? s.accentWash(0.14) : Colors.transparent,
+              color: active ? s.accentWash(context, 0.14) : Colors.transparent,
               borderRadius: BorderRadius.circular(7),
             ),
-            child: Icon(icon, size: 16, color: active ? s.accent : s.fg4),
+            child: Icon(icon, size: 16, color: active ? s.accent(context) : s.fg4),
           ),
         ),
       ),
@@ -1175,7 +1175,7 @@ class _PinSegment extends StatelessWidget {
               height: 26,
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: on ? s.accent : Colors.transparent,
+                color: on ? s.accent(context) : Colors.transparent,
                 borderRadius: BorderRadius.circular(5),
               ),
               child: Icon(icon, size: 14, color: on ? Colors.white : s.fg3),

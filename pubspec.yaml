@@ -9,7 +9,7 @@ description: >
   light/dark themes and LTR/RTL.
 
 
-version: 2.2.0
+version: 2.2.1
 
 homepage: https://geniussystems24.github.io/super_table_field
 repository: https://github.com/GeniusSystems24/super_table_field
@@ -21,6 +21,7 @@ topics:
   - data-grid
   - tables
   - forms
+
 environment:
   sdk: ">=3.0.0 <4.0.0"
   flutter: ">=3.10.0"
@@ -28,9 +29,10 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  # Shared GeniusLink design-system foundation (theme, tokens, type, widgets).
-  super_core: ^0.1.0
-  super_auto_suggestion_box: ^0.7.0
+  # Shared GeniusLink design-system foundation — v1.0.0 adds SuperPalette
+  # and SuperMaterialThemeData for palette-aware light/dark theming.
+  super_core: ">=1.0.0 <2.0.0"
+  super_auto_suggestion_box: ">=0.1.0 <1.0.0"
 
 dev_dependencies:
   flutter_test:
@@ -49,8 +51,6 @@ flutter:
   #   - family: Manrope
   #     fonts:
   #       - asset: assets/fonts/Manrope-Regular.ttf
-  #       - asset: assets/fonts/Manrope-SemiBold.ttf
-  #         weight: 600
   #       - asset: assets/fonts/Manrope-Bold.ttf
   #         weight: 700
   #   - family: Inter
