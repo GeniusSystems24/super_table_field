@@ -6,11 +6,12 @@ description: >
   grouping, totals, pagination, CSV/TSV/JSON export, row reordering, cell
   locking, interaction events, runtime column config (reorder/pin/show-hide),
   clipboard, undo/redo, and AutoSuggestionsBox integration. Supports
-  light/dark themes and LTR/RTL.
+  light/dark themes and LTR/RTL via SuperMaterialThemeData.
 
+# package version
+version: 2.3.0
 
-version: 2.2.1
-
+# package homepage, repository, and issue tracker
 homepage: https://geniussystems24.github.io/super_table_field
 repository: https://github.com/GeniusSystems24/super_table_field
 issue_tracker: https://github.com/GeniusSystems24/super_table_field/issues
@@ -23,16 +24,17 @@ topics:
   - forms
 
 environment:
-  sdk: ">=3.0.0 <4.0.0"
-  flutter: ">=3.10.0"
+  sdk: ">=3.8.0 <4.0.0"
+  flutter: ">=3.32.0"
 
 dependencies:
   flutter:
     sdk: flutter
-  # Shared GeniusLink design-system foundation — v1.0.0 adds SuperPalette
-  # and SuperMaterialThemeData for palette-aware light/dark theming.
-  super_core: ">=1.0.0 <2.0.0"
-  super_auto_suggestion_box: ">=0.1.0 <1.0.0"
+  # Shared GeniusLink design-system foundation — v1.1.0 makes
+  # SuperMaterialThemeData a ThemeData subclass with responsive device-mode
+  # tokens and SuperThemeData theme-extension access.
+  super_core: ">=1.2.0 <2.0.0"
+  super_auto_suggestion_box: ">=0.8.0 <1.0.0"
 
 dev_dependencies:
   flutter_test:

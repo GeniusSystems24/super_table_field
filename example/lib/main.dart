@@ -46,17 +46,17 @@ class _ExampleAppState extends State<ExampleApp> {
   ThemeMode _mode = ThemeMode.dark;
   TextDirection _dir = TextDirection.ltr;
 
-  ThemeData _theme(SuperThemeData s) => (s.brightness == Brightness.dark
-              ? SuperMaterialThemeData.dark()
-              : SuperMaterialThemeData.light())
-          .copyWith(
-        extensions: [
-          s,
-          s.brightness == Brightness.dark
-              ? AutoSuggestionsBoxThemeData.dark
-              : AutoSuggestionsBoxThemeData.light,
-        ],
-      );
+  ThemeData _theme(SuperThemeData s) {
+    var superMaterialThemeData = (s.brightness == Brightness.dark
+        ? SuperMaterialThemeData.dark(mode: SuperDeviceMode.mobile)
+        : SuperMaterialThemeData.light());
+    return superMaterialThemeData.copyWith(
+      extensions: [
+        s,
+        AutoSuggestionsBoxThemeData.fromMaterialTheme(superMaterialThemeData),
+      ],
+    );
+  }
 
   void _toggleTheme() => setState(
       () => _mode = _mode == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark);

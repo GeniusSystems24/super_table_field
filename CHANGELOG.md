@@ -3,6 +3,27 @@
 All notable changes to **super_table_field** are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/); versioning is [SemVer](https://semver.org/).
 
+## [2.3.0] — 2026-07-16
+
+### Changed
+
+- Upgraded to **super_core 1.1.0**. No source changes required — surfaces are
+  read via `SuperThemeData.of(context)`, which `SuperMaterialThemeData` (now a
+  `ThemeData` subclass) registers automatically, so palette, brightness **and**
+  the responsive `SuperDeviceMode` (mobile / tablet / desktop) tokens flow
+  through with no extra wiring:
+
+  ```dart
+  MaterialApp(
+    theme:     SuperMaterialThemeData.light(mode: SuperDeviceMode.desktop),
+    darkTheme: SuperMaterialThemeData.dark(mode: SuperDeviceMode.desktop),
+  );
+  ```
+- Minimum raised to `dart >=3.8.0`, `flutter >=3.32.0`.
+- Bumped `super_auto_suggestion_box` constraint to `^0.8.0`.
+
+---
+
 ## [2.2.0] — 2026-07-06
 
 The **interaction & column-config release** — two cooperating additions, both

@@ -1,14 +1,9 @@
 name: super_table_field_example
 description: Runnable gallery for the super_table_field Flutter package.
 
-version: 0.1.0
 
-topics:
-  - flutter
-  - widgets
-  - material-design
-  - design-system
-  - theme
+# version
+version: 0.1.0
 
 environment:
   sdk: ">=3.0.0 <4.0.0"
@@ -18,7 +13,7 @@ dependencies:
   flutter:
     sdk: flutter
   # Shared GeniusLink foundation (transitive via the package; listed for resolution).
-  super_core: ">=1.0.0 <2.0.0"
+  super_core: ">=1.2.0 <2.0.0"
   super_table_field:
     path: ../
 

@@ -399,6 +399,8 @@ Use widget tests, unit tests, integration tests, and golden tests where appropri
 
 * Update the documentation in `README.md` using pub.dev package documentation style and principles.
 * Update `CHANGELOG.md`.
-* Update ai skill.
+* Update ai skill
+  * `skill\chatgpt_codex`
+  * `skill\claude_code`
 
 ---

@@ -1754,7 +1754,7 @@ class SuperTableController<R> extends ChangeNotifier {
   }
 
   SuperRow<R> _blankRow() {
-    final R backing = _emptyValue != null ? _emptyValue!() : (<String, dynamic>{} as R);
+    final R backing = _emptyValue != null ? _emptyValue() : (<String, dynamic>{} as R);
     final cells = <String, SuperCell>{};
     for (final col in _rawColumns) {
       var v = col.readBacking(backing);
