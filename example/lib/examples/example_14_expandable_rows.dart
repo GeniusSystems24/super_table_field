@@ -515,7 +515,7 @@ class _ModeChip extends StatelessWidget {
             border: Border.all(
               color: active ? cs.primary : t.borderStrong,
             ),
-            borderRadius: BorderRadius.circular(SuperTokens.radiusControl),
+            borderRadius: BorderRadius.circular(SuperTokensData.defaultRadiusControl),
           ),
           alignment: Alignment.center,
           child: Text(

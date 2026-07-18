@@ -30,8 +30,8 @@ class SuperTableSkin {
   Color get fg3 => t.fg3;
   Color get fg4 => t.fg4;
   Color accent(BuildContext context) => Theme.of(context).colorScheme.primary;
-  Color get success => SuperTokens.success;
-  Color get warning => SuperTokens.warning;
+  Color get success => SuperTokensData.defaultSuccess;
+  Color get warning => SuperTokensData.defaultWarning;
   Color  danger(BuildContext context) => Theme.of(context).colorScheme.error;
 
   /// A second surface tone (group headers, totals, gutter accents).

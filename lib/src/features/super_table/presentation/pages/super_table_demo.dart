@@ -133,19 +133,19 @@ class _SuperTableDemoState extends State<SuperTableDemo> {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 1080),
             child: Padding(
-              padding: const EdgeInsets.all(SuperTokens.space8),
+              padding: const EdgeInsets.all(SuperTokensData.defaultSpace8),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Text('SUPER TABLE • UNIFIED DATA GRID', style: SuperText.eyebrow.copyWith(color: cs.primary)),
-                  const SizedBox(height: SuperTokens.space2),
+                  const SizedBox(height: SuperTokensData.defaultSpace2),
                   Text('Issue Inventory', style: SuperText.h1.copyWith(color: t.fg1)),
-                  const SizedBox(height: SuperTokens.space6),
+                  const SizedBox(height: SuperTokensData.defaultSpace6),
                   _toolbar(t),
-                  const SizedBox(height: SuperTokens.space4),
+                  const SizedBox(height: SuperTokensData.defaultSpace4),
                   Flexible(child: SuperTable<_Row>(controller: _c, styles: _rowStyles)),
                   if (_toast != null) ...[
-                    const SizedBox(height: SuperTokens.space3),
+                    const SizedBox(height: SuperTokensData.defaultSpace3),
                     Align(
                       alignment: AlignmentDirectional.centerStart,
                       child: Container(
@@ -166,8 +166,8 @@ class _SuperTableDemoState extends State<SuperTableDemo> {
 
   Widget _toolbar(SuperThemeData t) {
     return Wrap(
-      spacing: SuperTokens.space2,
-      runSpacing: SuperTokens.space2,
+      spacing: SuperTokensData.defaultSpace2,
+      runSpacing: SuperTokensData.defaultSpace2,
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
         ListenableBuilder(

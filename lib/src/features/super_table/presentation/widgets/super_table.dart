@@ -673,7 +673,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
                 decoration: BoxDecoration(
                   color: skin.surface,
                   border: Border.all(color: skin.borderStrong),
-                  borderRadius: BorderRadius.circular(SuperTokens.radiusCard),
+                  borderRadius: BorderRadius.circular(SuperTokensData.defaultRadiusCard),
                   boxShadow: c.focused ? [BoxShadow(color: skin.accent(context), blurRadius: 0, spreadRadius: 1)] : null,
                 ),
                 clipBehavior: Clip.antiAlias,
@@ -1933,7 +1933,7 @@ class _BarButtonState extends State<_BarButton> {
           child: Container(
             height: 30,
             padding: EdgeInsets.symmetric(horizontal: widget.label != null ? 11 : 8),
-            decoration: BoxDecoration(color: on && _h ? s.hover : Colors.transparent, border: Border.all(color: s.borderStrong), borderRadius: BorderRadius.circular(SuperTokens.radiusControl)),
+            decoration: BoxDecoration(color: on && _h ? s.hover : Colors.transparent, border: Border.all(color: s.borderStrong), borderRadius: BorderRadius.circular(SuperTokensData.defaultRadiusControl)),
             child: Row(mainAxisSize: MainAxisSize.min, children: [
               if (widget.icon != null) Icon(widget.icon, size: 14, color: s.fg2),
               if (widget.icon != null && widget.label != null) const SizedBox(width: 7),
@@ -1996,7 +1996,7 @@ class _IconHoverButtonState extends State<_IconHoverButton> {
             width: 26,
             height: 26,
             alignment: Alignment.center,
-            decoration: BoxDecoration(color: (_h || widget.accent) ? (widget.danger ? s.tint(s.danger(context), 0.12) : s.accentWash(context,0.14)) : Colors.transparent, borderRadius: BorderRadius.circular(SuperTokens.radiusControl)),
+            decoration: BoxDecoration(color: (_h || widget.accent) ? (widget.danger ? s.tint(s.danger(context), 0.12) : s.accentWash(context,0.14)) : Colors.transparent, borderRadius: BorderRadius.circular(SuperTokensData.defaultRadiusControl)),
             child: Icon(widget.icon, size: 14, color: color),
           ),
         ),
