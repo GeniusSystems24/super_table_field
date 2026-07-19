@@ -161,8 +161,6 @@ class _GroupAggregatesExampleState extends State<GroupAggregatesExample> {
   @override
   Widget build(BuildContext context) {
     final t = context.superTheme;
-    final cs = Theme.of(context).colorScheme;
-
     return Scaffold(
       backgroundColor: t.bg,
       appBar: AppBar(
@@ -295,7 +293,7 @@ class _GroupAggregatesExampleState extends State<GroupAggregatesExample> {
                   style: TextStyle(
                     color: t.fg1,
                     fontSize: 15,
-                    fontFamily: SuperTokensData.defaultMonoFont,
+                    fontFamily: SuperThemeData.of(context).tokens.monoFont,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -417,7 +415,7 @@ class _GroupAggregatesExampleState extends State<GroupAggregatesExample> {
                 width: 4,
                 height: 30,
                 decoration: BoxDecoration(
-                  color: SuperTokensData.defaultSuccess,
+                  color: SuperThemeData.of(context).tokens.success,
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
@@ -540,7 +538,7 @@ class _GroupAggregatesExampleState extends State<GroupAggregatesExample> {
                     style: TextStyle(
                       color: t.fg4,
                       fontSize: 11,
-                      fontFamily: SuperTokensData.defaultMonoFont,
+                      fontFamily: SuperThemeData.of(context).tokens.monoFont,
                     ),
                   ),
                 ],
@@ -556,7 +554,7 @@ class _GroupAggregatesExampleState extends State<GroupAggregatesExample> {
                 color: color,
                 fontWeight: weight,
                 fontSize: 13,
-                fontFamily: SuperTokensData.defaultMonoFont,
+                fontFamily: SuperThemeData.of(context).tokens.monoFont,
               ),
             ),
           ),
@@ -569,7 +567,7 @@ class _GroupAggregatesExampleState extends State<GroupAggregatesExample> {
                 color: color,
                 fontWeight: weight,
                 fontSize: 13,
-                fontFamily: SuperTokensData.defaultMonoFont,
+                fontFamily: SuperThemeData.of(context).tokens.monoFont,
               ),
             ),
           ),

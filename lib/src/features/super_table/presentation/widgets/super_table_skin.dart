@@ -16,7 +16,8 @@ class SuperTableSkin {
   final SuperThemeData t;
   const SuperTableSkin(this.t);
 
-  factory SuperTableSkin.of(BuildContext context) => SuperTableSkin(context.superTheme);
+  factory SuperTableSkin.of(BuildContext context) =>
+      SuperTableSkin(context.superTheme);
 
   bool get isDark => t.brightness == Brightness.dark;
   Color get bg => t.bg;
@@ -30,9 +31,9 @@ class SuperTableSkin {
   Color get fg3 => t.fg3;
   Color get fg4 => t.fg4;
   Color accent(BuildContext context) => Theme.of(context).colorScheme.primary;
-  Color get success => SuperTokensData.defaultSuccess;
-  Color get warning => SuperTokensData.defaultWarning;
-  Color  danger(BuildContext context) => Theme.of(context).colorScheme.error;
+  Color get success => t.tokens.success;
+  Color get warning => t.tokens.warning;
+  Color danger(BuildContext context) => Theme.of(context).colorScheme.error;
 
   /// A second surface tone (group headers, totals, gutter accents).
   Color get surface2 => isDark
@@ -40,19 +41,27 @@ class SuperTableSkin {
       : Color.alphaBlend(const Color(0x07000000), surface);
 
   /// `color-mix(accent N%, surface)` — the selection / active washes.
-  Color accentWash(BuildContext context, double pct) => Color.alphaBlend(accent(context).withOpacity(pct), surface);
+  Color accentWash(BuildContext context, double pct) =>
+      Color.alphaBlend(accent(context).withOpacity(pct), surface);
 
   /// `color-mix(accent N%, bg)` — gutter highlight.
-  Color accentWashOnBg(BuildContext context, double pct) => Color.alphaBlend(accent(context).withOpacity(pct), bg);
+  Color accentWashOnBg(BuildContext context, double pct) =>
+      Color.alphaBlend(accent(context).withOpacity(pct), bg);
 
   /// A semantic tint over the surface (enum pills, danger rows).
-  Color tint(Color base, double pct) => Color.alphaBlend(base.withOpacity(pct), surface);
+  Color tint(Color base, double pct) =>
+      Color.alphaBlend(base.withOpacity(pct), surface);
 
   /// The dimmed fill for computed / readonly cells.
   Color get dimFill => Color.alphaBlend(fg1.withOpacity(0.04), surface);
 
   /// Popover shadow.
   List<BoxShadow> get popShadow => const [
-        BoxShadow(color: Color(0x66000000), blurRadius: 36, spreadRadius: -10, offset: Offset(0, 14)),
-      ];
+    BoxShadow(
+      color: Color(0x66000000),
+      blurRadius: 36,
+      spreadRadius: -10,
+      offset: Offset(0, 14),
+    ),
+  ];
 }

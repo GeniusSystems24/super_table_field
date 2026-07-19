@@ -53,7 +53,8 @@ class CellPos {
   CellPos copyWith({int? r, int? c}) => CellPos(r ?? this.r, c ?? this.c);
 
   @override
-  bool operator ==(Object other) => other is CellPos && other.r == r && other.c == c;
+  bool operator ==(Object other) =>
+      other is CellPos && other.r == r && other.c == c;
   @override
   int get hashCode => Object.hash(r, c);
 
@@ -88,14 +89,14 @@ class RenderItem<R> {
     required this.row,
     required this.dataIndex,
     required this.sourceIndex,
-  })  : isGroup = false,
-        isGroupFooter = false,
-        groupCol = null,
-        groupValue = null,
-        groupCount = 0,
-        depth = 0,
-        path = '',
-        groupRows = const [];
+  }) : isGroup = false,
+       isGroupFooter = false,
+       groupCol = null,
+       groupValue = null,
+       groupCount = 0,
+       depth = 0,
+       path = '',
+       groupRows = const [];
 
   const RenderItem.group({
     required this.groupCol,
@@ -104,11 +105,11 @@ class RenderItem<R> {
     required this.depth,
     required this.path,
     required this.groupRows,
-  })  : isGroup = true,
-        isGroupFooter = false,
-        row = null,
-        dataIndex = -1,
-        sourceIndex = -1;
+  }) : isGroup = true,
+       isGroupFooter = false,
+       row = null,
+       dataIndex = -1,
+       sourceIndex = -1;
 
   /// A subtotal row closing a group: carries the same group fields as the
   /// header so the View can aggregate [groupRows] under each column.
@@ -119,11 +120,11 @@ class RenderItem<R> {
     required this.depth,
     required this.path,
     required this.groupRows,
-  })  : isGroup = false,
-        isGroupFooter = true,
-        row = null,
-        dataIndex = -1,
-        sourceIndex = -1;
+  }) : isGroup = false,
+       isGroupFooter = true,
+       row = null,
+       dataIndex = -1,
+       sourceIndex = -1;
 }
 
 /// A toast-style notification kind raised by the controller (copy/paste, etc.).
@@ -167,11 +168,11 @@ class SuperSelectionStats {
   bool get hasAggregate => numericCount >= 2;
 
   Map<String, dynamic> toJson() => {
-        'count': count,
-        'numericCount': numericCount,
-        'sum': sum,
-        'average': average,
-        'min': min,
-        'max': max,
-      };
+    'count': count,
+    'numericCount': numericCount,
+    'sum': sum,
+    'average': average,
+    'min': min,
+    'max': max,
+  };
 }

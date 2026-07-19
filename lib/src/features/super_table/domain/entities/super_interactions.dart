@@ -153,10 +153,12 @@ class SuperSortSnapshot {
 }
 
 /// A cell-interaction handler (see [SuperInteractions]).
-typedef SuperCellInteractionCallback<R> = void Function(SuperCellInteraction<R> details);
+typedef SuperCellInteractionCallback<R> =
+    void Function(SuperCellInteraction<R> details);
 
 /// A row-interaction handler (see [SuperInteractions]).
-typedef SuperRowInteractionCallback<R> = void Function(SuperRowInteraction<R> details);
+typedef SuperRowInteractionCallback<R> =
+    void Function(SuperRowInteraction<R> details);
 
 /// The set of host interaction callbacks for a [SuperTable]. All optional; a
 /// null callback is simply never invoked (and costs nothing). Pass the ones you

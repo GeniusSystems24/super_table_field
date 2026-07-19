@@ -212,24 +212,24 @@ class _Launcher extends StatelessWidget {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(SuperTokensData.defaultSpace10),
+            padding: EdgeInsets.all(SuperThemeData.of(context).tokens.space10),
             child: ConstrainedBox(
               constraints:
-                  const BoxConstraints(maxWidth: SuperTokensData.defaultContentColumn),
+                  BoxConstraints(maxWidth: SuperThemeData.of(context).tokens.contentColumn),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Text('SUPER TABLE FIELD \u2022 GALLERY',
                       style: SuperText.eyebrow.copyWith(color: cs.primary)),
-                  const SizedBox(height: SuperTokensData.defaultSpace2),
+                  SizedBox(height: SuperThemeData.of(context).tokens.space2),
                   Text('Component Demos مكتبة المكونات',
                       style: SuperText.h1.copyWith(color: t.fg1)),
-                  const SizedBox(height: SuperTokensData.defaultSpace8),
+                  SizedBox(height: SuperThemeData.of(context).tokens.space8),
                   for (final d in _demos) ...[
                     _DemoCard(demo: d),
-                    const SizedBox(height: SuperTokensData.defaultSpace3),
+                    SizedBox(height: SuperThemeData.of(context).tokens.space3),
                   ],
-                  const SizedBox(height: SuperTokensData.defaultSpace6),
+                  SizedBox(height: SuperThemeData.of(context).tokens.space6),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -240,7 +240,7 @@ class _Launcher extends StatelessWidget {
                         variant: SuperButtonVariant.secondary,
                         onPressed: onToggleTheme,
                       ),
-                      const SizedBox(width: SuperTokensData.defaultSpace3),
+                      SizedBox(width: SuperThemeData.of(context).tokens.space3),
                       SuperButton(
                         label: dir == TextDirection.ltr
                             ? 'العربية (RTL)'
@@ -271,14 +271,14 @@ class _DemoCard extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        borderRadius: BorderRadius.circular(SuperTokensData.defaultRadiusCard),
+        borderRadius: BorderRadius.circular(SuperThemeData.of(context).tokens.radiusCard),
         onTap: () => Navigator.of(context)
             .push(MaterialPageRoute<void>(builder: demo.builder)),
         child: Container(
-          padding: const EdgeInsets.all(SuperTokensData.defaultSpace4),
+          padding: EdgeInsets.all(SuperThemeData.of(context).tokens.space4),
           decoration: BoxDecoration(
             color: t.surface,
-            borderRadius: BorderRadius.circular(SuperTokensData.defaultRadiusCard),
+            borderRadius: BorderRadius.circular(SuperThemeData.of(context).tokens.radiusCard),
             border: Border.all(color: t.border),
             boxShadow: t.cardShadow,
           ),
@@ -291,11 +291,11 @@ class _DemoCard extends StatelessWidget {
                   color:
                       Color.alphaBlend(cs.primary.withOpacity(0.14), t.surface),
                   borderRadius:
-                      BorderRadius.circular(SuperTokensData.defaultRadiusControl),
+                      BorderRadius.circular(SuperThemeData.of(context).tokens.radiusControl),
                 ),
                 child: Icon(demo.icon, size: 22, color: cs.primary),
               ),
-              const SizedBox(width: SuperTokensData.defaultSpace4),
+              SizedBox(width: SuperThemeData.of(context).tokens.space4),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

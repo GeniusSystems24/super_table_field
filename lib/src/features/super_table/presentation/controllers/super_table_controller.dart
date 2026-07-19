@@ -43,12 +43,13 @@ import '../../domain/usecases/super_column_logic.dart';
 
 /// Host hook for raw key handling (readable + editable). Return `true` to mark
 /// the event handled (the table will not apply its own default for that key).
-typedef SuperKeyHandler<R> = bool Function(
-  BuildContext context,
-  SuperTableController<R> controller,
-  FocusNode node,
-  KeyEvent event,
-);
+typedef SuperKeyHandler<R> =
+    bool Function(
+      BuildContext context,
+      SuperTableController<R> controller,
+      FocusNode node,
+      KeyEvent event,
+    );
 
 /// One undo/redo history entry: the row list (membership + order, by
 /// reference) PLUS a per-cell value/error snapshot keyed by [SuperRow.id] —
@@ -83,16 +84,16 @@ class SuperTableController<R> extends ChangeNotifier {
     R Function()? emptyRowValue,
     this.trackChanges = false,
     this.cellEditable,
-  })  : _rawColumns = columns,
-        _rows = rows,
-        _mode = mode,
-        _selectionMode = selectionMode,
-        _search = search,
-        _visibleKeys = visibleKeys,
-        _hasMore = hasMore,
-        _loadingMore = loadingMore,
-        _pagination = pagination,
-        _emptyValue = emptyRowValue {
+  }) : _rawColumns = columns,
+       _rows = rows,
+       _mode = mode,
+       _selectionMode = selectionMode,
+       _search = search,
+       _visibleKeys = visibleKeys,
+       _hasMore = hasMore,
+       _loadingMore = loadingMore,
+       _pagination = pagination,
+       _emptyValue = emptyRowValue {
     _order = _midBase.map((c) => c.key).toList();
     _selRows = {0};
     _ensureCells();
@@ -168,12 +169,14 @@ class SuperTableController<R> extends ChangeNotifier {
 
   // ── view config state ──
   SortSpec _sort = const SortSpec();
-  final Map<String, Object?> _colFilters = {}; // key → value (String contains, or option value)
+  final Map<String, Object?> _colFilters =
+      {}; // key → value (String contains, or option value)
   List<AdvancedFilterClause> _advanced = [];
   bool _advancedActive = false;
   final List<String> _groupKeys = [];
   final Map<String, bool> _collapsed = {};
   final Map<String, double> _widths = {};
+
   /// Runtime pin overrides (2.2.0): columnKey → pin. Absent = use the column's
   /// declared [SuperColumn.pin]. Drives [pinOf] and the column-resolution pipe.
   final Map<String, SuperPin> _pinOverrides = {};
@@ -186,17 +189,13 @@ class SuperTableController<R> extends ChangeNotifier {
 
   /// Capture the full undo state: row membership/order, every cell's
   /// value + error, and the change-tracking deleted-row log.
-  _HistoryEntry<R> _snapshot() => _HistoryEntry<R>(
-        List.of(_rows),
-        {
-          for (final row in _rows)
-            row.id: {
-              for (final e in row.cells.entries)
-                e.key: (value: e.value.value, error: e.value.error),
-            },
-        },
-        List.of(_deletedRows),
-      );
+  _HistoryEntry<R> _snapshot() => _HistoryEntry<R>(List.of(_rows), {
+    for (final row in _rows)
+      row.id: {
+        for (final e in row.cells.entries)
+          e.key: (value: e.value.value, error: e.value.error),
+      },
+  }, List.of(_deletedRows));
 
   /// Restore a captured [_HistoryEntry]: reinstate membership/order, write the
   /// snapshotted values back into the SAME row/cell instances (keeping row
@@ -237,11 +236,13 @@ class SuperTableController<R> extends ChangeNotifier {
 
   /// Every column that can ever render — all columns except the
   /// [SuperColumn.hidden] ones.
-  List<SuperColumn> get dataColumns => _rawColumns.where((c) => !c.hidden).toList();
+  List<SuperColumn> get dataColumns =>
+      _rawColumns.where((c) => !c.hidden).toList();
 
   /// Columns marked [SuperColumn.hidden]: present only for filtering, grouping
   /// and aggregation (by key), never rendered and never revealable.
-  List<SuperColumn> get hiddenColumns => _rawColumns.where((c) => c.hidden).toList();
+  List<SuperColumn> get hiddenColumns =>
+      _rawColumns.where((c) => c.hidden).toList();
   SuperSelectionMode get selectionMode => _selectionMode;
   String get search => _search;
   CellPos get sel => _sel;
@@ -256,11 +257,12 @@ class SuperTableController<R> extends ChangeNotifier {
 
   String columnFilter(String key) => '${_colFilters[key] ?? ''}';
   Object? columnFilterValue(String key) => _colFilters[key];
-  bool get hasColumnFilters => _colFilters.values.any((v) => '$v'.trim().isNotEmpty);
+  bool get hasColumnFilters =>
+      _colFilters.values.any((v) => '$v'.trim().isNotEmpty);
   Map<String, Object?> get activeColumnFilters => {
-        for (final e in _colFilters.entries)
-          if ('${e.value}'.trim().isNotEmpty) e.key: e.value,
-      };
+    for (final e in _colFilters.entries)
+      if ('${e.value}'.trim().isNotEmpty) e.key: e.value,
+  };
   List<String> get groupKeys => List.unmodifiable(_groupKeys);
   bool get grouped => _groupKeys.isNotEmpty;
   Map<String, double> get widths => _widths;
@@ -270,20 +272,23 @@ class SuperTableController<R> extends ChangeNotifier {
   bool isCollapsed(String path) => _collapsed[path] == true;
 
   bool get cellMode =>
-      _selectionMode == SuperSelectionMode.singleCell || _selectionMode == SuperSelectionMode.multiCells;
+      _selectionMode == SuperSelectionMode.singleCell ||
+      _selectionMode == SuperSelectionMode.multiCells;
   bool get rowMode =>
-      _selectionMode == SuperSelectionMode.singleRow || _selectionMode == SuperSelectionMode.multiRows;
+      _selectionMode == SuperSelectionMode.singleRow ||
+      _selectionMode == SuperSelectionMode.multiRows;
   bool get multiSel =>
-      _selectionMode == SuperSelectionMode.multiCells || _selectionMode == SuperSelectionMode.multiRows;
+      _selectionMode == SuperSelectionMode.multiCells ||
+      _selectionMode == SuperSelectionMode.multiRows;
 
   // ── filter state (programmatic get/set + JSON) ──
   /// A structured snapshot of the whole filter state.
   SuperFilterState get filterState => SuperFilterState(
-        search: _search,
-        columnFilters: Map.of(activeColumnFilters),
-        advanced: List.of(_advanced),
-        advancedActive: _advancedActive,
-      );
+    search: _search,
+    columnFilters: Map.of(activeColumnFilters),
+    advanced: List.of(_advanced),
+    advancedActive: _advancedActive,
+  );
 
   /// Serialise the filter state to JSON.
   Map<String, dynamic> filterStateJson() => filterState.toJson();
@@ -302,7 +307,8 @@ class SuperTableController<R> extends ChangeNotifier {
   }
 
   /// Apply a filter state from its JSON form.
-  void applyFilterJson(Map<String, dynamic> json) => applyFilterState(SuperFilterState.fromJson(json));
+  void applyFilterJson(Map<String, dynamic> json) =>
+      applyFilterState(SuperFilterState.fromJson(json));
 
   // ── saved views (2.1.0) ──────────────────────────────────
   /// Snapshot everything the user personalises about this grid — column order,
@@ -311,19 +317,19 @@ class SuperTableController<R> extends ChangeNotifier {
   /// [SuperViewState]. Persist `viewStateJson()` per user/screen and restore
   /// it later with [applyViewJson].
   SuperViewState viewState({bool includeFilters = true}) => SuperViewState(
-        order: List.of(_order),
-        widths: Map.of(_widths),
-        visibleKeys: _visibleKeys == null ? null : List.of(_visibleKeys!),
-        pins: {for (final e in _pinOverrides.entries) e.key: e.value.name},
-        sortKey: _sort.key,
-        sortAscending: _sort.ascending,
-        groupKeys: List.of(_groupKeys),
-        collapsedPaths: [
-          for (final e in _collapsed.entries)
-            if (e.value) e.key,
-        ],
-        filters: includeFilters ? filterState : null,
-      );
+    order: List.of(_order),
+    widths: Map.of(_widths),
+    visibleKeys: _visibleKeys == null ? null : List.of(_visibleKeys!),
+    pins: {for (final e in _pinOverrides.entries) e.key: e.value.name},
+    sortKey: _sort.key,
+    sortAscending: _sort.ascending,
+    groupKeys: List.of(_groupKeys),
+    collapsedPaths: [
+      for (final e in _collapsed.entries)
+        if (e.value) e.key,
+    ],
+    filters: includeFilters ? filterState : null,
+  );
 
   /// [viewState] as JSON.
   Map<String, dynamic> viewStateJson({bool includeFilters = true}) =>
@@ -345,7 +351,10 @@ class SuperTableController<R> extends ChangeNotifier {
       ..addAll({
         for (final e in s.pins.entries)
           if (colByKey(e.key) != null)
-            e.key: SuperPin.values.firstWhere((p) => p.name == e.value, orElse: () => SuperPin.none),
+            e.key: SuperPin.values.firstWhere(
+              (p) => p.name == e.value,
+              orElse: () => SuperPin.none,
+            ),
       });
     if (s.order != null) {
       final baseKeys = dataColumns.map((c) => c.key).toList();
@@ -356,7 +365,8 @@ class SuperTableController<R> extends ChangeNotifier {
       ..clear()
       ..addAll({
         for (final e in s.widths.entries)
-          if (colByKey(e.key) != null) e.key: e.value.clamp(60.0, 520.0).toDouble(),
+          if (colByKey(e.key) != null)
+            e.key: e.value.clamp(60.0, 520.0).toDouble(),
       });
     _sort = (s.sortKey != null && colByKey(s.sortKey!) != null)
         ? SortSpec(key: s.sortKey, ascending: s.sortAscending)
@@ -382,7 +392,8 @@ class SuperTableController<R> extends ChangeNotifier {
   }
 
   /// Apply a saved view from its JSON form (see [viewStateJson]).
-  void applyViewJson(Map<String, dynamic> json) => applyViewState(SuperViewState.fromJson(json));
+  void applyViewJson(Map<String, dynamic> json) =>
+      applyViewState(SuperViewState.fromJson(json));
 
   /// Reset every user personalisation back to the column declarations:
   /// natural order, declared widths, all columns visible, no sort, no groups.
@@ -431,7 +442,8 @@ class SuperTableController<R> extends ChangeNotifier {
   bool isRowDirty(SuperRow row) => rowStateOf(row) != SuperRowState.pristine;
 
   /// Whether one cell of [row] differs from its baseline.
-  bool isCellDirty(SuperRow row, String columnKey) => row.cells[columnKey]?.isDirty ?? false;
+  bool isCellDirty(SuperRow row, String columnKey) =>
+      row.cells[columnKey]?.isDirty ?? false;
 
   /// The full add/modify/delete delta since the last baseline. Hand
   /// `changes.toJson()` to a backend, or iterate the partitions yourself.
@@ -448,18 +460,36 @@ class SuperTableController<R> extends ChangeNotifier {
       final cellChanges = <SuperCellChange>[];
       for (final cell in row.cells.values) {
         if (cell.isDirty) {
-          cellChanges.add(SuperCellChange(
-              columnKey: cell.columnKey, oldValue: cell.baseline, newValue: cell.value));
+          cellChanges.add(
+            SuperCellChange(
+              columnKey: cell.columnKey,
+              oldValue: cell.baseline,
+              newValue: cell.value,
+            ),
+          );
         }
       }
       if (cellChanges.isNotEmpty) {
-        modified.add(SuperRowChange<R>(state: SuperRowState.modified, row: row, cellChanges: cellChanges));
+        modified.add(
+          SuperRowChange<R>(
+            state: SuperRowState.modified,
+            row: row,
+            cellChanges: cellChanges,
+          ),
+        );
       }
     }
     for (final e in _deletedRows) {
-      if (!e.row.isNew) deleted.add(SuperRowChange<R>(state: SuperRowState.deleted, row: e.row));
+      if (!e.row.isNew)
+        deleted.add(
+          SuperRowChange<R>(state: SuperRowState.deleted, row: e.row),
+        );
     }
-    return SuperChangeSet<R>(added: added, modified: modified, deleted: deleted);
+    return SuperChangeSet<R>(
+      added: added,
+      modified: modified,
+      deleted: deleted,
+    );
   }
 
   /// Treat the current grid as the new clean baseline (call after a successful
@@ -521,7 +551,7 @@ class SuperTableController<R> extends ChangeNotifier {
       _pruneCombos(row);
       _applyRows([
         for (var i = 0; i < _rows.length; i++)
-          if (i != idx) _rows[i]
+          if (i != idx) _rows[i],
       ], undoSnapshot: snap);
       _clampSelection();
       notifyListeners();
@@ -560,7 +590,9 @@ class SuperTableController<R> extends ChangeNotifier {
       if (!isNum) continue;
       final raw = col.rawValue(rowEntry);
       if (raw == null || '$raw'.trim().isEmpty) continue;
-      if (raw is! num && double.tryParse('$raw'.replaceAll(RegExp(r'[^0-9.\-]'), '')) == null) {
+      if (raw is! num &&
+          double.tryParse('$raw'.replaceAll(RegExp(r'[^0-9.\-]'), '')) ==
+              null) {
         continue;
       }
       final n = SuperColumnLogic.numVal(raw);
@@ -609,12 +641,20 @@ class SuperTableController<R> extends ChangeNotifier {
         final value = cell?.value;
         String? err = SuperColumnLogic.validateCell(col, value);
         if (err == null && col.unique) {
-          final text = SuperColumnLogic.toText(col, value, row).trim().toLowerCase();
+          final text = SuperColumnLogic.toText(
+            col,
+            value,
+            row,
+          ).trim().toLowerCase();
           if (text.isNotEmpty) {
-            final bucket = uniqueSeen.putIfAbsent(col.key, () => <String, int>{});
+            final bucket = uniqueSeen.putIfAbsent(
+              col.key,
+              () => <String, int>{},
+            );
             final first = bucket[text];
             if (first != null) {
-              err = '“${col.label}” must be unique — duplicates row ${first + 1}';
+              err =
+                  '“${col.label}” must be unique — duplicates row ${first + 1}';
             } else {
               bucket[text] = si;
             }
@@ -635,15 +675,17 @@ class SuperTableController<R> extends ChangeNotifier {
         }
         if (markCells && cell != null) cell.error = err;
         if (err != null) {
-          issues.add(SuperValidationIssue<R>(
-            row: row,
-            sourceIndex: si,
-            viewRow: viewIndexOf[row.id],
-            colIndex: colIndexOf[col.key],
-            columnKey: col.key,
-            columnLabel: col.label,
-            message: err,
-          ));
+          issues.add(
+            SuperValidationIssue<R>(
+              row: row,
+              sourceIndex: si,
+              viewRow: viewIndexOf[row.id],
+              colIndex: colIndexOf[col.key],
+              columnKey: col.key,
+              columnLabel: col.label,
+              message: err,
+            ),
+          );
         }
       }
     }
@@ -669,7 +711,10 @@ class SuperTableController<R> extends ChangeNotifier {
 
   // ── export (1.0.0) ─────────────────────────────────────────────
   String _csvEscape(String s, String delimiter) {
-    if (s.contains(delimiter) || s.contains('"') || s.contains('\n') || s.contains('\r')) {
+    if (s.contains(delimiter) ||
+        s.contains('"') ||
+        s.contains('\n') ||
+        s.contains('\r')) {
       return '"${s.replaceAll('"', '""')}"';
     }
     return s;
@@ -679,40 +724,65 @@ class SuperTableController<R> extends ChangeNotifier {
   /// string. [visibleOnly] uses the on-screen, reordered columns; pass false to
   /// export every renderable column. Values use each column's display text.
   /// [SuperColumn.hidden] columns are never exported.
-  String toDelimited({String delimiter = ',', bool includeHeader = true, bool visibleOnly = true}) {
+  String toDelimited({
+    String delimiter = ',',
+    bool includeHeader = true,
+    bool visibleOnly = true,
+  }) {
     final columns = visibleOnly ? cols : dataColumns;
     final buf = StringBuffer();
     if (includeHeader) {
-      buf.writeln(columns.map((col) => _csvEscape(col.label, delimiter)).join(delimiter));
+      buf.writeln(
+        columns.map((col) => _csvEscape(col.label, delimiter)).join(delimiter),
+      );
     }
     for (final row in sortedRows) {
-      buf.writeln(columns
-          .map((col) => _csvEscape(SuperColumnLogic.toText(col, col.rawValue(row), row), delimiter))
-          .join(delimiter));
+      buf.writeln(
+        columns
+            .map(
+              (col) => _csvEscape(
+                SuperColumnLogic.toText(col, col.rawValue(row), row),
+                delimiter,
+              ),
+            )
+            .join(delimiter),
+      );
     }
     return buf.toString();
   }
 
   /// The current view as CSV text (respects the active filter + sort).
   String toCsv({bool includeHeader = true, bool visibleOnly = true}) =>
-      toDelimited(delimiter: ',', includeHeader: includeHeader, visibleOnly: visibleOnly);
+      toDelimited(
+        delimiter: ',',
+        includeHeader: includeHeader,
+        visibleOnly: visibleOnly,
+      );
 
   /// The current view as TSV text (paste-into-Excel friendly).
   String toTsv({bool includeHeader = true, bool visibleOnly = true}) =>
-      toDelimited(delimiter: '\t', includeHeader: includeHeader, visibleOnly: visibleOnly);
+      toDelimited(
+        delimiter: '\t',
+        includeHeader: includeHeader,
+        visibleOnly: visibleOnly,
+      );
 
   /// The current view as a list of `{columnKey: rawValue}` maps.
   List<Map<String, Object?>> toJsonRows({bool visibleOnly = true}) {
     final columns = visibleOnly ? cols : dataColumns;
     return [
-      for (final row in sortedRows) {for (final col in columns) col.key: col.rawValue(row)}
+      for (final row in sortedRows)
+        {for (final col in columns) col.key: col.rawValue(row)},
     ];
   }
 
   /// Convenience: copy the current view as CSV onto the system clipboard.
   Future<void> copyCsvToClipboard() async {
     await Clipboard.setData(ClipboardData(text: toCsv()));
-    onNotify?.call(SuperNotifyKind.ok, 'Copied ${sortedRows.length} rows as CSV');
+    onNotify?.call(
+      SuperNotifyKind.ok,
+      'Copied ${sortedRows.length} rows as CSV',
+    );
   }
 
   // ── programmatic aggregation (1.1.0) ───────────────────────────
@@ -721,7 +791,8 @@ class SuperTableController<R> extends ChangeNotifier {
   /// null, every column that declares an aggregate (`agg != none`) is used —
   /// hidden columns included.
   List<SuperColumn> _aggColumns(Iterable<String>? keys) {
-    if (keys != null) return keys.map(colByKey).whereType<SuperColumn>().toList();
+    if (keys != null)
+      return keys.map(colByKey).whereType<SuperColumn>().toList();
     return _rawColumns.where((c) => c.agg != SuperAgg.none).toList();
   }
 
@@ -739,7 +810,12 @@ class SuperTableController<R> extends ChangeNotifier {
     final col = colByKey(columnKey);
     if (col == null) return null;
     final list = (rows ?? _sorted).toList();
-    return SuperColumnLogic.aggregate(col, list, agg: agg, aggregator: aggregator);
+    return SuperColumnLogic.aggregate(
+      col,
+      list,
+      agg: agg,
+      aggregator: aggregator,
+    );
   }
 
   /// Grand totals over the entire data set: `columnKey → aggregate`. Honours the
@@ -747,10 +823,14 @@ class SuperTableController<R> extends ChangeNotifier {
   /// aggregate; pass [columns] to pick specific keys (hidden allowed), or
   /// [filtered] = false to total the raw, unfiltered rows. The programmatic
   /// form of the on-screen totals row.
-  Map<String, num?> grandTotals({Iterable<String>? columns, bool filtered = true}) {
+  Map<String, num?> grandTotals({
+    Iterable<String>? columns,
+    bool filtered = true,
+  }) {
     final source = filtered ? _sorted : _rows;
     return {
-      for (final col in _aggColumns(columns)) col.key: SuperColumnLogic.aggregate(col, source),
+      for (final col in _aggColumns(columns))
+        col.key: SuperColumnLogic.aggregate(col, source),
     };
   }
 
@@ -778,7 +858,12 @@ class SuperTableController<R> extends ChangeNotifier {
     }
     return {
       for (final e in buckets.entries)
-        e.key: SuperColumnLogic.aggregate(vcol, e.value, agg: agg, aggregator: aggregator),
+        e.key: SuperColumnLogic.aggregate(
+          vcol,
+          e.value,
+          agg: agg,
+          aggregator: aggregator,
+        ),
     };
   }
 
@@ -792,12 +877,18 @@ class SuperTableController<R> extends ChangeNotifier {
     Iterable<String>? groupBy,
     Iterable<String>? aggregateColumns,
   }) {
-    final keys =
-        (groupBy?.toList() ?? _groupKeys).map(colByKey).whereType<SuperColumn>().toList();
+    final keys = (groupBy?.toList() ?? _groupKeys)
+        .map(colByKey)
+        .whereType<SuperColumn>()
+        .toList();
     if (keys.isEmpty) return <SuperGroupAggregate<R>>[];
     final aggCols = _aggColumns(aggregateColumns);
 
-    List<SuperGroupAggregate<R>> rec(List<SuperRow<R>> items, int depth, String prefix) {
+    List<SuperGroupAggregate<R>> rec(
+      List<SuperRow<R>> items,
+      int depth,
+      String prefix,
+    ) {
       final col = keys[depth];
       final buckets = <String, List<SuperRow<R>>>{};
       for (final row in items) {
@@ -807,20 +898,24 @@ class SuperTableController<R> extends ChangeNotifier {
       final out = <SuperGroupAggregate<R>>[];
       buckets.forEach((value, groupItems) {
         final path = '$prefix/$depth:$value';
-        out.add(SuperGroupAggregate<R>(
-          columnKey: col.key,
-          columnLabel: col.label,
-          value: value,
-          depth: depth,
-          path: path,
-          count: groupItems.length,
-          rows: groupItems,
-          aggregates: {
-            for (final ac in aggCols) ac.key: SuperColumnLogic.aggregate(ac, groupItems),
-          },
-          children:
-              depth + 1 < keys.length ? rec(groupItems, depth + 1, path) : <SuperGroupAggregate<R>>[],
-        ));
+        out.add(
+          SuperGroupAggregate<R>(
+            columnKey: col.key,
+            columnLabel: col.label,
+            value: value,
+            depth: depth,
+            path: path,
+            count: groupItems.length,
+            rows: groupItems,
+            aggregates: {
+              for (final ac in aggCols)
+                ac.key: SuperColumnLogic.aggregate(ac, groupItems),
+            },
+            children: depth + 1 < keys.length
+                ? rec(groupItems, depth + 1, path)
+                : <SuperGroupAggregate<R>>[],
+          ),
+        );
       });
       return out;
     }
@@ -836,7 +931,8 @@ class SuperTableController<R> extends ChangeNotifier {
       case SuperColumnType.color:
         return SuperColumnLogic.colorFromHex(col, '#4A7CFF');
       case SuperColumnType.enumeration:
-        if (col.optValues != null && col.optValues!.isNotEmpty) return col.optValues!.first;
+        if (col.optValues != null && col.optValues!.isNotEmpty)
+          return col.optValues!.first;
         if (col.opts != null && col.opts!.isNotEmpty) return col.opts!.first;
         return '';
       case SuperColumnType.number:
@@ -898,8 +994,11 @@ class SuperTableController<R> extends ChangeNotifier {
     notifyListeners();
   }
 
-  void toggleMode() =>
-      setMode(_mode == SuperTableMode.readable ? SuperTableMode.editable : SuperTableMode.readable);
+  void toggleMode() => setMode(
+    _mode == SuperTableMode.readable
+        ? SuperTableMode.editable
+        : SuperTableMode.readable,
+  );
 
   /// The current pagination strategy.
   SuperPagination get pagination => _pagination;
@@ -929,7 +1028,11 @@ class SuperTableController<R> extends ChangeNotifier {
 
   /// Append more rows (load-more / infinite). Optionally update [hasMore] and
   /// clear the loading flag in one step.
-  void appendRows(List<SuperRow<R>> more, {bool? hasMore, bool loadingDone = true}) {
+  void appendRows(
+    List<SuperRow<R>> more, {
+    bool? hasMore,
+    bool loadingDone = true,
+  }) {
     _rows = [..._rows, ...more];
     _ensureCells();
     // Streamed-in rows are persisted data, not local edits.
@@ -1004,7 +1107,9 @@ class SuperTableController<R> extends ChangeNotifier {
     if (col == null || col.hidden) return;
     if (_visibleKeys == null || _visibleKeys!.contains(key)) return;
     final natural = dataColumns.map((c) => c.key);
-    final next = natural.where((k) => k == key || _visibleKeys!.contains(k)).toList();
+    final next = natural
+        .where((k) => k == key || _visibleKeys!.contains(k))
+        .toList();
     onVisibleChange?.call(next);
     _visibleKeys = next;
     notifyListeners();
@@ -1064,7 +1169,9 @@ class SuperTableController<R> extends ChangeNotifier {
   /// Unknown keys are dropped; data columns missing from [keys] keep a natural
   /// tail so nothing disappears.
   void setManagedOrder(List<String> keys) {
-    final valid = keys.where((k) => colByKey(k) != null && !colByKey(k)!.hidden).toList();
+    final valid = keys
+        .where((k) => colByKey(k) != null && !colByKey(k)!.hidden)
+        .toList();
     final tail = dataColumns.map((c) => c.key).where((k) => !valid.contains(k));
     _order = [...valid, ...tail];
     notifyListeners();
@@ -1134,7 +1241,10 @@ class SuperTableController<R> extends ChangeNotifier {
   // ── advanced (cross-column) filter ──
   /// Replace the advanced filter clauses. When [active] (default true) it
   /// becomes the active filter and per-column filters are cleared + disabled.
-  void setAdvancedFilter(List<AdvancedFilterClause> clauses, {bool active = true}) {
+  void setAdvancedFilter(
+    List<AdvancedFilterClause> clauses, {
+    bool active = true,
+  }) {
     _advanced = List.of(clauses);
     _advancedActive = active && clauses.isNotEmpty;
     if (_advancedActive) _colFilters.clear();
@@ -1179,15 +1289,28 @@ class SuperTableController<R> extends ChangeNotifier {
   // ── column resolution ──
   /// The columns eligible to render: never the [SuperColumn.hidden] ones, and —
   /// when a visible-key allow-list is set — only the keys it includes.
-  List<SuperColumn> get _baseCols =>
-      _rawColumns.where((c) => !c.hidden && (_visibleKeys == null || _visibleKeys!.contains(c.key))).toList();
-  List<SuperColumn> get _leftPins => _baseCols.where((c) => pinOf(c) == SuperPin.left).toList();
-  List<SuperColumn> get _rightPins => _baseCols.where((c) => pinOf(c) == SuperPin.right).toList();
-  List<SuperColumn> get _midBase => _baseCols.where((c) => pinOf(c) == SuperPin.none).toList();
+  List<SuperColumn> get _baseCols => _rawColumns
+      .where(
+        (c) =>
+            !c.hidden &&
+            (_visibleKeys == null || _visibleKeys!.contains(c.key)),
+      )
+      .toList();
+  List<SuperColumn> get _leftPins =>
+      _baseCols.where((c) => pinOf(c) == SuperPin.left).toList();
+  List<SuperColumn> get _rightPins =>
+      _baseCols.where((c) => pinOf(c) == SuperPin.right).toList();
+  List<SuperColumn> get _midBase =>
+      _baseCols.where((c) => pinOf(c) == SuperPin.none).toList();
   List<SuperColumn> get midCols {
     final base = _midBase;
     return _order
-        .map((k) => base.cast<SuperColumn?>().firstWhere((c) => c!.key == k, orElse: () => null))
+        .map(
+          (k) => base.cast<SuperColumn?>().firstWhere(
+            (c) => c!.key == k,
+            orElse: () => null,
+          ),
+        )
         .whereType<SuperColumn>()
         .toList();
   }
@@ -1195,8 +1318,9 @@ class SuperTableController<R> extends ChangeNotifier {
   List<SuperColumn> get cols => [..._leftPins, ...midCols, ..._rightPins];
   int get nCols => cols.length;
 
-  SuperColumn? colByKey(String k) =>
-      _rawColumns.cast<SuperColumn?>().firstWhere((c) => c!.key == k, orElse: () => null);
+  SuperColumn? colByKey(String k) => _rawColumns
+      .cast<SuperColumn?>()
+      .firstWhere((c) => c!.key == k, orElse: () => null);
 
   double widthOf(SuperColumn c) => _widths[c.key] ?? c.width;
   List<SuperColumn> get leftPins => _leftPins;
@@ -1212,8 +1336,14 @@ class SuperTableController<R> extends ChangeNotifier {
       bool matchesGlobal(SuperRow<R> r) {
         if (q.isEmpty) return true;
         for (final col in c) {
-          if (SuperColumnLogic.toText(col, col.rawValue(r), r).toLowerCase().contains(q)) return true;
-          if (SuperColumnLogic.arText(col, r).toLowerCase().contains(q)) return true;
+          if (SuperColumnLogic.toText(
+            col,
+            col.rawValue(r),
+            r,
+          ).toLowerCase().contains(q))
+            return true;
+          if (SuperColumnLogic.arText(col, r).toLowerCase().contains(q))
+            return true;
         }
         return false;
       }
@@ -1227,7 +1357,9 @@ class SuperTableController<R> extends ChangeNotifier {
         return true;
       }
 
-      return _rows.where((r) => matchesGlobal(r) && matchesAdvanced(r)).toList();
+      return _rows
+          .where((r) => matchesGlobal(r) && matchesAdvanced(r))
+          .toList();
     }
 
     final active = activeColumnFilters;
@@ -1242,8 +1374,14 @@ class SuperTableController<R> extends ChangeNotifier {
     bool matchesGlobal(SuperRow<R> r) {
       if (q.isEmpty) return true;
       for (final col in c) {
-        if (SuperColumnLogic.toText(col, col.rawValue(r), r).toLowerCase().contains(q)) return true;
-        if (SuperColumnLogic.arText(col, r).toLowerCase().contains(q)) return true;
+        if (SuperColumnLogic.toText(
+          col,
+          col.rawValue(r),
+          r,
+        ).toLowerCase().contains(q))
+          return true;
+        if (SuperColumnLogic.arText(col, r).toLowerCase().contains(q))
+          return true;
       }
       return false;
     }
@@ -1252,7 +1390,11 @@ class SuperTableController<R> extends ChangeNotifier {
       for (final entry in colFilters.entries) {
         final col = entry.key;
         final needle = entry.value;
-        final hay = SuperColumnLogic.toText(col, col.rawValue(r), r).toLowerCase();
+        final hay = SuperColumnLogic.toText(
+          col,
+          col.rawValue(r),
+          r,
+        ).toLowerCase();
         final arHay = SuperColumnLogic.arText(col, r).toLowerCase();
         if (!hay.contains(needle) && !arHay.contains(needle)) return false;
       }
@@ -1268,7 +1410,11 @@ class SuperTableController<R> extends ChangeNotifier {
     final c = colByKey(_sort.key!);
     if (c == null) return f;
     final out = [...f];
-    out.sort((a, b) => SuperColumnLogic.compare(c, c.rawValue(a), c.rawValue(b)) * (_sort.ascending ? 1 : -1));
+    out.sort(
+      (a, b) =>
+          SuperColumnLogic.compare(c, c.rawValue(a), c.rawValue(b)) *
+          (_sort.ascending ? 1 : -1),
+    );
     return out;
   }
 
@@ -1291,7 +1437,11 @@ class SuperTableController<R> extends ChangeNotifier {
           ? sorted.skip(_page * pageSize).take(pageSize).toList()
           : sorted;
       for (var i = 0; i < arr.length; i++) {
-        final item = RenderItem<R>.data(row: arr[i], dataIndex: i, sourceIndex: _rows.indexOf(arr[i]));
+        final item = RenderItem<R>.data(
+          row: arr[i],
+          dataIndex: i,
+          sourceIndex: _rows.indexOf(arr[i]),
+        );
         view.add(item);
         list.add(item);
       }
@@ -1310,34 +1460,42 @@ class SuperTableController<R> extends ChangeNotifier {
       }
       map.forEach((value, groupItems) {
         final path = '$prefix/$depth:$value';
-        list.add(RenderItem<R>.group(
-          groupCol: col,
-          groupValue: value,
-          groupCount: groupItems.length,
-          depth: depth,
-          path: path,
-          groupRows: groupItems,
-        ));
-        if (isCollapsed(path)) return;
-        if (depth + 1 < keys.length) {
-          rec(groupItems, depth + 1, path);
-        } else {
-          for (final row in groupItems) {
-            final di = view.length;
-            final item = RenderItem<R>.data(row: row, dataIndex: di, sourceIndex: _rows.indexOf(row));
-            view.add(item);
-            list.add(item);
-          }
-        }
-        if (groupFootersEnabled) {
-          list.add(RenderItem<R>.groupFooter(
+        list.add(
+          RenderItem<R>.group(
             groupCol: col,
             groupValue: value,
             groupCount: groupItems.length,
             depth: depth,
             path: path,
             groupRows: groupItems,
-          ));
+          ),
+        );
+        if (isCollapsed(path)) return;
+        if (depth + 1 < keys.length) {
+          rec(groupItems, depth + 1, path);
+        } else {
+          for (final row in groupItems) {
+            final di = view.length;
+            final item = RenderItem<R>.data(
+              row: row,
+              dataIndex: di,
+              sourceIndex: _rows.indexOf(row),
+            );
+            view.add(item);
+            list.add(item);
+          }
+        }
+        if (groupFootersEnabled) {
+          list.add(
+            RenderItem<R>.groupFooter(
+              groupCol: col,
+              groupValue: value,
+              groupCount: groupItems.length,
+              depth: depth,
+              path: path,
+              groupRows: groupItems,
+            ),
+          );
         }
       });
     }
@@ -1439,7 +1597,10 @@ class SuperTableController<R> extends ChangeNotifier {
   void _clampSelection() {
     _rebuildRenderList();
     final n = _dataView.length;
-    _sel = CellPos(_sel.r.clamp(0, n == 0 ? 0 : n - 1), _sel.c.clamp(0, nCols == 0 ? 0 : nCols - 1));
+    _sel = CellPos(
+      _sel.r.clamp(0, n == 0 ? 0 : n - 1),
+      _sel.c.clamp(0, nCols == 0 ? 0 : nCols - 1),
+    );
   }
 
   bool _inRange(int r, int c) {
@@ -1524,13 +1685,23 @@ class SuperTableController<R> extends ChangeNotifier {
       _sel = CellPos(r, c);
     } else {
       if (_selectionMode == SuperSelectionMode.multiCells && meta) {
-        for (var rr = _min(_anchor.r, _sel.r); rr <= _max(_anchor.r, _sel.r); rr++) {
-          for (var cc = _min(_anchor.c, _sel.c); cc <= _max(_anchor.c, _sel.c); cc++) {
+        for (
+          var rr = _min(_anchor.r, _sel.r);
+          rr <= _max(_anchor.r, _sel.r);
+          rr++
+        ) {
+          for (
+            var cc = _min(_anchor.c, _sel.c);
+            cc <= _max(_anchor.c, _sel.c);
+            cc++
+          ) {
             _extraCells.add('$rr:$cc');
           }
         }
         final tok = '$r:$c';
-        _extraCells.contains(tok) ? _extraCells.remove(tok) : _extraCells.add(tok);
+        _extraCells.contains(tok)
+            ? _extraCells.remove(tok)
+            : _extraCells.add(tok);
         _sel = CellPos(r, c);
         _anchor = CellPos(r, c);
       } else if (_selectionMode == SuperSelectionMode.multiCells && shift) {
@@ -1577,7 +1748,8 @@ class SuperTableController<R> extends ChangeNotifier {
   }
 
   /// Select a single row.
-  void selectRowAt(int r, {bool focus = true}) => selectRowsAt([r], focus: focus);
+  void selectRowAt(int r, {bool focus = true}) =>
+      selectRowsAt([r], focus: focus);
 
   /// Select a set of whole rows.
   void selectRowsAt(Iterable<int> rows, {bool focus = true}) {
@@ -1627,8 +1799,7 @@ class SuperTableController<R> extends ChangeNotifier {
     final parsed = set.map((s) {
       final p = s.split(':');
       return CellPos(int.parse(p[0]), int.parse(p[1]));
-    }).toList()
-      ..sort((a, b) => a.r != b.r ? a.r - b.r : a.c - b.c);
+    }).toList()..sort((a, b) => a.r != b.r ? a.r - b.r : a.c - b.c);
     return parsed;
   }
 
@@ -1637,7 +1808,10 @@ class SuperTableController<R> extends ChangeNotifier {
     _rowBand.clear();
     _advanceOnEnter = false;
     final n = nRows;
-    t = CellPos(t.r.clamp(0, n == 0 ? 0 : n - 1), t.c.clamp(0, nCols == 0 ? 0 : nCols - 1));
+    t = CellPos(
+      t.r.clamp(0, n == 0 ? 0 : n - 1),
+      t.c.clamp(0, nCols == 0 ? 0 : nCols - 1),
+    );
     _sel = t;
     if (extend && multiSel) {
       if (rowMode) {
@@ -1711,7 +1885,11 @@ class SuperTableController<R> extends ChangeNotifier {
   /// pushed — [undoSnapshot] lets mutation sites that change cell values
   /// in place capture the state BEFORE the mutation (a snapshot taken here
   /// would already contain the new values and undo would be a no-op).
-  void _applyRows(List<SuperRow<R>> next, {bool record = true, _HistoryEntry<R>? undoSnapshot}) {
+  void _applyRows(
+    List<SuperRow<R>> next, {
+    bool record = true,
+    _HistoryEntry<R>? undoSnapshot,
+  }) {
     if (record) {
       _undo.add(undoSnapshot ?? _snapshot());
       if (_undo.length > 200) _undo.removeAt(0);
@@ -1754,7 +1932,9 @@ class SuperTableController<R> extends ChangeNotifier {
   }
 
   SuperRow<R> _blankRow() {
-    final R backing = _emptyValue != null ? _emptyValue() : (<String, dynamic>{} as R);
+    final R backing = _emptyValue != null
+        ? _emptyValue()
+        : (<String, dynamic>{} as R);
     final cells = <String, SuperCell>{};
     for (final col in _rawColumns) {
       var v = col.readBacking(backing);
@@ -1773,7 +1953,9 @@ class SuperTableController<R> extends ChangeNotifier {
     final entry = rr < view.length ? view[rr] : null;
     if (entry?.row != null && !canEditRow(col, entry!.row!)) return;
     final cur = entry?.row?.cells[col!.key]?.value;
-    _draft = initial ?? (cur == null ? '' : SuperColumnLogic.toText(col!, cur, entry!.row!));
+    _draft =
+        initial ??
+        (cur == null ? '' : SuperColumnLogic.toText(col!, cur, entry!.row!));
     _editCell = CellPos(rr, cc);
     notifyListeners();
   }
@@ -1784,7 +1966,12 @@ class SuperTableController<R> extends ChangeNotifier {
 
   /// Validate [value] for [col] in [row]/[cell]: built-in type rules, then the
   /// column's [SuperColumn.validator]. Returns an error code or null.
-  String? _validate(SuperColumn col, SuperRow<R> row, SuperCell cell, Object? value) {
+  String? _validate(
+    SuperColumn col,
+    SuperRow<R> row,
+    SuperCell cell,
+    Object? value,
+  ) {
     final builtin = SuperColumnLogic.validateCell(col, value);
     if (builtin != null) return builtin;
     if (col.unique) {
@@ -1805,17 +1992,24 @@ class SuperTableController<R> extends ChangeNotifier {
     if (text.isEmpty) return null;
     for (final other in _rows) {
       if (identical(other, row)) continue;
-      final t = SuperColumnLogic
-          .toText(col, other.cells[col.key]?.value, other)
-          .trim()
-          .toLowerCase();
+      final t = SuperColumnLogic.toText(
+        col,
+        other.cells[col.key]?.value,
+        other,
+      ).trim().toLowerCase();
       if (t == text) return '“${col.label}” must be unique';
     }
     return null;
   }
 
   /// Run the column [SuperColumn.onChange] gate. Returns whether to accept.
-  bool _runOnChange(SuperColumn col, SuperRow<R> row, SuperCell cell, Object? prev, Object? next) {
+  bool _runOnChange(
+    SuperColumn col,
+    SuperRow<R> row,
+    SuperCell cell,
+    Object? prev,
+    Object? next,
+  ) {
     final cb = col.onChange;
     final ctx = viewContext;
     if (cb == null || ctx == null) return true;
@@ -1833,7 +2027,8 @@ class SuperTableController<R> extends ChangeNotifier {
     final cell = row.cells[col.key] ??= SuperCell(columnKey: col.key);
     final prev = cell.value;
 
-    final snap = _snapshot(); // BEFORE validation/onChange (which may mutate siblings)
+    final snap =
+        _snapshot(); // BEFORE validation/onChange (which may mutate siblings)
     final err = _validate(col, row, cell, val);
     if (!_runOnChange(col, row, cell, prev, val)) {
       cell.error = err;
@@ -1866,9 +2061,12 @@ class SuperTableController<R> extends ChangeNotifier {
         // stored value keeps its type (change tracking stays clean).
         if (override == null && col.type.isNumeric) {
           final s = '$val'.trim();
-          val = s.isEmpty ? '' : SuperColumnLogic.clampNum(SuperColumnLogic.numVal(s), col);
+          val = s.isEmpty
+              ? ''
+              : SuperColumnLogic.clampNum(SuperColumnLogic.numVal(s), col);
         }
-        final snap = _snapshot(); // BEFORE the in-place mutation (undo correctness)
+        final snap =
+            _snapshot(); // BEFORE the in-place mutation (undo correctness)
         final err = _validate(col, row, cell, val);
         final accepted = _runOnChange(col, row, cell, prev, val);
         if (accepted) {
@@ -1880,8 +2078,10 @@ class SuperTableController<R> extends ChangeNotifier {
           cell.error = err;
         }
       }
-      armAdvance = move == null &&
-          (col?.type == SuperColumnType.combo || col?.type == SuperColumnType.enumeration);
+      armAdvance =
+          move == null &&
+          (col?.type == SuperColumnType.combo ||
+              col?.type == SuperColumnType.enumeration);
     }
     _editCell = null;
     _advanceOnEnter = armAdvance;
@@ -1912,7 +2112,10 @@ class SuperTableController<R> extends ChangeNotifier {
           r = nRows - 1;
         }
       }
-      final t = CellPos(r.clamp(0, nRows == 0 ? 0 : nRows - 1), cc.clamp(0, nCols == 0 ? 0 : nCols - 1));
+      final t = CellPos(
+        r.clamp(0, nRows == 0 ? 0 : nRows - 1),
+        cc.clamp(0, nCols == 0 ? 0 : nCols - 1),
+      );
       _sel = t;
       _anchor = t;
       _selRows = {t.r};
@@ -1943,11 +2146,16 @@ class SuperTableController<R> extends ChangeNotifier {
   void insertRow(int viewR, {required bool after}) {
     final entry = viewR < view.length ? view[viewR] : null;
     final next = [..._rows];
-    final at = entry != null ? entry.sourceIndex + (after ? 1 : 0) : _rows.length;
+    final at = entry != null
+        ? entry.sourceIndex + (after ? 1 : 0)
+        : _rows.length;
     next.insert(at, _blankRow());
     _applyRows(next);
     _rebuildRenderList();
-    _sel = CellPos((viewR + (after ? 1 : 0)).clamp(0, nRows == 0 ? 0 : nRows - 1), _sel.c);
+    _sel = CellPos(
+      (viewR + (after ? 1 : 0)).clamp(0, nRows == 0 ? 0 : nRows - 1),
+      _sel.c,
+    );
     _anchor = _sel;
     notifyListeners();
   }
@@ -1999,11 +2207,12 @@ class SuperTableController<R> extends ChangeNotifier {
     final entry = vr < view.length ? view[vr] : null;
     if (entry == null) return;
     final snap = _snapshot(); // BEFORE the deleted-row log gains an entry
-    if (trackChanges) _deletedRows.add((index: entry.sourceIndex, row: entry.row!));
+    if (trackChanges)
+      _deletedRows.add((index: entry.sourceIndex, row: entry.row!));
     _pruneCombos(entry.row!);
     _applyRows([
       for (var i = 0; i < _rows.length; i++)
-        if (i != entry.sourceIndex) _rows[i]
+        if (i != entry.sourceIndex) _rows[i],
     ], undoSnapshot: snap);
     final n = nRows;
     _sel = CellPos(_sel.r.clamp(0, n == 0 ? 0 : n - 1), _sel.c);
@@ -2121,7 +2330,10 @@ class SuperTableController<R> extends ChangeNotifier {
 
     if (changed == 0) return;
     _applyRows([..._rows], undoSnapshot: snap);
-    onNotify?.call(SuperNotifyKind.ok, 'Filled $changed cell${changed == 1 ? '' : 's'}');
+    onNotify?.call(
+      SuperNotifyKind.ok,
+      'Filled $changed cell${changed == 1 ? '' : 's'}',
+    );
     notifyListeners();
   }
 
@@ -2144,8 +2356,13 @@ class SuperTableController<R> extends ChangeNotifier {
     if (nRows == 0) return;
     final data = _buildSelectionJson();
     if (data == null) return;
-    await Clipboard.setData(ClipboardData(text: const JsonEncoder.withIndent('  ').convert(data)));
-    onNotify?.call(SuperNotifyKind.ok, 'Copied ${data.length} row${data.length == 1 ? '' : 's'} as JSON');
+    await Clipboard.setData(
+      ClipboardData(text: const JsonEncoder.withIndent('  ').convert(data)),
+    );
+    onNotify?.call(
+      SuperNotifyKind.ok,
+      'Copied ${data.length} row${data.length == 1 ? '' : 's'} as JSON',
+    );
   }
 
   Future<void> copyRowsJson(List<int> viewRows) async {
@@ -2160,8 +2377,13 @@ class SuperTableController<R> extends ChangeNotifier {
       data.add(o);
     }
     if (data.isEmpty) return;
-    await Clipboard.setData(ClipboardData(text: const JsonEncoder.withIndent('  ').convert(data)));
-    onNotify?.call(SuperNotifyKind.ok, 'Copied ${data.length} row${data.length == 1 ? '' : 's'} as JSON');
+    await Clipboard.setData(
+      ClipboardData(text: const JsonEncoder.withIndent('  ').convert(data)),
+    );
+    onNotify?.call(
+      SuperNotifyKind.ok,
+      'Copied ${data.length} row${data.length == 1 ? '' : 's'} as JSON',
+    );
   }
 
   void cutRange() {
@@ -2192,7 +2414,8 @@ class SuperTableController<R> extends ChangeNotifier {
       if (obj is! Map) return 'Row ${i + 1} is not an object';
       for (final field in obj.keys) {
         final col = keyOf[field];
-        if (col == null) return 'Unknown field “$field” — not a column in this table';
+        if (col == null)
+          return 'Unknown field “$field” — not a column in this table';
         final res = SuperColumnLogic.coercePaste(col, obj[field]);
         if (!res.ok) return 'Row ${i + 1}: ${res.error}';
       }
@@ -2216,7 +2439,8 @@ class SuperTableController<R> extends ChangeNotifier {
         final col = keyOf[field]!;
         final res = SuperColumnLogic.coercePaste(col, obj[field]);
         if (res.ok) {
-          (target.cells[col.key] ??= SuperCell(columnKey: col.key)).value = res.value;
+          (target.cells[col.key] ??= SuperCell(columnKey: col.key)).value =
+              res.value;
           col.writeBacking(target.value, res.value);
         }
       }
@@ -2230,7 +2454,8 @@ class SuperTableController<R> extends ChangeNotifier {
     for (var ri = 0; ri < grid.length; ri++) {
       for (var ci = 0; ci < grid[ri].length; ci++) {
         final col = (startC + ci) < cols.length ? cols[startC + ci] : null;
-        if (col == null) return 'Pasted block is wider than the table (column ${startC + ci + 1} doesn\'t exist)';
+        if (col == null)
+          return 'Pasted block is wider than the table (column ${startC + ci + 1} doesn\'t exist)';
         final res = SuperColumnLogic.coercePaste(col, grid[ri][ci]);
         if (!res.ok) return 'Cell ${ri + 1}×${ci + 1}: ${res.error}';
       }
@@ -2253,7 +2478,8 @@ class SuperTableController<R> extends ChangeNotifier {
         final col = cols[startC + ci];
         final res = SuperColumnLogic.coercePaste(col, grid[ri][ci]);
         if (res.ok) {
-          (target.cells[col.key] ??= SuperCell(columnKey: col.key)).value = res.value;
+          (target.cells[col.key] ??= SuperCell(columnKey: col.key)).value =
+              res.value;
           col.writeBacking(target.value, res.value);
         }
       }
@@ -2264,7 +2490,10 @@ class SuperTableController<R> extends ChangeNotifier {
 
   Future<void> paste() async {
     if (_mode != SuperTableMode.editable) {
-      onNotify?.call(SuperNotifyKind.error, 'Paste is only allowed in Editable mode');
+      onNotify?.call(
+        SuperNotifyKind.error,
+        'Paste is only allowed in Editable mode',
+      );
       return;
     }
     final data = await Clipboard.getData(Clipboard.kTextPlain);
@@ -2303,7 +2532,11 @@ class SuperTableController<R> extends ChangeNotifier {
   String firstColText(int viewR) {
     if (cols.isEmpty || viewR >= view.length) return '';
     final entry = view[viewR];
-    return SuperColumnLogic.toText(cols.first, cols.first.rawValue(entry.row!), entry.row!);
+    return SuperColumnLogic.toText(
+      cols.first,
+      cols.first.rawValue(entry.row!),
+      entry.row!,
+    );
   }
 
   void selectAll() {
@@ -2328,8 +2561,10 @@ class SuperTableController<R> extends ChangeNotifier {
   /// The cached AutoSuggestionsBoxController for a cell. Null until first
   /// edit-focus. Use this to drive the cell's box from outside (open/close,
   /// inspect the selection, etc.).
-  AutoSuggestionsBoxController? comboControllerFor(SuperRow row, String colKey) =>
-      _comboCtrls[_comboKey(row, colKey)];
+  AutoSuggestionsBoxController? comboControllerFor(
+    SuperRow row,
+    String colKey,
+  ) => _comboCtrls[_comboKey(row, colKey)];
 
   /// Whether a cell's combo resources are stale w.r.t. the row's fingerPrint
   /// (or have never been built). The View calls this to decide whether to

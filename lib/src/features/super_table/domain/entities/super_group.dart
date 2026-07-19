@@ -74,20 +74,20 @@ class SuperGroupAggregate<R> {
 
   /// Flatten this node and all descendants into a single list (pre-order).
   List<SuperGroupAggregate<R>> flatten() => [
-        this,
-        for (final child in children) ...child.flatten(),
-      ];
+    this,
+    for (final child in children) ...child.flatten(),
+  ];
 
   /// A JSON view of the group (rows are summarised by [count], not serialised).
   Map<String, dynamic> toJson() => {
-        'column': columnKey,
-        'value': value,
-        'depth': depth,
-        'path': path,
-        'count': count,
-        'aggregates': aggregates,
-        if (children.isNotEmpty) 'children': [for (final c in children) c.toJson()],
-      };
+    'column': columnKey,
+    'value': value,
+    'depth': depth,
+    'path': path,
+    'count': count,
+    'aggregates': aggregates,
+    if (children.isNotEmpty) 'children': [for (final c in children) c.toJson()],
+  };
 
   @override
   String toString() =>

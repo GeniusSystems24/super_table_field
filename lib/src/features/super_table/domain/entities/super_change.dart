@@ -39,13 +39,17 @@ class SuperCellChange {
   final String columnKey;
   final Object? oldValue;
   final Object? newValue;
-  const SuperCellChange({required this.columnKey, this.oldValue, this.newValue});
+  const SuperCellChange({
+    required this.columnKey,
+    this.oldValue,
+    this.newValue,
+  });
 
   Map<String, dynamic> toJson() => {
-        'column': columnKey,
-        'old': oldValue,
-        'new': newValue,
-      };
+    'column': columnKey,
+    'old': oldValue,
+    'new': newValue,
+  };
 
   @override
   String toString() => 'SuperCellChange($columnKey: $oldValue → $newValue)';
@@ -57,7 +61,11 @@ class SuperRowChange<R> {
   final SuperRowState state;
   final SuperRow<R> row;
   final List<SuperCellChange> cellChanges;
-  const SuperRowChange({required this.state, required this.row, this.cellChanges = const []});
+  const SuperRowChange({
+    required this.state,
+    required this.row,
+    this.cellChanges = const [],
+  });
 
   /// A `{columnKey: value}` snapshot of the row's current cell values.
   Map<String, Object?> get snapshot => row.snapshot;
@@ -65,11 +73,12 @@ class SuperRowChange<R> {
   /// A compact JSON delta for this row: the row id, its state, the current
   /// values, and (when modified) the changed columns.
   Map<String, dynamic> toJson() => {
-        'id': row.id,
-        'state': state.name,
-        'values': snapshot,
-        if (cellChanges.isNotEmpty) 'changes': [for (final c in cellChanges) c.toJson()],
-      };
+    'id': row.id,
+    'state': state.name,
+    'values': snapshot,
+    if (cellChanges.isNotEmpty)
+      'changes': [for (final c in cellChanges) c.toJson()],
+  };
 }
 
 /// The complete set of edits since the last accepted baseline, partitioned into
@@ -80,7 +89,11 @@ class SuperChangeSet<R> {
   final List<SuperRowChange<R>> modified;
   final List<SuperRowChange<R>> deleted;
 
-  const SuperChangeSet({this.added = const [], this.modified = const [], this.deleted = const []});
+  const SuperChangeSet({
+    this.added = const [],
+    this.modified = const [],
+    this.deleted = const [],
+  });
 
   /// Every change, in `added ▸ modified ▸ deleted` order.
   List<SuperRowChange<R>> get all => [...added, ...modified, ...deleted];
@@ -92,10 +105,10 @@ class SuperChangeSet<R> {
   bool get isNotEmpty => count > 0;
 
   Map<String, dynamic> toJson() => {
-        'added': [for (final r in added) r.toJson()],
-        'modified': [for (final r in modified) r.toJson()],
-        'deleted': [for (final r in deleted) r.toJson()],
-      };
+    'added': [for (final r in added) r.toJson()],
+    'modified': [for (final r in modified) r.toJson()],
+    'deleted': [for (final r in deleted) r.toJson()],
+  };
 
   @override
   String toString() =>

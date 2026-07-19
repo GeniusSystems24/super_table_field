@@ -238,7 +238,6 @@ class _ExpandableRowsExampleState extends State<ExpandableRowsExample> {
   @override
   Widget build(BuildContext context) {
     final t = context.superTheme;
-    final cs = Theme.of(context).colorScheme;
     final isSingle = _expansionMode == SuperRowExpansionMode.single;
 
     return Scaffold(
@@ -348,7 +347,6 @@ class _LineItemsPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.superTheme;
-    final cs = Theme.of(context).colorScheme;
     final isDark = t.brightness == Brightness.dark;
     final headerBg = isDark
         ? Color.alphaBlend(const Color(0x0DFFFFFF), t.surface)
@@ -515,7 +513,7 @@ class _ModeChip extends StatelessWidget {
             border: Border.all(
               color: active ? cs.primary : t.borderStrong,
             ),
-            borderRadius: BorderRadius.circular(SuperTokensData.defaultRadiusControl),
+            borderRadius: BorderRadius.circular(SuperThemeData.of(context).tokens.radiusControl),
           ),
           alignment: Alignment.center,
           child: Text(

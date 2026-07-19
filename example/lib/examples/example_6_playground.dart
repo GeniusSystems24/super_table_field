@@ -189,7 +189,6 @@ class _PlaygroundExampleState extends State<PlaygroundExample> {
   @override
   Widget build(BuildContext context) {
     final t = context.superTheme;
-    final cs = Theme.of(context).colorScheme;
     return Scaffold(
       backgroundColor: t.bg,
       appBar: AppBar(title: const Text('Playground — one grid, two modes'), backgroundColor: t.surface),

@@ -30,7 +30,12 @@ class SuperRowStyle {
   /// Optional accent bar color drawn at the row's leading edge (gutter side).
   final Color? accentBar;
 
-  const SuperRowStyle({this.background, this.foreground, this.fontWeight, this.accentBar});
+  const SuperRowStyle({
+    this.background,
+    this.foreground,
+    this.fontWeight,
+    this.accentBar,
+  });
 
   /// Merge [other] over this style (other wins where non-null).
   SuperRowStyle merge(SuperRowStyle? other) => other == null
@@ -57,7 +62,12 @@ class CellStyle {
   /// Cell text alignment override (else the column's alignment is used).
   final TextAlign? align;
 
-  const CellStyle({this.background, this.foreground, this.fontWeight, this.align});
+  const CellStyle({
+    this.background,
+    this.foreground,
+    this.fontWeight,
+    this.align,
+  });
 
   /// Merge [other] over this style (other wins where non-null).
   CellStyle merge(CellStyle? other) => other == null

@@ -22,7 +22,8 @@
 /// column, plus its last validation [error]. The grid reads/writes
 /// `cell.value`; a column's `validator` populates `cell.error`.
 class SuperCell {
-  SuperCell({required this.columnKey, Object? value, this.error}) : _value = value;
+  SuperCell({required this.columnKey, Object? value, this.error})
+    : _value = value;
 
   /// The key of the column this cell belongs to.
   final String columnKey;
@@ -80,7 +81,8 @@ class SuperCell {
   }
 
   @override
-  String toString() => 'SuperCell($columnKey: $_value${error != null ? ', error: $error' : ''})';
+  String toString() =>
+      'SuperCell($columnKey: $_value${error != null ? ', error: $error' : ''})';
 }
 
 /// A table row: a host-owned backing [value] of type [R] plus the editable
@@ -92,9 +94,9 @@ class SuperRow<R> {
     Object? fingerPrint,
     int? id,
     this.isNew = false,
-  })  : cells = cells,
-        _fingerPrint = fingerPrint ?? _fpSeq++,
-        id = id ?? _idSeq++;
+  }) : cells = cells,
+       _fingerPrint = fingerPrint ?? _fpSeq++,
+       id = id ?? _idSeq++;
 
   /// Whether this row was created after the controller's change-tracking
   /// baseline (i.e. it is an *added* row, not yet persisted). Maintained by the
@@ -135,11 +137,12 @@ class SuperRow<R> {
   /// Build a [SuperRow] from a backing [value] and an initial map of cell
   /// values. Use this when your row is backed by a typed model.
   factory SuperRow.of(R value, Map<String, Object?> initial) => SuperRow<R>(
-        value: value,
-        cells: {
-          for (final e in initial.entries) e.key: SuperCell(columnKey: e.key, value: e.value),
-        },
-      );
+    value: value,
+    cells: {
+      for (final e in initial.entries)
+        e.key: SuperCell(columnKey: e.key, value: e.value),
+    },
+  );
 
   /// Build a `Map`-backed row: `value` IS the map and cells mirror its entries.
   /// The most common path when you don't have a typed domain model.
@@ -147,18 +150,23 @@ class SuperRow<R> {
       SuperRow<Map<String, dynamic>>(
         value: data,
         cells: {
-          for (final e in data.entries) e.key: SuperCell(columnKey: e.key, value: e.value),
+          for (final e in data.entries)
+            e.key: SuperCell(columnKey: e.key, value: e.value),
         },
       );
 
   /// A snapshot `{columnKey: value}` of every cell.
-  Map<String, Object?> get snapshot => {for (final e in cells.entries) e.key: e.value.value};
+  Map<String, Object?> get snapshot => {
+    for (final e in cells.entries) e.key: e.value.value,
+  };
 
   /// Deep-ish copy: copies cells (and the map value when [R] is a `Map`),
   /// keeping the same backing object otherwise. Used by duplicate-row.
   SuperRow<R> copy() {
     final v = value;
-    final R nextValue = v is Map<String, dynamic> ? Map<String, dynamic>.from(v) as R : v;
+    final R nextValue = v is Map<String, dynamic>
+        ? Map<String, dynamic>.from(v) as R
+        : v;
     return SuperRow<R>(
       value: nextValue,
       cells: {for (final e in cells.entries) e.key: e.value.copy()},

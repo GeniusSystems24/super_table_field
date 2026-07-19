@@ -23,9 +23,9 @@
 // Pure data + callbacks — no Flutter widget types referenced here.
 // ============================================================
 
-import 'package:flutter/services.dart' show KeyDownEvent, KeyEvent, KeyRepeatEvent, LogicalKeyboardKey;
+import 'package:flutter/services.dart'
+    show KeyDownEvent, KeyEvent, KeyRepeatEvent, LogicalKeyboardKey;
 import 'package:flutter/widgets.dart' show BuildContext, Curve, Curves, Widget;
-
 
 import '../../presentation/controllers/super_table_controller.dart';
 import 'super_row.dart';
@@ -36,11 +36,12 @@ import 'super_row.dart';
 /// resolved by [SuperRowExpansion.heightFor] — avoid putting scrollable
 /// children that consume vertical gestures; wrap them in a bounded [SizedBox]
 /// with `physics: NeverScrollableScrollPhysics()` if needed.
-typedef SuperRowExpansionBuilder<R> = Widget Function(
-  BuildContext context,
-  SuperTableController<R> controller,
-  SuperRow<R> row,
-);
+typedef SuperRowExpansionBuilder<R> =
+    Widget Function(
+      BuildContext context,
+      SuperTableController<R> controller,
+      SuperRow<R> row,
+    );
 
 /// Controls whether multiple rows may be expanded simultaneously.
 enum SuperRowExpansionMode {
@@ -87,15 +88,18 @@ class SuperExpansionShortcut {
   bool matches(KeyEvent event, Set<LogicalKeyboardKey> pressed) {
     if (event is! KeyDownEvent && event is! KeyRepeatEvent) return false;
     if (event.logicalKey != key) return false;
-    final hasCtrl = pressed.contains(LogicalKeyboardKey.controlLeft) ||
+    final hasCtrl =
+        pressed.contains(LogicalKeyboardKey.controlLeft) ||
         pressed.contains(LogicalKeyboardKey.controlRight) ||
         pressed.contains(LogicalKeyboardKey.metaLeft) ||
         pressed.contains(LogicalKeyboardKey.metaRight);
     if (ctrl != hasCtrl) return false;
-    final hasShift = pressed.contains(LogicalKeyboardKey.shiftLeft) ||
+    final hasShift =
+        pressed.contains(LogicalKeyboardKey.shiftLeft) ||
         pressed.contains(LogicalKeyboardKey.shiftRight);
     if (shift != hasShift) return false;
-    final hasAlt = pressed.contains(LogicalKeyboardKey.altLeft) ||
+    final hasAlt =
+        pressed.contains(LogicalKeyboardKey.altLeft) ||
         pressed.contains(LogicalKeyboardKey.altRight);
     if (alt != hasAlt) return false;
     return true;

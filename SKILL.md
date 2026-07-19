@@ -42,8 +42,7 @@ come for free.
 
 ```yaml
 dependencies:
-  super_table_field:
-    path: ../super_table_field
+  super_table_field: ^2.3.2
 ```
 
 ```dart

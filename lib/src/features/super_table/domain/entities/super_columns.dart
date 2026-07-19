@@ -23,7 +23,6 @@ import '../../presentation/controllers/super_table_controller.dart';
 import 'super_column.dart';
 import 'super_filter.dart';
 import 'super_row.dart';
-import 'super_style.dart';
 
 List<String> _displays<T>(List<T> values, String Function(T)? display) {
   final String Function(T) d = display ?? ((T v) => '$v');
@@ -55,9 +54,7 @@ class SuperTextColumn extends SuperColumn<String> {
     super.styles,
     super.read,
     super.write,
-  }) : super(
-          type: SuperColumnType.text,
-        );
+  }) : super(type: SuperColumnType.text);
 }
 
 // ── number ───────────────────────────────────────────────────────────────────
@@ -91,10 +88,7 @@ class SuperNumberColumn<T extends num> extends SuperColumn<T> {
     super.styles,
     super.read,
     super.write,
-  }) : super(
-          type: SuperColumnType.number,
-          mono: true,
-        );
+  }) : super(type: SuperColumnType.number, mono: true);
 }
 
 // ── currency ──────────────────────────────────────────────────────────────────
@@ -135,11 +129,11 @@ class SuperCurrencyColumn extends SuperColumn<num> {
     super.read,
     super.write,
   }) : super(
-          type: SuperColumnType.currency,
-          mono: true,
-          prefix: symbol,
-          suffix: code,
-        );
+         type: SuperColumnType.currency,
+         mono: true,
+         prefix: symbol,
+         suffix: code,
+       );
 }
 
 // ── enumeration ───────────────────────────────────────────────────────────────
@@ -175,12 +169,12 @@ class SuperEnumerationColumn<T> extends SuperColumn<T> {
     super.styles,
     super.read,
     super.write,
-  })  : display = display ?? ((T v) => '$v'),
-        super(
-          type: SuperColumnType.enumeration,
-          opts: _displays(values, display),
-          optValues: values,
-        );
+  }) : display = display ?? ((T v) => '$v'),
+       super(
+         type: SuperColumnType.enumeration,
+         opts: _displays(values, display),
+         optValues: values,
+       );
 }
 
 // ── combo (AutoSuggestionsBox-backed) ─────────────────────────────────────────
@@ -197,8 +191,10 @@ class SuperComboColumn<T> extends SuperColumn<T> {
 
   // ── normal AutoSuggestionsBox options (one for all cells) ──
   final bool advancedSearch;
-  final Widget Function(BuildContext, AutoSuggestionsBoxController<T>)? advancedSearchBuilder;
-  final Widget Function(BuildContext, AutoSuggestion<T>, bool highlighted)? itemBuilder;
+  final Widget Function(BuildContext, AutoSuggestionsBoxController<T>)?
+  advancedSearchBuilder;
+  final Widget Function(BuildContext, AutoSuggestion<T>, bool highlighted)?
+  itemBuilder;
   final Widget Function(BuildContext, String query)? loadingBuilder;
   final Widget Function(BuildContext, String query)? emptyBuilder;
   final String? hintText;
@@ -212,9 +208,19 @@ class SuperComboColumn<T> extends SuperColumn<T> {
 
   // ── rebuildable options (per row, re-created on fingerPrint change) ──
   final AutoSuggestionsSource<T> Function(
-      BuildContext context, SuperTableController controller, SuperRow row, SuperCell cell)? sourceController;
+    BuildContext context,
+    SuperTableController<T> controller,
+    SuperRow row,
+    SuperCell cell,
+  )?
+  sourceController;
   final AutoSuggestionsBoxController<T> Function(
-      BuildContext context, SuperTableController controller, SuperRow row, SuperCell cell)? cellController;
+    BuildContext context,
+    SuperTableController<T> controller,
+    SuperRow row,
+    SuperCell cell,
+  )?
+  cellController;
 
   SuperComboColumn({
     required super.key,
@@ -255,12 +261,12 @@ class SuperComboColumn<T> extends SuperColumn<T> {
     super.styles,
     super.read,
     super.write,
-  })  : display = display ?? ((T v) => '$v'),
-        super(
-          type: SuperColumnType.combo,
-          opts: _displays(values, display),
-          optValues: values,
-        );
+  }) : display = display ?? ((T v) => '$v'),
+       super(
+         type: SuperColumnType.combo,
+         opts: _displays(values, display),
+         optValues: values,
+       );
 }
 
 // ── progress ──────────────────────────────────────────────────────────────────
@@ -287,9 +293,7 @@ class SuperProgressColumn<T extends num> extends SuperColumn<T> {
     super.styles,
     super.read,
     super.write,
-  }) : super(
-          type: SuperColumnType.progress,
-        );
+  }) : super(type: SuperColumnType.progress);
 }
 
 // ── color ─────────────────────────────────────────────────────────────────────
@@ -329,10 +333,7 @@ class SuperColorColumn<T> extends SuperColumn<T> {
     super.styles,
     super.read,
     super.write,
-  }) : super(
-          type: SuperColumnType.color,
-          mono: true,
-        );
+  }) : super(type: SuperColumnType.color, mono: true);
 }
 
 // ── date ──────────────────────────────────────────────────────────────────────
@@ -357,10 +358,7 @@ class SuperDateColumn extends SuperColumn<String> {
     super.styles,
     super.read,
     super.write,
-  }) : super(
-          type: SuperColumnType.date,
-          mono: true,
-        );
+  }) : super(type: SuperColumnType.date, mono: true);
 }
 
 // ── time ──────────────────────────────────────────────────────────────────────
@@ -384,10 +382,7 @@ class SuperTimeColumn extends SuperColumn<String> {
     super.styles,
     super.read,
     super.write,
-  }) : super(
-          type: SuperColumnType.time,
-          mono: true,
-        );
+  }) : super(type: SuperColumnType.time, mono: true);
 }
 
 // ── link ──────────────────────────────────────────────────────────────────────
@@ -414,10 +409,7 @@ class SuperLinkColumn extends SuperColumn<String> {
     super.styles,
     super.read,
     super.write,
-  }) : super(
-          type: SuperColumnType.link,
-          mono: true,
-        );
+  }) : super(type: SuperColumnType.link, mono: true);
 }
 
 // ── checkbox ──────────────────────────────────────────────────────────────────
@@ -440,9 +432,7 @@ class SuperCheckboxColumn extends SuperColumn<bool> {
     super.styles,
     super.read,
     super.write,
-  }) : super(
-          type: SuperColumnType.checkbox,
-        );
+  }) : super(type: SuperColumnType.checkbox);
 }
 
 // ── computed ──────────────────────────────────────────────────────────────────
@@ -465,11 +455,7 @@ class SuperComputedColumn<T> extends SuperColumn<T> {
     super.sortable,
     super.filterable,
     super.styles,
-  }) : super(
-          type: SuperColumnType.computed,
-          editable: false,
-          mono: true,
-        );
+  }) : super(type: SuperColumnType.computed, editable: false, mono: true);
 }
 
 // ── readonly ──────────────────────────────────────────────────────────────────
@@ -488,8 +474,5 @@ class SuperReadonlyColumn extends SuperColumn<String> {
     super.mono,
     super.accessor,
     super.styles,
-  }) : super(
-          type: SuperColumnType.readonly,
-          editable: false,
-        );
+  }) : super(type: SuperColumnType.readonly, editable: false);
 }

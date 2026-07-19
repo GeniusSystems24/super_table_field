@@ -54,11 +54,12 @@ class SuperValidationIssue<R> {
       viewRow == null || colIndex == null ? null : CellPos(viewRow!, colIndex!);
 
   Map<String, dynamic> toJson() => {
-        'row': sourceIndex,
-        'column': columnKey,
-        'message': message,
-      };
+    'row': sourceIndex,
+    'column': columnKey,
+    'message': message,
+  };
 
   @override
-  String toString() => 'SuperValidationIssue(row $sourceIndex, $columnKey: $message)';
+  String toString() =>
+      'SuperValidationIssue(row $sourceIndex, $columnKey: $message)';
 }

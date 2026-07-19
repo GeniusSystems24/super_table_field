@@ -22,20 +22,42 @@ class SuperPill extends StatelessWidget {
   final String text;
   final Color color;
   final bool dot;
-  const SuperPill({super.key, required this.text, required this.color, this.dot = true});
+  const SuperPill({
+    super.key,
+    required this.text,
+    required this.color,
+    this.dot = true,
+  });
   @override
   Widget build(BuildContext context) {
     final skin = SuperTableSkin.of(context);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(color: skin.tint(color, 0.18), borderRadius: BorderRadius.circular(12)),
-      child: Row(mainAxisSize: MainAxisSize.min, children: [
-        if (dot) ...[
-          Container(width: 6, height: 6, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
-          const SizedBox(width: 6),
+      decoration: BoxDecoration(
+        color: skin.tint(color, 0.18),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (dot) ...[
+            Container(
+              width: 6,
+              height: 6,
+              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+            ),
+            const SizedBox(width: 6),
+          ],
+          Text(
+            text,
+            style: TextStyle(
+              fontSize: 11.5,
+              fontWeight: FontWeight.w600,
+              color: color,
+            ),
+          ),
         ],
-        Text(text, style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: color)),
-      ]),
+      ),
     );
   }
 }
@@ -47,21 +69,42 @@ class SuperCellDisplay extends StatelessWidget {
   final SuperRow row;
   final Color? fg;
   final FontWeight? weight;
-  const SuperCellDisplay({super.key, required this.col, required this.row, this.fg, this.weight});
+  const SuperCellDisplay({
+    super.key,
+    required this.col,
+    required this.row,
+    this.fg,
+    this.weight,
+  });
 
   @override
   Widget build(BuildContext context) {
     final skin = SuperTableSkin.of(context);
     final v = col.rawValue(row);
     final baseColor = fg ?? skin.fg1;
-    final mono = TextStyle(fontFamily: SuperTokensFonts.mono, fontSize: 12.5, color: baseColor, fontWeight: weight);
-    final body = TextStyle(fontFamily: SuperTokensFonts.body, fontSize: 12.5, color: baseColor, fontWeight: weight);
+    final mono = TextStyle(
+      fontFamily: SuperTokensFonts.mono,
+      fontSize: 12.5,
+      color: baseColor,
+      fontWeight: weight,
+    );
+    final body = TextStyle(
+      fontFamily: SuperTokensFonts.body,
+      fontSize: 12.5,
+      color: baseColor,
+      fontWeight: weight,
+    );
 
     // An explicit column formatter wins over the built-in type rendering and
     // shows its returned string as plain text (display-only — see [SuperColumnFormatter]).
     final fmt = col.formatter;
     if (fmt != null) {
-      return Text(fmt(v, row), maxLines: 1, overflow: TextOverflow.ellipsis, style: col.mono ? mono : body);
+      return Text(
+        fmt(v, row),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: col.mono ? mono : body,
+      );
     }
 
     switch (col.type) {
@@ -73,30 +116,57 @@ class SuperCellDisplay extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('${v ?? ''}', maxLines: 1, overflow: TextOverflow.ellipsis, style: body),
+              Text(
+                '${v ?? ''}',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: body,
+              ),
               Directionality(
                 textDirection: TextDirection.rtl,
-                child: Text(ar,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontFamily: SuperTokensFonts.arabic, fontSize: 11.5, color: fg ?? skin.fg3)),
+                child: Text(
+                  ar,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontFamily: SuperTokensFonts.arabic,
+                    fontSize: 11.5,
+                    color: fg ?? skin.fg3,
+                  ),
+                ),
               ),
             ],
           );
         }
-        return Text('${v ?? ''}', maxLines: 1, overflow: TextOverflow.ellipsis, style: col.mono ? mono : body);
+        return Text(
+          '${v ?? ''}',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: col.mono ? mono : body,
+        );
 
       case SuperColumnType.number:
       case SuperColumnType.currency:
         final n = SuperColumnLogic.numVal(v);
         final neg = n < 0;
         final isCur = col.type == SuperColumnType.currency;
-        final color = fg ??
-            (col.colorSign ? (neg ? skin.danger(context) : (n > 0 ? skin.success : skin.fg3)) : skin.fg1);
+        final color =
+            fg ??
+            (col.colorSign
+                ? (neg
+                      ? skin.danger(context)
+                      : (n > 0 ? skin.success : skin.fg3))
+                : skin.fg1);
         final sign = neg ? '−' : (col.colorSign && n > 0 ? '+' : '');
         final prefix = col.prefix ?? (isCur ? r'$' : '');
-        final txt = '$sign$prefix${SuperColumnLogic.fmtNum(n, col)}${col.suffix != null ? (isCur ? ' ${col.suffix}' : col.suffix) : ''}';
-        return Text(txt, maxLines: 1, overflow: TextOverflow.ellipsis, style: mono.copyWith(color: color));
+        final txt =
+            '$sign$prefix${SuperColumnLogic.fmtNum(n, col)}${col.suffix != null ? (isCur ? ' ${col.suffix}' : col.suffix) : ''}';
+        return Text(
+          txt,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: mono.copyWith(color: color),
+        );
 
       case SuperColumnType.enumeration:
         if (v == null || '$v'.isEmpty) return const SizedBox.shrink();
@@ -105,75 +175,136 @@ class SuperCellDisplay extends StatelessWidget {
         return SuperPill(text: disp, color: tone, dot: col.dot);
 
       case SuperColumnType.combo:
-        return Text(SuperColumnLogic.displayOf(col, v), maxLines: 1, overflow: TextOverflow.ellipsis, style: col.mono ? mono : body);
+        return Text(
+          SuperColumnLogic.displayOf(col, v),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: col.mono ? mono : body,
+        );
 
       case SuperColumnType.progress:
         final max = (col.max ?? 100).toDouble();
-        final frac = (SuperColumnLogic.numVal(v) / (max == 0 ? 1 : max)).clamp(0.0, 1.0);
+        final frac = (SuperColumnLogic.numVal(v) / (max == 0 ? 1 : max)).clamp(
+          0.0,
+          1.0,
+        );
         final pct = (frac * 100).round();
-        final tone = pct >= 90 ? skin.danger(context) : (pct >= 70 ? skin.warning : skin.accent(context));
-        return Row(children: [
-          Expanded(
-            child: Container(
-              height: 6,
-              decoration: BoxDecoration(color: skin.inputBg, borderRadius: BorderRadius.circular(999)),
-              child: FractionallySizedBox(
-                alignment: AlignmentDirectional.centerStart,
-                widthFactor: frac,
-                child: Container(decoration: BoxDecoration(color: tone, borderRadius: BorderRadius.circular(999))),
+        final tone = pct >= 90
+            ? skin.danger(context)
+            : (pct >= 70 ? skin.warning : skin.accent(context));
+        return Row(
+          children: [
+            Expanded(
+              child: Container(
+                height: 6,
+                decoration: BoxDecoration(
+                  color: skin.inputBg,
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: FractionallySizedBox(
+                  alignment: AlignmentDirectional.centerStart,
+                  widthFactor: frac,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: tone,
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                  ),
+                ),
               ),
             ),
-          ),
-          const SizedBox(width: 8),
-          Text('$pct%', style: mono.copyWith(fontSize: 11, color: fg ?? skin.fg3)),
-        ]);
+            const SizedBox(width: 8),
+            Text(
+              '$pct%',
+              style: mono.copyWith(fontSize: 11, color: fg ?? skin.fg3),
+            ),
+          ],
+        );
 
       case SuperColumnType.color:
         final hex = SuperColumnLogic.colorHex(col, v);
-        return Row(children: [
-          Container(
-            width: 16,
-            height: 16,
-            decoration: BoxDecoration(
-              color: _parseHex(hex) ?? skin.inputBg,
-              borderRadius: BorderRadius.circular(4),
-              border: Border.all(color: const Color(0x40000000)),
+        return Row(
+          children: [
+            Container(
+              width: 16,
+              height: 16,
+              decoration: BoxDecoration(
+                color: _parseHex(hex) ?? skin.inputBg,
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(color: const Color(0x40000000)),
+              ),
             ),
-          ),
-          const SizedBox(width: 8),
-          Text(hex, style: mono.copyWith(fontSize: 12)),
-        ]);
+            const SizedBox(width: 8),
+            Text(hex, style: mono.copyWith(fontSize: 12)),
+          ],
+        );
 
       case SuperColumnType.date:
       case SuperColumnType.time:
-        return Text('${v ?? ''}', maxLines: 1, overflow: TextOverflow.ellipsis, style: mono);
+        return Text(
+          '${v ?? ''}',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: mono,
+        );
 
       case SuperColumnType.link:
-        return Text('${v ?? ''}',
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: mono.copyWith(color: fg ?? skin.accent(context), decoration: TextDecoration.underline));
+        return Text(
+          '${v ?? ''}',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: mono.copyWith(
+            color: fg ?? skin.accent(context),
+            decoration: TextDecoration.underline,
+          ),
+        );
 
       case SuperColumnType.checkbox:
         final on = v == true || v == 'true' || v == 'Yes' || v == 1;
-        return Icon(on ? Icons.check_rounded : Icons.close_rounded, size: 15, color: on ? skin.success : skin.fg4);
+        return Icon(
+          on ? Icons.check_rounded : Icons.close_rounded,
+          size: 15,
+          color: on ? skin.success : skin.fg4,
+        );
 
       case SuperColumnType.readonly:
         final txt = v == null || '$v'.isEmpty ? '—' : '$v';
-        return Row(mainAxisSize: MainAxisSize.min, children: [
-          Icon(Icons.lock_outline_rounded, size: 12, color: skin.fg4),
-          const SizedBox(width: 6),
-          Flexible(child: Text(txt, maxLines: 1, overflow: TextOverflow.ellipsis, style: (col.mono ? mono : body).copyWith(color: fg ?? skin.fg2))),
-        ]);
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.lock_outline_rounded, size: 12, color: skin.fg4),
+            const SizedBox(width: 6),
+            Flexible(
+              child: Text(
+                txt,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: (col.mono ? mono : body).copyWith(color: fg ?? skin.fg2),
+              ),
+            ),
+          ],
+        );
 
       case SuperColumnType.computed:
         final out = col.compute != null ? col.compute!(row) : v;
-        final txt = col.format != null ? col.format!(out, row) : (out == null || '$out'.isEmpty ? '—' : '$out');
-        return Row(mainAxisSize: MainAxisSize.min, children: [
-          Icon(Icons.functions_rounded, size: 13, color: skin.fg4),
-          const SizedBox(width: 6),
-          Flexible(child: Text(txt, maxLines: 1, overflow: TextOverflow.ellipsis, style: mono)),
-        ]);
+        final txt = col.format != null
+            ? col.format!(out, row)
+            : (out == null || '$out'.isEmpty ? '—' : '$out');
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.functions_rounded, size: 13, color: skin.fg4),
+            const SizedBox(width: 6),
+            Flexible(
+              child: Text(
+                txt,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: mono,
+              ),
+            ),
+          ],
+        );
     }
   }
 }
@@ -216,12 +347,15 @@ class _SuperComboEditor extends StatefulWidget {
 }
 
 class _SuperComboEditorState extends State<_SuperComboEditor> {
-  late final TextEditingController _text = TextEditingController(text: widget.value);
+  late final TextEditingController _text = TextEditingController(
+    text: widget.value,
+  );
   late final FocusNode _focus = FocusNode(debugLabel: 'SuperCombo');
   late AutoSuggestionsBoxController _box;
   bool _ownsBox = false;
 
-  SuperComboColumn? get _combo => widget.col is SuperComboColumn ? widget.col as SuperComboColumn : null;
+  SuperComboColumn? get _combo =>
+      widget.col is SuperComboColumn ? widget.col as SuperComboColumn : null;
 
   @override
   void initState() {
@@ -231,7 +365,10 @@ class _SuperComboEditorState extends State<_SuperComboEditor> {
       if (!mounted) return;
       _focus.requestFocus();
       if (_text.text.isNotEmpty) {
-        _text.selection = TextSelection(baseOffset: 0, extentOffset: _text.text.length);
+        _text.selection = TextSelection(
+          baseOffset: 0,
+          extentOffset: _text.text.length,
+        );
       }
       _box.open();
     });
@@ -257,19 +394,32 @@ class _SuperComboEditorState extends State<_SuperComboEditor> {
     // Typed as <dynamic> so any SuperComboColumn<T> source slots in.
     AutoSuggestionsSource source;
     if (col?.sourceController != null) {
-      source = col!.sourceController!(context, c, widget.row, widget.row.cells[widget.col.key]!);
+      source = col!.sourceController!(
+        context,
+        c,
+        widget.row,
+        widget.row.cells[widget.col.key]!,
+      );
     } else {
       final opts = widget.col.opts ?? const <String>[];
       final ovals = widget.col.optValues;
       source = SuggestionSources.list<dynamic>([
         for (var i = 0; i < opts.length; i++)
-          AutoSuggestion<dynamic>(value: ovals != null && i < ovals.length ? ovals[i] : opts[i], label: opts[i]),
+          AutoSuggestion<dynamic>(
+            value: ovals != null && i < ovals.length ? ovals[i] : opts[i],
+            label: opts[i],
+          ),
       ]);
     }
 
     // Build a controller: explicit cellController ▸ default sharing our text.
     if (col?.cellController != null) {
-      _box = col!.cellController!(context, c, widget.row, widget.row.cells[widget.col.key]!);
+      _box = col!.cellController!(
+        context,
+        c,
+        widget.row,
+        widget.row.cells[widget.col.key]!,
+      );
       _ownsBox = false;
     } else {
       _box = AutoSuggestionsBoxController<dynamic>(
@@ -279,7 +429,12 @@ class _SuperComboEditorState extends State<_SuperComboEditor> {
       );
       _ownsBox = true;
     }
-    c.registerCombo(widget.row, widget.col.key, source: source, controller: _box);
+    c.registerCombo(
+      widget.row,
+      widget.col.key,
+      source: source,
+      controller: _box,
+    );
   }
 
   @override
@@ -291,7 +446,9 @@ class _SuperComboEditorState extends State<_SuperComboEditor> {
   }
 
   AutoSuggestionsBoxThemeData _boxTheme(SuperTableSkin skin) {
-    final base = skin.isDark ? AutoSuggestionsBoxThemeData.dark : AutoSuggestionsBoxThemeData.light;
+    final base = skin.isDark
+        ? AutoSuggestionsBoxThemeData.dark
+        : AutoSuggestionsBoxThemeData.light;
     return base.copyWith(
       overlayBg: skin.surface,
       fieldBg: skin.surface,
@@ -330,9 +487,13 @@ class _SuperComboEditorState extends State<_SuperComboEditor> {
         loadingBuilder: col?.loadingBuilder,
         emptyBuilder: col?.emptyBuilder,
         leading: col?.leading,
-        hintText: col?.hintText ?? (opts.isEmpty ? 'Type a value\u2026' : 'Type or pick\u2026'),
+        hintText:
+            col?.hintText ??
+            (opts.isEmpty ? 'Type a value\u2026' : 'Type or pick\u2026'),
         textStyle: TextStyle(
-          fontFamily: widget.col.mono ? SuperTokensFonts.mono : SuperTokensFonts.body,
+          fontFamily: widget.col.mono
+              ? SuperTokensFonts.mono
+              : SuperTokensFonts.body,
           fontSize: 13,
           height: 1.2,
           color: skin.fg1,
@@ -385,7 +546,9 @@ class SuperCellEditor extends StatefulWidget {
 }
 
 class _SuperCellEditorState extends State<SuperCellEditor> {
-  late final TextEditingController _ctrl = TextEditingController(text: widget.value);
+  late final TextEditingController _ctrl = TextEditingController(
+    text: widget.value,
+  );
   final FocusNode _focus = FocusNode();
   final LayerLink _link = LayerLink();
   OverlayEntry? _popup;
@@ -399,7 +562,10 @@ class _SuperCellEditorState extends State<SuperCellEditor> {
     } else if (t != SuperColumnType.checkbox && t != SuperColumnType.combo) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _focus.requestFocus();
-        _ctrl.selection = TextSelection(baseOffset: 0, extentOffset: _ctrl.text.length);
+        _ctrl.selection = TextSelection(
+          baseOffset: 0,
+          extentOffset: _ctrl.text.length,
+        );
       });
     }
   }
@@ -416,7 +582,10 @@ class _SuperCellEditorState extends State<SuperCellEditor> {
 
   void _maskedSet(String v, String Function(String) mask) {
     final m = mask(v);
-    _ctrl.value = TextEditingValue(text: m, selection: TextSelection.collapsed(offset: m.length));
+    _ctrl.value = TextEditingValue(
+      text: m,
+      selection: TextSelection.collapsed(offset: m.length),
+    );
     widget.onChanged(m);
   }
 
@@ -450,7 +619,13 @@ class _SuperCellEditorState extends State<SuperCellEditor> {
             _closePopup();
             widget.onCancel();
           },
-          builder: (o) => SuperPill(text: o, color: SuperColumnLogic.toneFor(col, o) ?? SuperTableSkin.of(context).fg3, dot: col.dot),
+          builder: (o) => SuperPill(
+            text: o,
+            color:
+                SuperColumnLogic.toneFor(col, o) ??
+                SuperTableSkin.of(context).fg3,
+            dot: col.dot,
+          ),
           onPick: (o) {
             _closePopup();
             widget.onCommit(override: _enumValueFor(o));
@@ -466,7 +641,14 @@ class _SuperCellEditorState extends State<SuperCellEditor> {
             _closePopup();
             widget.onCancel();
           },
-          builder: (o) => Text(o, style: TextStyle(fontFamily: SuperTokensFonts.mono, fontSize: 12.5, color: SuperTableSkin.of(context).fg1)),
+          builder: (o) => Text(
+            o,
+            style: TextStyle(
+              fontFamily: SuperTokensFonts.mono,
+              fontSize: 12.5,
+              color: SuperTableSkin.of(context).fg1,
+            ),
+          ),
           onPick: (o) {
             _closePopup();
             widget.onCommit(override: o);
@@ -501,33 +683,42 @@ class _SuperCellEditorState extends State<SuperCellEditor> {
       _ => 200.0,
     };
     _popup = OverlayEntry(
-      builder: (ctx) => Stack(children: [
-        Positioned.fill(child: GestureDetector(behavior: HitTestBehavior.translucent, onTap: () {
-          _closePopup();
-          widget.onCancel();
-        })),
-        CompositedTransformFollower(
-          link: _link,
-          showWhenUnlinked: false,
-          targetAnchor: widget.rtl ? Alignment.bottomRight : Alignment.bottomLeft,
-          followerAnchor: widget.rtl ? Alignment.topRight : Alignment.topLeft,
-          offset: const Offset(0, 4),
-          child: Material(
-            color: Colors.transparent,
-            child: Container(
-              width: width,
-              padding: const EdgeInsets.all(5),
-              decoration: BoxDecoration(
-                color: skin.surface,
-                border: Border.all(color: skin.borderStrong),
-                borderRadius: BorderRadius.circular(9),
-                boxShadow: skin.popShadow,
-              ),
-              child: content,
+      builder: (ctx) => Stack(
+        children: [
+          Positioned.fill(
+            child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTap: () {
+                _closePopup();
+                widget.onCancel();
+              },
             ),
           ),
-        ),
-      ]),
+          CompositedTransformFollower(
+            link: _link,
+            showWhenUnlinked: false,
+            targetAnchor: widget.rtl
+                ? Alignment.bottomRight
+                : Alignment.bottomLeft,
+            followerAnchor: widget.rtl ? Alignment.topRight : Alignment.topLeft,
+            offset: const Offset(0, 4),
+            child: Material(
+              color: Colors.transparent,
+              child: Container(
+                width: width,
+                padding: const EdgeInsets.all(5),
+                decoration: BoxDecoration(
+                  color: skin.surface,
+                  border: Border.all(color: skin.borderStrong),
+                  borderRadius: BorderRadius.circular(9),
+                  boxShadow: skin.popShadow,
+                ),
+                child: content,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
     Overlay.of(context).insert(_popup!);
   }
@@ -553,8 +744,15 @@ class _SuperCellEditorState extends State<SuperCellEditor> {
       );
     }
 
-    final align = col.align == SuperAlign.end ? TextAlign.right : TextAlign.left;
-    final monoLike = col.mono || col.type.isNumeric || col.type == SuperColumnType.date || col.type == SuperColumnType.time || col.type == SuperColumnType.color;
+    final align = col.align == SuperAlign.end
+        ? TextAlign.right
+        : TextAlign.left;
+    final monoLike =
+        col.mono ||
+        col.type.isNumeric ||
+        col.type == SuperColumnType.date ||
+        col.type == SuperColumnType.time ||
+        col.type == SuperColumnType.color;
     final style = TextStyle(
       fontFamily: monoLike ? SuperTokensFonts.mono : SuperTokensFonts.body,
       fontSize: 13,
@@ -562,18 +760,26 @@ class _SuperCellEditorState extends State<SuperCellEditor> {
     );
 
     if (col.type == SuperColumnType.checkbox) {
-      final on = widget.value == 'true' || widget.value == 'Yes' || widget.value == '1';
+      final on =
+          widget.value == 'true' ||
+          widget.value == 'Yes' ||
+          widget.value == '1';
       return GestureDetector(
         onTap: () => widget.onCommit(override: !on),
         child: Container(
           color: skin.surface,
           alignment: Alignment.center,
-          child: Icon(on ? Icons.check_rounded : Icons.close_rounded, size: 16, color: on ? skin.success : skin.fg4),
+          child: Icon(
+            on ? Icons.check_rounded : Icons.close_rounded,
+            size: 16,
+            color: on ? skin.success : skin.fg4,
+          ),
         ),
       );
     }
 
-    final showTrigger = col.type == SuperColumnType.date ||
+    final showTrigger =
+        col.type == SuperColumnType.date ||
         col.type == SuperColumnType.time ||
         col.type == SuperColumnType.color;
 
@@ -582,88 +788,98 @@ class _SuperCellEditorState extends State<SuperCellEditor> {
       child: Container(
         color: skin.surface,
         padding: EdgeInsets.zero,
-        child: Row(children: [
-          if (col.type == SuperColumnType.color)
-            GestureDetector(
-              onTap: _openPopup,
-              child: Container(
-                width: 18,
-                height: 18,
-                margin: const EdgeInsets.symmetric(horizontal: 7),
-                decoration: BoxDecoration(
-                  color: _parseHex(SuperColumnLogic.colorHex(col, _ctrl.text)) ?? skin.inputBg,
-                  borderRadius: BorderRadius.circular(4),
-                  border: Border.all(color: const Color(0x40000000)),
+        child: Row(
+          children: [
+            if (col.type == SuperColumnType.color)
+              GestureDetector(
+                onTap: _openPopup,
+                child: Container(
+                  width: 18,
+                  height: 18,
+                  margin: const EdgeInsets.symmetric(horizontal: 7),
+                  decoration: BoxDecoration(
+                    color:
+                        _parseHex(SuperColumnLogic.colorHex(col, _ctrl.text)) ??
+                        skin.inputBg,
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(color: const Color(0x40000000)),
+                  ),
                 ),
               ),
-            ),
-          Expanded(
-            child: KeyboardListener(
-              focusNode: FocusNode(skipTraversal: true),
-              onKeyEvent: _onKey,
-              child: TextField(
-                controller: _ctrl,
-                focusNode: _focus,
-                textAlign: align,
-                style: style,
-                cursorColor: skin.accent(context),
-                decoration: InputDecoration(
-                  isDense: true,
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 9, vertical: 11),
-                  hintText: _hint(col),
-                  hintStyle: style.copyWith(color: skin.fg4),
-                ),
-                onChanged: (v) {
-                  switch (col.type) {
-                    case SuperColumnType.date:
-                      _maskedSet(v, SuperColumnLogic.maskDate);
-                      break;
-                    case SuperColumnType.time:
-                      _maskedSet(v, SuperColumnLogic.maskTime);
-                      break;
-                    default:
-                      _set(v);
-                  }
-                },
-              ),
-            ),
-          ),
-          if (showTrigger)
-            GestureDetector(
-              onTap: () => _popup != null ? _closePopup() : _openPopup(),
-              child: Container(
-                width: 26,
-                height: 26,
-                margin: const EdgeInsets.symmetric(horizontal: 3),
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: skin.inputBg,
-                  border: Border.all(color: skin.borderStrong),
-                  borderRadius: BorderRadius.circular(5),
-                ),
-                child: Icon(
-                  switch (col.type) {
-                    SuperColumnType.date => Icons.calendar_today_rounded,
-                    SuperColumnType.time => Icons.schedule_rounded,
-                    _ => Icons.expand_more_rounded,
+            Expanded(
+              child: KeyboardListener(
+                focusNode: FocusNode(skipTraversal: true),
+                onKeyEvent: _onKey,
+                child: TextField(
+                  controller: _ctrl,
+                  focusNode: _focus,
+                  textAlign: align,
+                  style: style,
+                  cursorColor: skin.accent(context),
+                  decoration: InputDecoration(
+                    isDense: true,
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 9,
+                      vertical: 11,
+                    ),
+                    hintText: _hint(col),
+                    hintStyle: style.copyWith(color: skin.fg4),
+                  ),
+                  onChanged: (v) {
+                    switch (col.type) {
+                      case SuperColumnType.date:
+                        _maskedSet(v, SuperColumnLogic.maskDate);
+                        break;
+                      case SuperColumnType.time:
+                        _maskedSet(v, SuperColumnLogic.maskTime);
+                        break;
+                      default:
+                        _set(v);
+                    }
                   },
-                  size: 14,
-                  color: skin.fg2,
                 ),
               ),
             ),
-        ]),
+            if (showTrigger)
+              GestureDetector(
+                onTap: () => _popup != null ? _closePopup() : _openPopup(),
+                child: Container(
+                  width: 26,
+                  height: 26,
+                  margin: const EdgeInsets.symmetric(horizontal: 3),
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: skin.inputBg,
+                    border: Border.all(color: skin.borderStrong),
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  child: Icon(
+                    switch (col.type) {
+                      SuperColumnType.date => Icons.calendar_today_rounded,
+                      SuperColumnType.time => Icons.schedule_rounded,
+                      _ => Icons.expand_more_rounded,
+                    },
+                    size: 14,
+                    color: skin.fg2,
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
 
   String? _hint(SuperColumn col) => switch (col.type) {
-        SuperColumnType.date => 'YYYY-MM-DD',
-        SuperColumnType.time => 'HH:mm',
-        SuperColumnType.color => '#RRGGBB',
-        _ => (col.min != null || col.max != null) ? '${col.min ?? '−∞'}…${col.max ?? '∞'}' : null,
-      };
+    SuperColumnType.date => 'YYYY-MM-DD',
+    SuperColumnType.time => 'HH:mm',
+    SuperColumnType.color => '#RRGGBB',
+    _ =>
+      (col.min != null || col.max != null)
+          ? '${col.min ?? '−∞'}…${col.max ?? '∞'}'
+          : null,
+  };
 
   void _onKey(KeyEvent e) {
     if (e is! KeyDownEvent) return;
@@ -686,7 +902,14 @@ class _SuperCellEditorState extends State<SuperCellEditor> {
       if (s.isEmpty) {
         widget.onCommit(override: '', dr: dr, dc: dc);
       } else {
-        widget.onCommit(override: SuperColumnLogic.clampNum(SuperColumnLogic.numVal(s), widget.col), dr: dr, dc: dc);
+        widget.onCommit(
+          override: SuperColumnLogic.clampNum(
+            SuperColumnLogic.numVal(s),
+            widget.col,
+          ),
+          dr: dr,
+          dc: dc,
+        );
       }
       return;
     }
@@ -742,13 +965,16 @@ class _OptionListState extends State<_OptionList> {
       if (target < _scroll.offset) {
         _scroll.jumpTo(target);
       } else if (target + _rowH > _scroll.offset + vpH) {
-        _scroll.jumpTo((target + _rowH - vpH).clamp(0.0, _scroll.position.maxScrollExtent));
+        _scroll.jumpTo(
+          (target + _rowH - vpH).clamp(0.0, _scroll.position.maxScrollExtent),
+        );
       }
     }
   }
 
   KeyEventResult _onKey(FocusNode n, KeyEvent e) {
-    if (e is! KeyDownEvent && e is! KeyRepeatEvent) return KeyEventResult.ignored;
+    if (e is! KeyDownEvent && e is! KeyRepeatEvent)
+      return KeyEventResult.ignored;
     final k = e.logicalKey;
     if (k == LogicalKeyboardKey.arrowDown) {
       _move(1);
@@ -759,7 +985,8 @@ class _OptionListState extends State<_OptionList> {
       return KeyEventResult.handled;
     }
     if (k == LogicalKeyboardKey.enter || k == LogicalKeyboardKey.numpadEnter) {
-      if (_hi >= 0 && _hi < widget.options.length) widget.onPick(widget.options[_hi]);
+      if (_hi >= 0 && _hi < widget.options.length)
+        widget.onPick(widget.options[_hi]);
       return KeyEventResult.handled;
     }
     if (k == LogicalKeyboardKey.escape) {
@@ -767,7 +994,8 @@ class _OptionListState extends State<_OptionList> {
       return KeyEventResult.handled;
     }
     if (k == LogicalKeyboardKey.tab) {
-      if (_hi >= 0 && _hi < widget.options.length) widget.onPick(widget.options[_hi]);
+      if (_hi >= 0 && _hi < widget.options.length)
+        widget.onPick(widget.options[_hi]);
       return KeyEventResult.handled;
     }
     return KeyEventResult.ignored;
@@ -789,10 +1017,17 @@ class _OptionListState extends State<_OptionList> {
                 selected: widget.options[i] == widget.selected,
                 highlighted: widget.keyboard && i == _hi,
                 onTap: () => widget.onPick(widget.options[i]),
-                child: Row(children: [
-                  Expanded(child: widget.builder(widget.options[i])),
-                  if (widget.options[i] == widget.selected) Icon(Icons.check_rounded, size: 14, color: skin.accent(context)),
-                ]),
+                child: Row(
+                  children: [
+                    Expanded(child: widget.builder(widget.options[i])),
+                    if (widget.options[i] == widget.selected)
+                      Icon(
+                        Icons.check_rounded,
+                        size: 14,
+                        color: skin.accent(context),
+                      ),
+                  ],
+                ),
               ),
           ],
         ),
@@ -809,7 +1044,13 @@ class _PopRow extends StatefulWidget {
   final bool highlighted;
   final VoidCallback onTap;
   final Widget child;
-  const _PopRow({required this.skin, required this.selected, this.highlighted = false, required this.onTap, required this.child});
+  const _PopRow({
+    required this.skin,
+    required this.selected,
+    this.highlighted = false,
+    required this.onTap,
+    required this.child,
+  });
   @override
   State<_PopRow> createState() => _PopRowState();
 }
@@ -829,7 +1070,11 @@ class _PopRowState extends State<_PopRow> {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 7),
           decoration: BoxDecoration(
-            color: lit ? s.hover : (widget.selected ? s.accentWash(context, 0.12) : Colors.transparent),
+            color: lit
+                ? s.hover
+                : (widget.selected
+                      ? s.accentWash(context, 0.12)
+                      : Colors.transparent),
             borderRadius: BorderRadius.circular(6),
           ),
           child: widget.child,
@@ -847,7 +1092,8 @@ class _SwatchGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final skin = SuperTableSkin.of(context);
-    String hex(Color c) => '#${(c.value & 0xFFFFFF).toRadixString(16).padLeft(6, '0').toUpperCase()}';
+    String hex(Color c) =>
+        '#${(c.value & 0xFFFFFF).toRadixString(16).padLeft(6, '0').toUpperCase()}';
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -865,8 +1111,12 @@ class _SwatchGrid extends StatelessWidget {
                     color: c,
                     borderRadius: BorderRadius.circular(5),
                     border: Border.all(
-                      color: hex(c).toLowerCase() == value.toLowerCase() ? skin.fg1 : const Color(0x40000000),
-                      width: hex(c).toLowerCase() == value.toLowerCase() ? 2 : 1,
+                      color: hex(c).toLowerCase() == value.toLowerCase()
+                          ? skin.fg1
+                          : const Color(0x40000000),
+                      width: hex(c).toLowerCase() == value.toLowerCase()
+                          ? 2
+                          : 1,
                     ),
                   ),
                 ),
@@ -890,7 +1140,20 @@ class _MiniCalendar extends StatefulWidget {
 class _MiniCalendarState extends State<_MiniCalendar> {
   late int _y;
   late int _m;
-  static const _months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  static const _months = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ];
   static const _dow = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
   @override
@@ -902,7 +1165,8 @@ class _MiniCalendarState extends State<_MiniCalendar> {
     _m = init.month;
   }
 
-  String _iso(int d) => '$_y-${_m.toString().padLeft(2, '0')}-${d.toString().padLeft(2, '0')}';
+  String _iso(int d) =>
+      '$_y-${_m.toString().padLeft(2, '0')}-${d.toString().padLeft(2, '0')}';
 
   void _step(int delta) {
     setState(() {
@@ -927,58 +1191,99 @@ class _MiniCalendarState extends State<_MiniCalendar> {
     final days = DateTime(_y, _m + 1, 0).day;
     final startDow = DateTime(_y, _m, 1).weekday % 7;
     final now = DateTime.now();
-    final todayIso = '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
-    final cells = <int?>[for (var i = 0; i < startDow; i++) null, for (var d = 1; d <= days; d++) d];
+    final todayIso =
+        '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+    final cells = <int?>[
+      for (var i = 0; i < startDow; i++) null,
+      for (var d = 1; d <= days; d++) d,
+    ];
 
     Widget navBtn(IconData ic, VoidCallback onTap) => GestureDetector(
-          onTap: onTap,
-          child: Container(width: 24, height: 24, alignment: Alignment.center, child: Icon(ic, size: 15, color: skin.fg2)),
-        );
+      onTap: onTap,
+      child: Container(
+        width: 24,
+        height: 24,
+        alignment: Alignment.center,
+        child: Icon(ic, size: 15, color: skin.fg2),
+      ),
+    );
 
     return SizedBox(
       width: 240,
-      child: Column(mainAxisSize: MainAxisSize.min, children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(4, 2, 4, 8),
-          child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-            navBtn(Icons.chevron_left_rounded, () => _step(-1)),
-            Text('${_months[_m - 1]} $_y', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: skin.fg1)),
-            navBtn(Icons.chevron_right_rounded, () => _step(1)),
-          ]),
-        ),
-        GridView.count(
-          crossAxisCount: 7,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          mainAxisSpacing: 2,
-          crossAxisSpacing: 2,
-          childAspectRatio: 1.15,
-          children: [
-            for (final d in _dow)
-              Center(child: Text(d, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: skin.fg4))),
-            for (final d in cells)
-              if (d == null)
-                const SizedBox.shrink()
-              else
-                _CalDay(
-                  skin: skin,
-                  day: d,
-                  selected: _iso(d) == widget.value,
-                  today: _iso(d) == todayIso,
-                  onTap: () => widget.onPick(_iso(d)),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(4, 2, 4, 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                navBtn(Icons.chevron_left_rounded, () => _step(-1)),
+                Text(
+                  '${_months[_m - 1]} $_y',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: skin.fg1,
+                  ),
                 ),
-          ],
-        ),
-        Padding(
-          padding: const EdgeInsets.only(top: 6),
-          child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-            GestureDetector(
-              onTap: () => widget.onPick(todayIso),
-              child: Text('Today', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: skin.accent(context))),
+                navBtn(Icons.chevron_right_rounded, () => _step(1)),
+              ],
             ),
-          ]),
-        ),
-      ]),
+          ),
+          GridView.count(
+            crossAxisCount: 7,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            mainAxisSpacing: 2,
+            crossAxisSpacing: 2,
+            childAspectRatio: 1.15,
+            children: [
+              for (final d in _dow)
+                Center(
+                  child: Text(
+                    d,
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      color: skin.fg4,
+                    ),
+                  ),
+                ),
+              for (final d in cells)
+                if (d == null)
+                  const SizedBox.shrink()
+                else
+                  _CalDay(
+                    skin: skin,
+                    day: d,
+                    selected: _iso(d) == widget.value,
+                    today: _iso(d) == todayIso,
+                    onTap: () => widget.onPick(_iso(d)),
+                  ),
+            ],
+          ),
+          Padding(
+            padding: const EdgeInsets.only(top: 6),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                GestureDetector(
+                  onTap: () => widget.onPick(todayIso),
+                  child: Text(
+                    'Today',
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w600,
+                      color: skin.accent(context),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -989,7 +1294,13 @@ class _CalDay extends StatefulWidget {
   final bool selected;
   final bool today;
   final VoidCallback onTap;
-  const _CalDay({required this.skin, required this.day, required this.selected, required this.today, required this.onTap});
+  const _CalDay({
+    required this.skin,
+    required this.day,
+    required this.selected,
+    required this.today,
+    required this.onTap,
+  });
   @override
   State<_CalDay> createState() => _CalDayState();
 }
@@ -999,7 +1310,9 @@ class _CalDayState extends State<_CalDay> {
   @override
   Widget build(BuildContext context) {
     final s = widget.skin;
-    final bg = widget.selected ? s.accent(context) : (_h ? s.hover : Colors.transparent);
+    final bg = widget.selected
+        ? s.accent(context)
+        : (_h ? s.hover : Colors.transparent);
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       onEnter: (_) => setState(() => _h = true),
@@ -1011,13 +1324,18 @@ class _CalDayState extends State<_CalDay> {
           decoration: BoxDecoration(
             color: bg,
             borderRadius: BorderRadius.circular(6),
-            border: widget.today && !widget.selected ? Border.all(color: s.borderStrong) : null,
+            border: widget.today && !widget.selected
+                ? Border.all(color: s.borderStrong)
+                : null,
           ),
-          child: Text('${widget.day}',
-              style: TextStyle(
-                  fontFamily: SuperTokensFonts.mono,
-                  fontSize: 12.5,
-                  color: widget.selected ? Colors.white : s.fg1)),
+          child: Text(
+            '${widget.day}',
+            style: TextStyle(
+              fontFamily: SuperTokensFonts.mono,
+              fontSize: 12.5,
+              color: widget.selected ? Colors.white : s.fg1,
+            ),
+          ),
         ),
       ),
     );

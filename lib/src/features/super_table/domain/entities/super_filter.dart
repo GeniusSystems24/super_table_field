@@ -31,7 +31,9 @@ class FilterItem<T> {
 
   @override
   bool operator ==(Object other) =>
-      other is FilterItem<T> && other.display == display && other.value == value;
+      other is FilterItem<T> &&
+      other.display == display &&
+      other.value == value;
   @override
   int get hashCode => Object.hash(display, value);
 }
@@ -71,8 +73,9 @@ class StreamFilterValueSource<T> extends FilterValueSource<T> {
 abstract final class FilterValueSources {
   static FilterValueSource<T> sync<T>(List<FilterItem<T>> items) =>
       SyncFilterValueSource<T>(items);
-  static FilterValueSource<T> async<T>(Future<List<FilterItem<T>>> Function() load) =>
-      AsyncFilterValueSource<T>(load);
+  static FilterValueSource<T> async<T>(
+    Future<List<FilterItem<T>>> Function() load,
+  ) => AsyncFilterValueSource<T>(load);
   static FilterValueSource<T> stream<T>(Stream<List<FilterItem<T>>> stream) =>
       StreamFilterValueSource<T>(stream);
 }
@@ -95,10 +98,13 @@ enum FilterOp {
   const FilterOp(this.wire);
   final String wire;
 
-  static FilterOp fromWire(String? s) =>
-      FilterOp.values.firstWhere((o) => o.wire == s, orElse: () => FilterOp.contains);
+  static FilterOp fromWire(String? s) => FilterOp.values.firstWhere(
+    (o) => o.wire == s,
+    orElse: () => FilterOp.contains,
+  );
 
-  bool get needsValue => this != FilterOp.isEmpty && this != FilterOp.isNotEmpty;
+  bool get needsValue =>
+      this != FilterOp.isEmpty && this != FilterOp.isNotEmpty;
   bool get needsSecondValue => this == FilterOp.between;
 }
 
@@ -121,22 +127,27 @@ class AdvancedFilterClause {
     this.value2,
   });
 
-  AdvancedFilterClause copyWith({String? columnKey, FilterOp? op, Object? value, Object? value2}) =>
-      AdvancedFilterClause(
-        columnKey: columnKey ?? this.columnKey,
-        op: op ?? this.op,
-        value: value ?? this.value,
-        value2: value2 ?? this.value2,
-      );
+  AdvancedFilterClause copyWith({
+    String? columnKey,
+    FilterOp? op,
+    Object? value,
+    Object? value2,
+  }) => AdvancedFilterClause(
+    columnKey: columnKey ?? this.columnKey,
+    op: op ?? this.op,
+    value: value ?? this.value,
+    value2: value2 ?? this.value2,
+  );
 
   Map<String, dynamic> toJson() => {
-        'column': columnKey,
-        'op': op.wire,
-        if (value != null) 'value': value,
-        if (value2 != null) 'value2': value2,
-      };
+    'column': columnKey,
+    'op': op.wire,
+    if (value != null) 'value': value,
+    if (value2 != null) 'value2': value2,
+  };
 
-  factory AdvancedFilterClause.fromJson(Map<String, dynamic> j) => AdvancedFilterClause(
+  factory AdvancedFilterClause.fromJson(Map<String, dynamic> j) =>
+      AdvancedFilterClause(
         columnKey: '${j['column']}',
         op: FilterOp.fromWire(j['op'] as String?),
         value: j['value'],
@@ -173,36 +184,39 @@ class SuperFilterState {
   });
 
   bool get isEmpty =>
-      columnFilters.isEmpty && advanced.isEmpty && !advancedActive && search.trim().isEmpty;
+      columnFilters.isEmpty &&
+      advanced.isEmpty &&
+      !advancedActive &&
+      search.trim().isEmpty;
 
   SuperFilterState copyWith({
     Map<String, Object?>? columnFilters,
     List<AdvancedFilterClause>? advanced,
     bool? advancedActive,
     String? search,
-  }) =>
-      SuperFilterState(
-        columnFilters: columnFilters ?? this.columnFilters,
-        advanced: advanced ?? this.advanced,
-        advancedActive: advancedActive ?? this.advancedActive,
-        search: search ?? this.search,
-      );
+  }) => SuperFilterState(
+    columnFilters: columnFilters ?? this.columnFilters,
+    advanced: advanced ?? this.advanced,
+    advancedActive: advancedActive ?? this.advancedActive,
+    search: search ?? this.search,
+  );
 
   /// A structured JSON object suitable for persistence or a backend query.
   Map<String, dynamic> toJson() => {
-        'search': search,
-        'advancedActive': advancedActive,
-        'columnFilters': columnFilters,
-        'advanced': [for (final c in advanced) c.toJson()],
-      };
+    'search': search,
+    'advancedActive': advancedActive,
+    'columnFilters': columnFilters,
+    'advanced': [for (final c in advanced) c.toJson()],
+  };
 
   factory SuperFilterState.fromJson(Map<String, dynamic> j) => SuperFilterState(
-        search: '${j['search'] ?? ''}',
-        advancedActive: j['advancedActive'] == true,
-        columnFilters: (j['columnFilters'] as Map?)?.cast<String, Object?>() ?? const {},
-        advanced: [
-          for (final c in (j['advanced'] as List? ?? const []))
-            AdvancedFilterClause.fromJson((c as Map).cast<String, dynamic>()),
-        ],
-      );
+    search: '${j['search'] ?? ''}',
+    advancedActive: j['advancedActive'] == true,
+    columnFilters:
+        (j['columnFilters'] as Map?)?.cast<String, Object?>() ?? const {},
+    advanced: [
+      for (final c in (j['advanced'] as List? ?? const []))
+        AdvancedFilterClause.fromJson((c as Map).cast<String, dynamic>()),
+    ],
+  );
 }

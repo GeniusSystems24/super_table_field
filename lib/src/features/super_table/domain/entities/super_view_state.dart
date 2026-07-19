@@ -77,30 +77,29 @@ class SuperViewState {
     List<String>? groupKeys,
     List<String>? collapsedPaths,
     SuperFilterState? filters,
-  }) =>
-      SuperViewState(
-        order: order ?? this.order,
-        widths: widths ?? this.widths,
-        visibleKeys: visibleKeys ?? this.visibleKeys,
-        pins: pins ?? this.pins,
-        sortKey: sortKey ?? this.sortKey,
-        sortAscending: sortAscending ?? this.sortAscending,
-        groupKeys: groupKeys ?? this.groupKeys,
-        collapsedPaths: collapsedPaths ?? this.collapsedPaths,
-        filters: filters ?? this.filters,
-      );
+  }) => SuperViewState(
+    order: order ?? this.order,
+    widths: widths ?? this.widths,
+    visibleKeys: visibleKeys ?? this.visibleKeys,
+    pins: pins ?? this.pins,
+    sortKey: sortKey ?? this.sortKey,
+    sortAscending: sortAscending ?? this.sortAscending,
+    groupKeys: groupKeys ?? this.groupKeys,
+    collapsedPaths: collapsedPaths ?? this.collapsedPaths,
+    filters: filters ?? this.filters,
+  );
 
   Map<String, dynamic> toJson() => {
-        'v': 1,
-        if (order != null) 'order': order,
-        if (widths.isNotEmpty) 'widths': widths,
-        if (visibleKeys != null) 'visible': visibleKeys,
-        if (pins.isNotEmpty) 'pins': pins,
-        if (sortKey != null) 'sort': {'key': sortKey, 'asc': sortAscending},
-        if (groupKeys.isNotEmpty) 'groups': groupKeys,
-        if (collapsedPaths.isNotEmpty) 'collapsed': collapsedPaths,
-        if (filters != null) 'filters': filters!.toJson(),
-      };
+    'v': 1,
+    if (order != null) 'order': order,
+    if (widths.isNotEmpty) 'widths': widths,
+    if (visibleKeys != null) 'visible': visibleKeys,
+    if (pins.isNotEmpty) 'pins': pins,
+    if (sortKey != null) 'sort': {'key': sortKey, 'asc': sortAscending},
+    if (groupKeys.isNotEmpty) 'groups': groupKeys,
+    if (collapsedPaths.isNotEmpty) 'collapsed': collapsedPaths,
+    if (filters != null) 'filters': filters!.toJson(),
+  };
 
   factory SuperViewState.fromJson(Map<String, dynamic> j) {
     final sort = j['sort'];
@@ -112,14 +111,19 @@ class SuperViewState {
       },
       visibleKeys: (j['visible'] as List?)?.map((e) => '$e').toList(),
       pins: {
-        for (final e in ((j['pins'] as Map?) ?? const {}).entries) '${e.key}': '${e.value}',
+        for (final e in ((j['pins'] as Map?) ?? const {}).entries)
+          '${e.key}': '${e.value}',
       },
       sortKey: sort is Map ? sort['key'] as String? : null,
       sortAscending: sort is Map ? sort['asc'] != false : true,
       groupKeys: [for (final k in (j['groups'] as List? ?? const [])) '$k'],
-      collapsedPaths: [for (final p in (j['collapsed'] as List? ?? const [])) '$p'],
+      collapsedPaths: [
+        for (final p in (j['collapsed'] as List? ?? const [])) '$p',
+      ],
       filters: j['filters'] is Map
-          ? SuperFilterState.fromJson((j['filters'] as Map).cast<String, dynamic>())
+          ? SuperFilterState.fromJson(
+              (j['filters'] as Map).cast<String, dynamic>(),
+            )
           : null,
     );
   }

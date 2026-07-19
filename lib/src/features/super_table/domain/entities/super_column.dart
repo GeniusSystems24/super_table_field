@@ -22,6 +22,8 @@
 // (Color, FontWeight) and BuildContext (handed to the callbacks).
 // ============================================================
 
+// ignore_for_file: strict_raw_type
+
 import 'package:flutter/widgets.dart' show BuildContext, Color;
 
 import '../../presentation/controllers/super_table_controller.dart';
@@ -54,8 +56,8 @@ enum SuperColumnType {
   final String wire;
 
   /// Parse from the wire token, defaulting to [text].
-  static SuperColumnType fromWire(String? s) =>
-      SuperColumnType.values.firstWhere((t) => t.wire == s, orElse: () => SuperColumnType.text);
+  static SuperColumnType fromWire(String? s) => SuperColumnType.values
+      .firstWhere((t) => t.wire == s, orElse: () => SuperColumnType.text);
 
   bool get isNumeric => this == number || this == currency || this == progress;
   bool get isDerived => this == computed || this == readonly;
@@ -76,39 +78,43 @@ enum SuperAgg { none, sum, avg, count, min, max, custom }
 /// sibling cells (`row.cells['k'].value = …`) or bump the row's rebuild token
 /// (`row.fingerPrint = …` / `row.randomFingerPrint()`). Return `true` to accept
 /// [newValue], `false` to reject it (the edit is reverted).
-typedef SuperColumnChange<T> = bool Function(
-  BuildContext context,
-  SuperTableController controller,
-  SuperRow row,
-  SuperCell cell,
-  T previousValue,
-  T newValue,
-);
+typedef SuperColumnChange<T> =
+    bool Function(
+      BuildContext context,
+      SuperTableController controller,
+      SuperRow row,
+      SuperCell cell,
+      T previousValue,
+      T newValue,
+    );
 
 /// Returns an error code/message for [value] (editable mode), or null if valid.
-typedef SuperColumnValidator<T> = String? Function(
-  BuildContext context,
-  SuperTableController controller,
-  SuperRow row,
-  SuperCell cell,
-  T value,
-);
+typedef SuperColumnValidator<T> =
+    String? Function(
+      BuildContext context,
+      SuperTableController controller,
+      SuperRow row,
+      SuperCell cell,
+      T value,
+    );
 
 /// A cell-level style condition (readable mode). First match wins.
-typedef SuperCellCondition = bool Function(
-  BuildContext context,
-  SuperTableController controller,
-  SuperRow row,
-  SuperCell cell,
-);
+typedef SuperCellCondition =
+    bool Function(
+      BuildContext context,
+      SuperTableController controller,
+      SuperRow row,
+      SuperCell cell,
+    );
 
 /// A row-level style condition (readable mode). First match wins; row styles
 /// take priority over cell styles.
-typedef SuperRowCondition = bool Function(
-  BuildContext context,
-  SuperTableController controller,
-  SuperRow row,
-);
+typedef SuperRowCondition =
+    bool Function(
+      BuildContext context,
+      SuperTableController controller,
+      SuperRow row,
+    );
 
 /// A custom column aggregator (see [SuperColumn.aggregator]). Receives the rows
 /// in scope (the whole filtered table for the totals row, or one group's rows
@@ -191,8 +197,10 @@ class SuperColumn<T> {
 
   // ── derived ──
   final Object? Function(SuperRow row)? compute; // computed value
-  final Object? Function(SuperRow row)? accessor; // custom raw read (sort/search)
-  final String Function(Object? value, SuperRow row)? format; // computed display
+  final Object? Function(SuperRow row)?
+  accessor; // custom raw read (sort/search)
+  final String Function(Object? value, SuperRow row)?
+  format; // computed display
 
   /// Optional display formatter (see [SuperColumnFormatter]) — overrides the
   /// built-in cell rendering with the plain text it returns. Display-only; null
@@ -274,8 +282,10 @@ class SuperColumn<T> {
     this.styles,
     this.filterSource,
     this.filterItems,
-  }) : assert(agg != SuperAgg.custom || aggregator != null,
-            'SuperAgg.custom requires an aggregator function');
+  }) : assert(
+         agg != SuperAgg.custom || aggregator != null,
+         'SuperAgg.custom requires an aggregator function',
+       );
 
   /// The raw, untyped value of this column for [row]: compute ▸ accessor ▸ cell.
   Object? rawValue(SuperRow row) {
@@ -309,7 +319,10 @@ class SuperColumn<T> {
     if (opts != null) {
       return [
         for (var i = 0; i < opts!.length; i++)
-          FilterItem<T>(opts![i], (optValues != null ? optValues![i] : opts![i]) as T),
+          FilterItem<T>(
+            opts![i],
+            (optValues != null ? optValues![i] : opts![i]) as T,
+          ),
       ];
     }
     return null;
@@ -323,46 +336,45 @@ class SuperColumn<T> {
     SuperAgg? agg,
     int? decimals,
     bool? colorSign,
-  }) =>
-      SuperColumn<T>(
-        key: key,
-        label: label,
-        type: type ?? this.type,
-        width: width ?? this.width,
-        align: align ?? this.align,
-        pin: pin ?? this.pin,
-        agg: agg ?? this.agg,
-        aggregator: aggregator,
-        aggLabel: aggLabel,
-        editable: editable,
-        sortable: sortable,
-        groupable: groupable,
-        filterable: filterable,
-        required: required,
-        mono: mono,
-        hidden: hidden,
-        unique: unique,
-        colorSign: colorSign ?? this.colorSign,
-        min: min,
-        max: max,
-        decimals: decimals ?? this.decimals,
-        prefix: prefix,
-        suffix: suffix,
-        opts: opts,
-        optValues: optValues,
-        tones: tones,
-        dot: dot,
-        arKey: arKey,
-        compute: compute,
-        accessor: accessor,
-        format: format,
-        formatter: formatter,
-        read: read,
-        write: write,
-        onChange: onChange,
-        validator: validator,
-        styles: styles,
-        filterSource: filterSource,
-        filterItems: filterItems,
-      );
+  }) => SuperColumn<T>(
+    key: key,
+    label: label,
+    type: type ?? this.type,
+    width: width ?? this.width,
+    align: align ?? this.align,
+    pin: pin ?? this.pin,
+    agg: agg ?? this.agg,
+    aggregator: aggregator,
+    aggLabel: aggLabel,
+    editable: editable,
+    sortable: sortable,
+    groupable: groupable,
+    filterable: filterable,
+    required: required,
+    mono: mono,
+    hidden: hidden,
+    unique: unique,
+    colorSign: colorSign ?? this.colorSign,
+    min: min,
+    max: max,
+    decimals: decimals ?? this.decimals,
+    prefix: prefix,
+    suffix: suffix,
+    opts: opts,
+    optValues: optValues,
+    tones: tones,
+    dot: dot,
+    arKey: arKey,
+    compute: compute,
+    accessor: accessor,
+    format: format,
+    formatter: formatter,
+    read: read,
+    write: write,
+    onChange: onChange,
+    validator: validator,
+    styles: styles,
+    filterSource: filterSource,
+    filterItems: filterItems,
+  );
 }
