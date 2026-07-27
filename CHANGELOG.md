@@ -3,6 +3,31 @@
 All notable changes to **super_table_field** are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/); versioning is [SemVer](https://semver.org/).
 
+## [2.4.0] — 2026-07-27
+
+### Changed
+
+- Migrated the package from `super_core` 2.4.x to `super_core ^3.0.0`.
+- Updated `super_auto_suggestion_box` to exact version `0.9.0`.
+- Raised the package and example minimums to Dart 3.8 and Flutter 3.32.
+- Moved spacing and radius reads from `SuperTokensData` to the responsive
+  `context.superTheme.spacing` bundle.
+- Replaced the gallery's hand-built cards with `SuperSectionCard` and its page
+  frame with `SuperScaffold`.
+- Simplified example theme setup to `SuperMaterialThemeData.light()` and
+  `SuperMaterialThemeData.dark()`; the suggestion-box theme derives from it.
+- Replaced duplicated static font-family constants with the active
+  `SuperThemeData.tokens` font families, so host font overrides propagate into
+  the table.
+- Replaced deprecated `Color.withOpacity` calls with `Color.withValues`.
+- Removed missing asset declarations and stale generated example metadata.
+
+### Migration
+
+See [MIGRATION.md](MIGRATION.md) for consumer changes and validation commands.
+
+---
+
 ## [2.3.0] — 2026-07-16
 
 ### Changed
@@ -19,6 +44,7 @@ All notable changes to **super_table_field** are documented here. Format follows
     darkTheme: SuperMaterialThemeData.dark(mode: SuperDeviceMode.desktop),
   );
   ```
+
 - Minimum raised to `dart >=3.8.0`, `flutter >=3.32.0`.
 - Bumped `super_auto_suggestion_box` constraint to `^0.8.0`.
 
@@ -32,6 +58,7 @@ runtime column manager (reorder · show/hide · pin) with the API and saved-view
 persistence behind it.
 
 ### Added — Interaction events (`SuperInteractions`)
+
 - **`SuperTable(interactions: SuperInteractions<R>(...))`** — a bag of optional
   host callbacks the View fires in response to gestures and state changes. They
   are pure **observers**: the grid still selects, edits, sorts and opens its
@@ -56,6 +83,7 @@ persistence behind it.
   `SuperRowInteraction`, `SuperSelectionSnapshot`, `SuperSortSnapshot`.
 
 ### Added — Runtime column config
+
 - **`showSuperColumnManager(context, controller)`** — a dialog to **drag-reorder**
   columns, **toggle visibility** (eye), and **pin** each to an edge (left ·
   none · right), with a live *N of M shown* count and a *Reset*.
@@ -80,6 +108,7 @@ persistence behind it.
   visibility. `resetViewState()` clears them.
 
 ### Changed
+
 - Header cells now show the pin marker for **runtime** pins (`pinOf`), not only
   declared ones.
 - `example/` gains **17 · Interaction events**, **18 · Column config**, and
@@ -92,6 +121,7 @@ The **forms & views release** — five roadmap items land at once, everything
 opt-in and **fully backward compatible**, plus four correctness fixes.
 
 ### Added — Validation summary & unique columns
+
 - **`controller.validateAll({markCells})`** — the full validation pass over
   **every row** (not just the visible page): built-in type rules, the new
   `unique:` constraint, then each column's `validator`. Returns one
@@ -110,6 +140,7 @@ opt-in and **fully backward compatible**, plus four correctness fixes.
   (backed by `controller.errorCount`) whenever cell badges are lit.
 
 ### Added — Saved views (`SuperViewState`)
+
 - **`controller.viewState({includeFilters})` / `viewStateJson()`** — snapshot
   the user's column order, width overrides, visible-keys list, sort,
   group-bys, collapsed group paths, and (by default) the whole
@@ -120,6 +151,7 @@ opt-in and **fully backward compatible**, plus four correctness fixes.
 - **`resetViewState({clearFilters})`** — back to the column declarations.
 
 ### Added — Fill down / fill right
+
 - **`controller.fillDown()` / `fillRight()`** + **`⌘/Ctrl+D`** (range spanning
   rows) and **`⌘/Ctrl+R`** — Excel semantics: copy the range's top row
   downward / leading column rightward. Values are coerced per target column
@@ -129,6 +161,7 @@ opt-in and **fully backward compatible**, plus four correctness fixes.
   single row still **duplicates** it (unchanged since 0.3.0).
 
 ### Added — Group footers
+
 - **`SuperTable(groupFooters: true)`** — in readable grouped mode, each
   expanded group closes with a **Σ subtotal row**: group label in the first
   column, each aggregate aligned **under its own column** (count → group row
@@ -137,6 +170,7 @@ opt-in and **fully backward compatible**, plus four correctness fixes.
   `RenderItem.groupFooter(...)`; footers never enter the selectable `view`.
 
 ### Added — Per-cell / per-row revert
+
 - **`controller.revertCell(row, columnKey)`** and **`revertRow(row)`** —
   restore dirty cells to the change-tracking baseline; reverting an **added**
   row removes it. Both sync the backing object, record undo, fire `onChange`.
@@ -144,6 +178,7 @@ opt-in and **fully backward compatible**, plus four correctness fixes.
   **Revert row**, enabled only when dirty.
 
 ### Fixed
+
 - **Undo/redo now restores cell values.** History entries snapshot per-cell
   values + errors (and the deleted-row log) keyed by `SuperRow.id`, instead of
   only row membership — previously undoing a cell edit was a no-op because
@@ -160,6 +195,7 @@ opt-in and **fully backward compatible**, plus four correctness fixes.
   and clears stale undo history from the previous dataset.
 
 ### Changed
+
 - Keyboard-shortcuts dialog documents `⌘D` dual behaviour and `⌘R`.
 - `example/` gains **15 · Validation & saved views** and **16 · Fill · group
   footers · revert**.
@@ -170,6 +206,7 @@ Additive, **fully backward compatible**. Expandable row panels for Readable
 Mode with configurable keyboard shortcuts.
 
 ### Added — Expandable rows (`SuperRowExpansion`)
+
 - **`SuperTable(expansion: SuperRowExpansion(...))`** — attach animated
   expand/collapse panels to every data row in Readable Mode. Panels are built
   on demand by `SuperRowExpansionBuilder<R>` receiving the live `BuildContext`,
@@ -196,6 +233,7 @@ Mode with configurable keyboard shortcuts.
   skips the vertical scroll calculation in this mode.
 
 ### Added — Expansion keyboard shortcuts (`SuperRowExpansionKeymap`)
+
 - **`SuperRowExpansion(keymap: SuperRowExpansionKeymap())`** — opt in to
   keyboard control. When `keymap` is null (default) no shortcuts are registered
   and the existing navigation (arrow keys, Tab, etc.) is completely unchanged.
@@ -217,6 +255,7 @@ Mode with configurable keyboard shortcuts.
   keymap is active.
 
 ### Added — Example 14
+
 - `example_14_expandable_rows.dart` — a journal-entry ledger with a
   `_LineItemsPanel` expansion widget, per-row heights driven by line-item
   count, runtime Multi/Single mode toggle, and `SuperRowExpansionKeymap()`
@@ -229,6 +268,7 @@ report-style grids: aggregate **in code**, and keep dimensions that drive those
 aggregates **off the screen**.
 
 ### Added — Programmatic group aggregation
+
 - **`controller.groupAggregates({groupBy, aggregateColumns})`** returns a nested
   tree of **`SuperGroupAggregate`** nodes (one per group, with `children` for
   multi-level grouping). Each node carries its `rows`, `count`, and an
@@ -249,6 +289,7 @@ aggregates **off the screen**.
   `toJson()`).
 
 ### Added — Permanently-hidden columns
+
 - **`SuperColumn(hidden: true)`** (on the base column and every typed subclass).
   A hidden column is **never rendered** (header, body, filter row, totals, group
   headers), is excluded from **export** and the **column chooser**, and **cannot
@@ -261,6 +302,7 @@ aggregates **off the screen**.
   **`controller.hiddenColumns`** getters.
 
 ### Added — Display formatter
+
 - **`SuperColumn(formatter: (value, row) => String)`** on the base column and
   every typed subclass — overrides the built-in cell rendering (pills, bars,
   currency, …) with the plain text it returns. **Display-only**: sorting,
@@ -268,12 +310,14 @@ aggregates **off the screen**.
   **`SuperColumnFormatter`**.
 
 ### Changed — Header
+
 - Column headers **no longer display the data-type tag** (`TEXT` / `NUMBER` / …).
   Each header now shows just the column label and its sort / pin / group / drag
   affordances, at a single flat height. **`SuperTable(showTypeTags:)` is
   deprecated and ignored** — kept for source compatibility.
 
 ### Added — Sort cycling on column header left-click
+
 - **Left-clicking a sortable column header** now cycles through three states:
   1st click → ascending ↑ · 2nd click → descending ↓ · 3rd click → **clear sort**
   (returns to natural row order). The right-click / touch header menu gains a
@@ -294,6 +338,7 @@ expect from a DataGridView. **Fully backward compatible** — every new capabili
 is opt-in; existing `0.5.0` code is unchanged.
 
 ### Added — Change tracking
+
 - **`SuperTableController(trackChanges: true)`** captures a per-cell *baseline*
   and tracks every edit against it. No tracking overhead unless you opt in.
 - **`controller.changes`** returns a **`SuperChangeSet`** — `added` / `modified`
@@ -311,22 +356,26 @@ is opt-in; existing `0.5.0` code is unchanged.
   `revertToBaseline`; `SuperRow` gained `isNew`.
 
 ### Added — Export
+
 - **`toCsv()`**, **`toTsv()`**, **`toDelimited(delimiter:)`**, **`toJsonRows()`**,
   and **`copyCsvToClipboard()`** on the controller. Output honours the active
   filter, sort, and (by default) the on-screen column order.
 
 ### Added — Aggregations
+
 - **`SuperAgg.min`**, **`SuperAgg.max`**, and **`SuperAgg.custom`** with a per-column
   **`aggregator`** (`num? Function(List<SuperRow>)`) for weighted averages, running
   balances, distinct counts, etc.
 - **`aggLabel`** renames the aggregate shown in group headers.
 
 ### Added — Selection statistics
+
 - **`controller.selectionStats`** returns a **`SuperSelectionStats`**
   (`sum` / `average` / `min` / `max` / `count` / `numericCount`) over the selected
   numeric cells. The grid footer shows it automatically for 2+ numeric cells.
 
 ### Added — Editing
+
 - **`SuperTableController(cellEditable: (col, row) => bool)`** — per-cell edit
   locking, consulted in addition to mode + column rules (e.g. freeze *posted*
   rows). Exposed as **`controller.canEditRow(col, row)`**.
@@ -336,6 +385,7 @@ is opt-in; existing `0.5.0` code is unchanged.
   when tracking is on.
 
 ### Notes
+
 - `appendRows(...)` treats streamed-in rows as clean baseline data (not local
   edits) when `trackChanges` is on; `clearTable()` records deletions.
 - Five new runnable examples (7–12), one per feature.
@@ -343,6 +393,7 @@ is opt-in; existing `0.5.0` code is unchanged.
 ## [0.5.0] — 2026-06-18
 
 ### Changed
+
 - **`AutoSuggestionsBox` and the shared `core` foundation were split out into the
   new [`super_auto_suggestion_box`](../super_auto_suggestion_box) package**
   (also `0.5.0`). `super_table_field` now **depends on** that package and
@@ -352,6 +403,7 @@ is opt-in; existing `0.5.0` code is unchanged.
   changes are required** for existing consumers.
 
 ### Migration
+
 - None required for table users. If you only need the typeahead, depend on
   `super_auto_suggestion_box` directly and import
   `package:super_auto_suggestion_box/super_auto_suggestion_box.dart`.
@@ -363,6 +415,7 @@ class hierarchy, and the filtering / styling / focus / combo systems all gained
 programmatic surfaces.
 
 ### Breaking
+
 - **`SuperTable` → `SuperTable<R>`** and **`SuperTableController` → `SuperTableController<R>`**,
   generic over the row's backing type `R`.
 - **Rows are now `SuperRow<R>`** — a host-owned, typed `value` **plus** an editable
@@ -375,6 +428,7 @@ programmatic surfaces.
   remains as a flexible base.
 
 ### Added — Columns
+
 - **Typed column hierarchy**: `SuperTextColumn`, `SuperNumberColumn<T>`,
   `SuperCurrencyColumn`, `SuperEnumerationColumn<T>`, `SuperComboColumn<T>`,
   `SuperProgressColumn<T>`, `SuperColorColumn<T>` (number / text / `Color` value
@@ -386,6 +440,7 @@ programmatic surfaces.
 - **Conditional `styles`** per column (`CellStyle`).
 
 ### Added — SuperTable / controller
+
 - **Mode switching through the controller** — `setMode` / `toggleMode`.
 - **Table actions** — `appendRows`, `clearTable`, `requestLoadMore` / `loadMore`,
   `updateRows`, `updateColumns`, `setLoadMoreState`.
@@ -394,6 +449,7 @@ programmatic surfaces.
 - **`onKey`** — host keyboard hook on the controller (consult-before-default).
 
 ### Added — Filtering
+
 - **Advanced (cross-column) filter** — a button in the row-number header opens a
   clause editor; while active, column filters are cleared, disabled and slashed,
   and the button shows a red badge. Setting a column filter deactivates it.
@@ -406,6 +462,7 @@ programmatic surfaces.
   color columns (replacing bare `List<String>`).
 
 ### Added — Focus & combo
+
 - **Programmatic selection** — `selectCellAt`, `selectCells`, `selectRowAt`,
   `selectRowsAt`, `clearSelection`.
 - Clicking the **row-number** cell selects the whole row **without** moving the
@@ -415,6 +472,7 @@ programmatic surfaces.
   `fingerPrint` change). Access them via `comboControllerFor` / `comboSourceFor`.
 
 ### Fixed
+
 - **Tab on the last cell** now appends a new row and focuses its first cell.
 - **`⌘`/`Ctrl`+Enter** inserts a row after the focused row; add **Shift** to insert
   before — focus moves to the same column in the new row.
@@ -424,12 +482,14 @@ programmatic surfaces.
 - Load-more skeletons render at the **scroll tail** with an animated shimmer.
 
 ### Docs
+
 - README rewritten for 0.4.0 (concepts, typed columns, filtering, styling, combo,
   focus, keyboard). SKILL guide updated. Five new examples in `example/`.
 
 ## [0.3.0] — 2026-06-17
 
 ### Added — SuperTable
+
 - **Sticky row-number gutter** — the `#` column is now a frozen pane that stays
   put during horizontal scroll; its vertical offset is kept in lock-step with
   the body.
@@ -442,6 +502,7 @@ programmatic surfaces.
   `SuperMenuEntry.children` renders an expandable nested submenu to any depth.
 
 ### Changed — SuperTable
+
 - Per-column filters now render in **readable mode only**, sit **full-bleed**
   inside each header cell (no inset padding), and respect `SuperColumn.filterable`.
 - Grouping affordances are gated to readable mode.
@@ -450,6 +511,7 @@ programmatic surfaces.
   enumeration dropdown.
 
 ### Added — AutoSuggestionsBox
+
 - **`SuggestionSources.remoteFallback(...)`** — local-first progressive source:
   shows local matches instantly and fetches from a remote backend only when the
   local match count is `remoteThreshold` or fewer, merging results (de-duplicated)
@@ -464,6 +526,7 @@ programmatic surfaces.
   caret (`effectiveQuery`), so mid-string edits filter on the relevant prefix.
 
 ### Docs
+
 - README rewritten in pub.dev package-documentation style (Features / Getting
   started / Usage / Architecture / Example / Additional information).
 - Example gallery expanded: remote-fallback and advanced-search demos for the
@@ -472,6 +535,7 @@ programmatic surfaces.
 ## [0.2.0] — 2026-06-16
 
 ### Added
+
 - **Per-column filter row** under the table header (`SuperTable(columnFilters:)`,
   default on). `combo`/`enumeration` columns get a value dropdown, `checkbox`
   columns a tri-state (`All`/`Checked`/`Unchecked`), all other types a contains
@@ -483,6 +547,7 @@ programmatic surfaces.
 ## [0.1.0] — 2026-06-16
 
 ### Added
+
 - Initial release, extracted as a focused package from `super_toolkit`.
 - **`SuperTable`** — unified keyboard-first data grid with `readable` and
   `editable` modes; 13 column types (`text`, `number`, `currency`, `percent`,

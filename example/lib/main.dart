@@ -1,10 +1,9 @@
 // ============================================================
 // example/lib/main.dart
 // ------------------------------------------------------------
-// Gallery launcher for super_table_field. Registers the SuperThemeData +
-// AutoSuggestionsBoxThemeData extensions (so both components theme light/dark in
-// parity), exposes a global Light/Dark + LTR/RTL toggle, and lists the two
-// shipped demos:
+// Gallery launcher for super_table_field. Uses the super_core 2.4.0 generated
+// themes and responsive layout primitives, exposes a global Light/Dark + LTR/RTL
+// toggle, and lists the shipped demos:
 //   • SuperTable — the unified grid. Switch to Editable and double-click the
 //     "Unit" cell: it is a `combo` column edited through the AutoSuggestionsBox.
 //   • Auto Suggestion Box — the typeahead on its own.
@@ -46,18 +45,6 @@ class _ExampleAppState extends State<ExampleApp> {
   ThemeMode _mode = ThemeMode.dark;
   TextDirection _dir = TextDirection.ltr;
 
-  ThemeData _theme(SuperThemeData s) {
-    var superMaterialThemeData = (s.brightness == Brightness.dark
-        ? SuperMaterialThemeData.dark(mode: SuperDeviceMode.mobile)
-        : SuperMaterialThemeData.light());
-    return superMaterialThemeData.copyWith(
-      extensions: [
-        s,
-        AutoSuggestionsBoxThemeData.fromMaterialTheme(superMaterialThemeData),
-      ],
-    );
-  }
-
   void _toggleTheme() => setState(
       () => _mode = _mode == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark);
   void _toggleDir() => setState(() =>
@@ -69,8 +56,8 @@ class _ExampleAppState extends State<ExampleApp> {
       debugShowCheckedModeBanner: false,
       title: 'Super Table Field',
       themeMode: _mode,
-      theme: _theme(SuperThemeData.light),
-      darkTheme: _theme(SuperThemeData.dark),
+      theme: SuperMaterialThemeData.light(),
+      darkTheme: SuperMaterialThemeData.dark(),
       builder: (context, child) =>
           Directionality(textDirection: _dir, child: child!),
       home: _Launcher(
@@ -199,59 +186,62 @@ class _Launcher extends StatelessWidget {
         'Interactions + column manager + grouping + totals + tracking + export',
         Icons.dashboard_outlined,
         (_) => const ShowcaseExample()),
-    _Demo('Auto Suggestion Box', 'Typeahead · groups · multi-select · fuzzy',
-        Icons.manage_search_outlined, (_) => const AutoSuggestionBoxDemo()),
   ];
 
   @override
   Widget build(BuildContext context) {
-    final t = context.superTheme;
-    final cs = Theme.of(context).colorScheme;
+    final theme = context.superTheme;
+    final spacing = theme.spacing;
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
-      backgroundColor: t.bg,
+      backgroundColor: theme.bg,
       body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: EdgeInsets.all(SuperThemeData.of(context).tokens.space10),
-            child: ConstrainedBox(
-              constraints:
-                  BoxConstraints(maxWidth: SuperThemeData.of(context).tokens.contentColumn),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text('SUPER TABLE FIELD \u2022 GALLERY',
-                      style: SuperText.eyebrow.copyWith(color: cs.primary)),
-                  SizedBox(height: SuperThemeData.of(context).tokens.space2),
-                  Text('Component Demos مكتبة المكونات',
-                      style: SuperText.h1.copyWith(color: t.fg1)),
-                  SizedBox(height: SuperThemeData.of(context).tokens.space8),
-                  for (final d in _demos) ...[
-                    _DemoCard(demo: d),
-                    SizedBox(height: SuperThemeData.of(context).tokens.space3),
-                  ],
-                  SizedBox(height: SuperThemeData.of(context).tokens.space6),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SuperButton(
-                        label: mode == ThemeMode.dark
-                            ? 'Light Theme'
-                            : 'Dark Theme',
-                        variant: SuperButtonVariant.secondary,
-                        onPressed: onToggleTheme,
-                      ),
-                      SizedBox(width: SuperThemeData.of(context).tokens.space3),
-                      SuperButton(
-                        label: dir == TextDirection.ltr
-                            ? 'العربية (RTL)'
-                            : 'English (LTR)',
-                        variant: SuperButtonVariant.secondary,
-                        onPressed: onToggleDir,
-                      ),
-                    ],
+        child: SingleChildScrollView(
+          child: SuperScaffold(
+            maxWidth: 1120,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  'SUPER TABLE FIELD • GALLERY',
+                  style: theme.textTheme.eyebrow.copyWith(
+                    color: colorScheme.primary,
                   ),
+                ),
+                SizedBox(height: spacing.space2),
+                Text(
+                  'Component Demos مكتبة المكونات',
+                  style: theme.textTheme.h1.copyWith(color: theme.fg1),
+                ),
+                SizedBox(height: spacing.space8),
+                for (final demo in _demos) ...[
+                  _DemoCard(demo: demo),
+                  SizedBox(height: spacing.section),
                 ],
-              ),
+                SizedBox(height: spacing.space6),
+                Wrap(
+                  alignment: WrapAlignment.center,
+                  spacing: spacing.space3,
+                  runSpacing: spacing.space3,
+                  children: [
+                    SuperButton(
+                      label: mode == ThemeMode.dark
+                          ? 'Light Theme'
+                          : 'Dark Theme',
+                      variant: SuperButtonVariant.secondary,
+                      onPressed: onToggleTheme,
+                    ),
+                    SuperButton(
+                      label: dir == TextDirection.ltr
+                          ? 'العربية (RTL)'
+                          : 'English (LTR)',
+                      variant: SuperButtonVariant.secondary,
+                      onPressed: onToggleDir,
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
         ),
@@ -262,56 +252,57 @@ class _Launcher extends StatelessWidget {
 
 class _DemoCard extends StatelessWidget {
   const _DemoCard({required this.demo});
+
   final _Demo demo;
 
   @override
   Widget build(BuildContext context) {
-    final t = context.superTheme;
-    final cs = Theme.of(context).colorScheme;
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(SuperThemeData.of(context).tokens.radiusCard),
-        onTap: () => Navigator.of(context)
-            .push(MaterialPageRoute<void>(builder: demo.builder)),
-        child: Container(
-          padding: EdgeInsets.all(SuperThemeData.of(context).tokens.space4),
-          decoration: BoxDecoration(
-            color: t.surface,
-            borderRadius: BorderRadius.circular(SuperThemeData.of(context).tokens.radiusCard),
-            border: Border.all(color: t.border),
-            boxShadow: t.cardShadow,
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color:
-                      Color.alphaBlend(cs.primary.withOpacity(0.14), t.surface),
-                  borderRadius:
-                      BorderRadius.circular(SuperThemeData.of(context).tokens.radiusControl),
-                ),
-                child: Icon(demo.icon, size: 22, color: cs.primary),
+    final theme = context.superTheme;
+    final spacing = theme.spacing;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return SuperSectionCard(
+      onTap: () => Navigator.of(context).push(
+        MaterialPageRoute<void>(builder: demo.builder),
+      ),
+      padding: spacing.cardPadding,
+      child: Row(
+        children: [
+          Container(
+            width: spacing.controlHeight,
+            height: spacing.controlHeight,
+            decoration: BoxDecoration(
+              color: Color.alphaBlend(
+                colorScheme.primary.withValues(alpha: 0.14),
+                theme.surface,
               ),
-              SizedBox(width: SuperThemeData.of(context).tokens.space4),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(demo.title,
-                        style: SuperText.heading.copyWith(color: t.fg1)),
-                    const SizedBox(height: 2),
-                    Text(demo.subtitle,
-                        style: SuperText.caption.copyWith(color: t.fg3)),
-                  ],
-                ),
-              ),
-              Icon(Icons.chevron_right, color: t.fg4),
-            ],
+              borderRadius: spacing.borderRadiusControl,
+            ),
+            child: Icon(
+              demo.icon,
+              size: 22,
+              color: colorScheme.primary,
+            ),
           ),
-        ),
+          SizedBox(width: spacing.space4),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  demo.title,
+                  style: theme.textTheme.heading.copyWith(color: theme.fg1),
+                ),
+                SizedBox(height: spacing.space1),
+                Text(
+                  demo.subtitle,
+                  style: theme.textTheme.caption.copyWith(color: theme.fg3),
+                ),
+              ],
+            ),
+          ),
+          Icon(Icons.chevron_right, color: theme.fg4),
+        ],
       ),
     );
   }

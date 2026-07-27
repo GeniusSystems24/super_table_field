@@ -121,12 +121,19 @@ class _ChangePanel extends StatelessWidget {
     Widget chip(String label, int n, Color color) => Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
           decoration: BoxDecoration(
-            color: Color.alphaBlend(color.withOpacity(0.14), t.surface),
+            color: Color.alphaBlend(color.withValues(alpha: 0.14), t.surface),
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: color.withOpacity(0.5)),
+            border: Border.all(color: color.withValues(alpha: 0.5)),
           ),
           child: Row(mainAxisSize: MainAxisSize.min, children: [
-            Text('$n', style: TextStyle(fontFamily: 'JetBrainsMono', fontWeight: FontWeight.w700, color: color)),
+            Text(
+              '$n',
+              style: TextStyle(
+                fontFamily: context.superTheme.tokens.monoFont,
+                fontWeight: FontWeight.w700,
+                color: color,
+              ),
+            ),
             const SizedBox(width: 6),
             Text(label, style: TextStyle(fontSize: 12, color: t.fg2)),
           ]),

@@ -848,7 +848,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
                   color: skin.surface,
                   border: Border.all(color: skin.borderStrong),
                   borderRadius: BorderRadius.circular(
-                    SuperThemeData.of(context).tokens.radiusCard,
+                    context.superTheme.spacing.radiusCard,
                   ),
                   boxShadow: c.focused
                       ? [
@@ -1160,7 +1160,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
           Text(
             '${i + 1}',
             style: TextStyle(
-              fontFamily: SuperTokensFonts.mono,
+              fontFamily: context.superTheme.tokens.monoFont,
               fontSize: 10,
               color: skin.fg4,
             ),
@@ -1400,8 +1400,8 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
               textAlignVertical: TextAlignVertical.center,
               style: TextStyle(
                 fontFamily: col.mono
-                    ? SuperTokensFonts.mono
-                    : SuperTokensFonts.body,
+                    ? context.superTheme.tokens.monoFont
+                    : context.superTheme.tokens.bodyFont,
                 fontSize: 12,
                 color: skin.fg1,
               ),
@@ -1523,7 +1523,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
-              fontFamily: SuperTokensFonts.body,
+              fontFamily: context.superTheme.tokens.bodyFont,
               fontSize: 10,
               fontWeight: FontWeight.w700,
               letterSpacing: 0.5,
@@ -1776,7 +1776,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
               Text(
                 txt,
                 style: TextStyle(
-                  fontFamily: SuperTokensFonts.mono,
+                  fontFamily: context.superTheme.tokens.monoFont,
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
                   color: skin.fg2,
@@ -1856,7 +1856,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: TextStyle(
-            fontFamily: SuperTokensFonts.mono,
+            fontFamily: context.superTheme.tokens.monoFont,
             fontSize: 11.5,
             fontWeight: FontWeight.w700,
             color: skin.fg1,
@@ -1950,7 +1950,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
         child: Text(
           (r + 1).toString().padLeft(2, '0'),
           style: TextStyle(
-            fontFamily: SuperTokensFonts.mono,
+            fontFamily: context.superTheme.tokens.monoFont,
             fontSize: 11,
             fontWeight: rowActive ? FontWeight.w700 : FontWeight.w400,
             color: rowActive ? skin.accent(context) : skin.fg3,
@@ -2094,14 +2094,14 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
       outline = Border.all(color: skin.accent(context), width: 2);
     } else if (selected) {
       outline = Border.all(
-        color: skin.accent(context).withOpacity(0.45),
+        color: skin.accent(context).withValues(alpha: 0.45),
         width: 1,
       );
     } else if (selDim) {
       outline = Border.all(color: skin.borderStrong, width: 1);
     } else if (error != null && !isEditing) {
       outline = Border.all(
-        color: skin.danger(context).withOpacity(0.55),
+        color: skin.danger(context).withValues(alpha: 0.55),
         width: 1,
       );
     }
@@ -2380,7 +2380,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
             Text(
               (r + 1).toString().padLeft(2, '0'),
               style: TextStyle(
-                fontFamily: SuperTokensFonts.mono,
+                fontFamily: context.superTheme.tokens.monoFont,
                 fontSize: 10,
                 fontWeight: rowActive ? FontWeight.w700 : FontWeight.w400,
                 color: rowActive ? skin.accent(context) : skin.fg3,
@@ -2443,7 +2443,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         style: TextStyle(
-          fontFamily: SuperTokensFonts.mono,
+          fontFamily: context.superTheme.tokens.monoFont,
           fontSize: 12.5,
           fontWeight: FontWeight.w700,
           color: skin.fg1,
@@ -2596,7 +2596,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
             Text(
               'Sum ${fmt(stats.sum)}  ·  Avg ${fmt(stats.average)}  ·  Min ${fmt(stats.min!)}  ·  Max ${fmt(stats.max!)}  ·  Count ${stats.numericCount}',
               style: TextStyle(
-                fontFamily: SuperTokensFonts.mono,
+                fontFamily: context.superTheme.tokens.monoFont,
                 fontSize: 11.5,
                 color: skin.accent(context),
               ),
@@ -2673,7 +2673,7 @@ class _ValidationChip extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
           decoration: BoxDecoration(
             color: skin.tint(skin.danger(context), 0.07),
-            border: Border.all(color: skin.danger(context).withOpacity(0.3)),
+            border: Border.all(color: skin.danger(context).withValues(alpha: 0.3)),
             borderRadius: BorderRadius.circular(6),
           ),
           child: Row(
@@ -2733,7 +2733,7 @@ class _ShimmerState extends State<_Shimmer>
           width: widget.width,
           height: widget.height,
           decoration: BoxDecoration(
-            color: skin.inputBg.withOpacity(t),
+            color: skin.inputBg.withValues(alpha: t),
             borderRadius: BorderRadius.circular(4),
           ),
         );
@@ -2758,7 +2758,7 @@ class _DisabledFilter extends StatelessWidget {
         children: [
           Positioned.fill(
             child: CustomPaint(
-              painter: _SlashPainter(skin.fg4.withOpacity(0.5)),
+              painter: _SlashPainter(skin.fg4.withValues(alpha: 0.5)),
             ),
           ),
         ],
@@ -2848,7 +2848,7 @@ class _BarButtonState extends State<_BarButton> {
               color: on && _h ? s.hover : Colors.transparent,
               border: Border.all(color: s.borderStrong),
               borderRadius: BorderRadius.circular(
-                SuperThemeData.of(context).tokens.radiusControl,
+                context.superTheme.spacing.radiusControl,
               ),
             ),
             child: Row(
@@ -2862,7 +2862,7 @@ class _BarButtonState extends State<_BarButton> {
                   Text(
                     widget.label!,
                     style: TextStyle(
-                      fontFamily: SuperTokensFonts.body,
+                      fontFamily: context.superTheme.tokens.bodyFont,
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
                       color: s.fg2,
@@ -2947,7 +2947,7 @@ class _IconHoverButtonState extends State<_IconHoverButton> {
                         : s.accentWash(context, 0.14))
                   : Colors.transparent,
               borderRadius: BorderRadius.circular(
-                SuperThemeData.of(context).tokens.radiusControl,
+                context.superTheme.spacing.radiusControl,
               ),
             ),
             child: Icon(widget.icon, size: 14, color: color),
@@ -2988,7 +2988,7 @@ class _PageNumBtn extends StatelessWidget {
         child: Text(
           '${n + 1}',
           style: TextStyle(
-            fontFamily: SuperTokensFonts.mono,
+            fontFamily: context.superTheme.tokens.monoFont,
             fontSize: 12,
             fontWeight: FontWeight.w600,
             color: active ? Colors.white : skin.fg2,

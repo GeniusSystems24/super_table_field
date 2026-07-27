@@ -270,59 +270,55 @@ class _SuperTableDemoState extends State<SuperTableDemo> {
 
   @override
   Widget build(BuildContext context) {
-    final t = context.superTheme;
-    final cs = Theme.of(context).colorScheme;
+    final theme = context.superTheme;
+    final spacing = theme.spacing;
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
-      backgroundColor: t.bg,
+      backgroundColor: theme.bg,
       body: SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 1080),
-            child: Padding(
-              padding: EdgeInsets.all(SuperThemeData.of(context).tokens.space8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(
-                    'SUPER TABLE • UNIFIED DATA GRID',
-                    style: SuperText.eyebrow.copyWith(color: cs.primary),
-                  ),
-                  SizedBox(height: SuperThemeData.of(context).tokens.space2),
-                  Text(
-                    'Issue Inventory',
-                    style: SuperText.h1.copyWith(color: t.fg1),
-                  ),
-                  SizedBox(height: SuperThemeData.of(context).tokens.space6),
-                  _toolbar(t),
-                  SizedBox(height: SuperThemeData.of(context).tokens.space4),
-                  Flexible(
-                    child: SuperTable<_Row>(controller: _c, styles: _rowStyles),
-                  ),
-                  if (_toast != null) ...[
-                    SizedBox(height: SuperThemeData.of(context).tokens.space3),
-                    Align(
-                      alignment: AlignmentDirectional.centerStart,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: t.surface,
-                          border: Border.all(color: t.borderStrong),
-                          borderRadius: BorderRadius.circular(8),
-                          boxShadow: t.cardShadow,
-                        ),
-                        child: Text(
-                          _toast!,
-                          style: SuperText.caption.copyWith(color: t.fg1),
-                        ),
-                      ),
-                    ),
-                  ],
-                ],
+        child: SuperScaffold(
+          maxWidth: 1080,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'SUPER TABLE • UNIFIED DATA GRID',
+                style: theme.textTheme.eyebrow.copyWith(
+                  color: colorScheme.primary,
+                ),
               ),
-            ),
+              SizedBox(height: spacing.space2),
+              Text(
+                'Issue Inventory',
+                style: theme.textTheme.h1.copyWith(color: theme.fg1),
+              ),
+              SizedBox(height: spacing.space6),
+              _toolbar(theme),
+              SizedBox(height: spacing.space4),
+              Flexible(
+                child: SuperTable<_Row>(controller: _c, styles: _rowStyles),
+              ),
+              if (_toast != null) ...[
+                SizedBox(height: spacing.space3),
+                Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: Container(
+                    padding: spacing.containerPadding2,
+                    decoration: BoxDecoration(
+                      color: theme.surface,
+                      border: Border.all(color: theme.borderStrong),
+                      borderRadius: spacing.borderRadiusCard,
+                      boxShadow: theme.cardShadow,
+                    ),
+                    child: Text(
+                      _toast!,
+                      style: theme.textTheme.caption.copyWith(color: theme.fg1),
+                    ),
+                  ),
+                ),
+              ],
+            ],
           ),
         ),
       ),
@@ -330,9 +326,10 @@ class _SuperTableDemoState extends State<SuperTableDemo> {
   }
 
   Widget _toolbar(SuperThemeData t) {
+    final spacing = context.superTheme.spacing;
     return Wrap(
-      spacing: SuperThemeData.of(context).tokens.space2,
-      runSpacing: SuperThemeData.of(context).tokens.space2,
+      spacing: spacing.space2,
+      runSpacing: spacing.space2,
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
         ListenableBuilder(
@@ -393,7 +390,7 @@ class _SuperTableDemoState extends State<SuperTableDemo> {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text('$label  ', style: SuperText.caption.copyWith(color: t.fg3)),
+        Text('$label  ', style: t.textTheme.caption.copyWith(color: t.fg3)),
         Container(
           padding: const EdgeInsets.all(2),
           decoration: BoxDecoration(
@@ -418,7 +415,7 @@ class _SuperTableDemoState extends State<SuperTableDemo> {
                     ),
                     child: Text(
                       o.$1,
-                      style: SuperText.caption.copyWith(
+                      style: t.textTheme.caption.copyWith(
                         color: o.$2 ? Colors.white : t.fg2,
                         fontWeight: FontWeight.w600,
                       ),
@@ -440,7 +437,7 @@ class _SuperTableDemoState extends State<SuperTableDemo> {
         height: 34,
         padding: const EdgeInsets.symmetric(horizontal: 12),
         decoration: BoxDecoration(
-          color: on ? cs.primary.withOpacity(0.12) : Colors.transparent,
+          color: on ? cs.primary.withValues(alpha: 0.12) : Colors.transparent,
           border: Border.all(color: on ? cs.primary : t.borderStrong),
           borderRadius: BorderRadius.circular(6),
         ),
@@ -457,7 +454,7 @@ class _SuperTableDemoState extends State<SuperTableDemo> {
             const SizedBox(width: 7),
             Text(
               label,
-              style: SuperText.caption.copyWith(
+              style: t.textTheme.caption.copyWith(
                 color: on ? cs.primary : t.fg2,
                 fontWeight: FontWeight.w600,
               ),
@@ -485,14 +482,14 @@ class _SuperTableDemoState extends State<SuperTableDemo> {
           Expanded(
             child: TextField(
               onChanged: _c.setSearch,
-              style: SuperText.caption.copyWith(color: t.fg1, fontSize: 13),
+              style: t.textTheme.caption.copyWith(color: t.fg1, fontSize: 13),
               cursorColor: cs.primary,
               decoration: InputDecoration(
                 isDense: true,
                 border: InputBorder.none,
                 contentPadding: EdgeInsets.zero,
                 hintText: 'Search rows…',
-                hintStyle: SuperText.caption.copyWith(color: t.fg4),
+                hintStyle: t.textTheme.caption.copyWith(color: t.fg4),
               ),
             ),
           ),

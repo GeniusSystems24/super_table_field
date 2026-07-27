@@ -9,7 +9,7 @@ description: >
   light/dark themes and LTR/RTL via SuperMaterialThemeData.
 
 # package version
-version: 2.3.2
+version: 2.4.0
 
 # package homepage, repository, and issue tracker
 homepage: https://geniussystems24.github.io/super_table_field
@@ -30,11 +30,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  # Shared GeniusLink design-system foundation — v1.1.0 makes
-  # SuperMaterialThemeData a ThemeData subclass with responsive device-mode
-  # tokens and SuperThemeData theme-extension access.
-  super_core: ">=2.1.0 <3.0.0"
-  super_auto_suggestion_box: ">=0.8.2 <1.0.0"
+  # Shared GeniusLink design-system foundation and migrated typeahead.
+  super_core: ">=3.0.0 <4.0.0"
+  super_auto_suggestion_box: ">=0.9.0 <1.0.0"
 
 dev_dependencies:
   flutter_test:
@@ -43,9 +41,6 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-  assets:
-    - assets/logo-mark.png
-    - assets/logo-mark-white.png
   # Drop brand .ttf files under assets/fonts/ to match the design system exactly.
   # Families: Manrope (display) · Inter (body) · JetBrainsMono (mono) · NotoNaskhArabic
   #

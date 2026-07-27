@@ -171,7 +171,7 @@ class _ShowcaseExampleState extends State<ShowcaseExample> {
                 const Spacer(),
                 Text(_status,
                     style: TextStyle(
-                        fontFamily: 'JetBrainsMono',
+                        fontFamily: context.superTheme.tokens.monoFont,
                         fontSize: 12,
                         color: t.fg1)),
               ]),

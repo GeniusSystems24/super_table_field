@@ -58,3 +58,6 @@ coverage/
 
 # Local environment
 .env
+
+*.zip
+/patches/

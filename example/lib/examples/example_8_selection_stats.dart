@@ -100,7 +100,15 @@ class _SelectionStatsExampleState extends State<SelectionStatsExample> {
         children: [
           Text(label, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, letterSpacing: 0.7, color: t.fg4)),
           const SizedBox(height: 3),
-          Text(value, style: TextStyle(fontFamily: 'JetBrainsMono', fontSize: 16, fontWeight: FontWeight.w700, color: t.fg1)),
+          Text(
+            value,
+            style: TextStyle(
+              fontFamily: context.superTheme.tokens.monoFont,
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: t.fg1,
+            ),
+          ),
         ],
       );
 }

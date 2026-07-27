@@ -64,8 +64,16 @@ const List<JournalEntry> _seed = [
     totalCredit: 50000,
     status: 'Posted',
     lines: [
-      JournalLine(account: '1001 · Cash on Hand', narration: 'Opening cash balance', debit: 50000),
-      JournalLine(account: '3001 · Retained Earnings', narration: 'Opening equity position', credit: 50000),
+      JournalLine(
+        account: '1001 · Cash on Hand',
+        narration: 'Opening cash balance',
+        debit: 50000,
+      ),
+      JournalLine(
+        account: '3001 · Retained Earnings',
+        narration: 'Opening equity position',
+        credit: 50000,
+      ),
     ],
   ),
   JournalEntry(
@@ -77,9 +85,21 @@ const List<JournalEntry> _seed = [
     totalCredit: 12500,
     status: 'Posted',
     lines: [
-      JournalLine(account: '1501 · Office Equipment', narration: 'Laptop × 2, Monitor × 2', debit: 12500),
-      JournalLine(account: '2001 · Accounts Payable', narration: 'Vendor: TechSupply Co.', credit: 10000),
-      JournalLine(account: '1001 · Cash on Hand', narration: 'Cash down payment', credit: 2500),
+      JournalLine(
+        account: '1501 · Office Equipment',
+        narration: 'Laptop × 2, Monitor × 2',
+        debit: 12500,
+      ),
+      JournalLine(
+        account: '2001 · Accounts Payable',
+        narration: 'Vendor: TechSupply Co.',
+        credit: 10000,
+      ),
+      JournalLine(
+        account: '1001 · Cash on Hand',
+        narration: 'Cash down payment',
+        credit: 2500,
+      ),
     ],
   ),
   JournalEntry(
@@ -91,10 +111,26 @@ const List<JournalEntry> _seed = [
     totalCredit: 34800,
     status: 'Posted',
     lines: [
-      JournalLine(account: '1101 · Accounts Receivable', narration: 'INV-2024-0041 through 0044', debit: 34800),
-      JournalLine(account: '4001 · Sales Revenue', narration: 'Ledger Pro licences (3)', credit: 18000),
-      JournalLine(account: '4002 · Service Revenue', narration: 'Implementation & training', credit: 12000),
-      JournalLine(account: '2201 · Tax Payable — VAT', narration: 'VAT 15%', credit: 4800),
+      JournalLine(
+        account: '1101 · Accounts Receivable',
+        narration: 'INV-2024-0041 through 0044',
+        debit: 34800,
+      ),
+      JournalLine(
+        account: '4001 · Sales Revenue',
+        narration: 'Ledger Pro licences (3)',
+        credit: 18000,
+      ),
+      JournalLine(
+        account: '4002 · Service Revenue',
+        narration: 'Implementation & training',
+        credit: 12000,
+      ),
+      JournalLine(
+        account: '2201 · Tax Payable — VAT',
+        narration: 'VAT 15%',
+        credit: 4800,
+      ),
     ],
   ),
   JournalEntry(
@@ -106,10 +142,26 @@ const List<JournalEntry> _seed = [
     totalCredit: 28400,
     status: 'Posted',
     lines: [
-      JournalLine(account: '5001 · Salaries Expense', narration: 'Monthly payroll — 7 staff', debit: 24000),
-      JournalLine(account: '5002 · Social Insurance Exp.', narration: 'Employer contribution 18%', debit: 4400),
-      JournalLine(account: '1001 · Cash on Hand', narration: 'Net payroll disbursed', credit: 24000),
-      JournalLine(account: '2101 · SI Payable', narration: 'Social insurance due date', credit: 4400),
+      JournalLine(
+        account: '5001 · Salaries Expense',
+        narration: 'Monthly payroll — 7 staff',
+        debit: 24000,
+      ),
+      JournalLine(
+        account: '5002 · Social Insurance Exp.',
+        narration: 'Employer contribution 18%',
+        debit: 4400,
+      ),
+      JournalLine(
+        account: '1001 · Cash on Hand',
+        narration: 'Net payroll disbursed',
+        credit: 24000,
+      ),
+      JournalLine(
+        account: '2101 · SI Payable',
+        narration: 'Social insurance due date',
+        credit: 4400,
+      ),
     ],
   ),
   JournalEntry(
@@ -121,8 +173,16 @@ const List<JournalEntry> _seed = [
     totalCredit: 625,
     status: 'Draft',
     lines: [
-      JournalLine(account: '5101 · Depreciation Expense', narration: 'Office equipment — straight-line', debit: 625),
-      JournalLine(account: '1502 · Acc. Depreciation', narration: 'Accumulated depreciation', credit: 625),
+      JournalLine(
+        account: '5101 · Depreciation Expense',
+        narration: 'Office equipment — straight-line',
+        debit: 625,
+      ),
+      JournalLine(
+        account: '1502 · Acc. Depreciation',
+        narration: 'Accumulated depreciation',
+        credit: 625,
+      ),
     ],
   ),
   JournalEntry(
@@ -134,8 +194,16 @@ const List<JournalEntry> _seed = [
     totalCredit: 18000,
     status: 'Posted',
     lines: [
-      JournalLine(account: '1001 · Cash on Hand', narration: 'Payment from client: INV-2024-0041', debit: 18000),
-      JournalLine(account: '1101 · Accounts Receivable', narration: 'INV-2024-0041 cleared', credit: 18000),
+      JournalLine(
+        account: '1001 · Cash on Hand',
+        narration: 'Payment from client: INV-2024-0041',
+        debit: 18000,
+      ),
+      JournalLine(
+        account: '1101 · Accounts Receivable',
+        narration: 'INV-2024-0041 cleared',
+        credit: 18000,
+      ),
     ],
   ),
   JournalEntry(
@@ -147,8 +215,16 @@ const List<JournalEntry> _seed = [
     totalCredit: 8750,
     status: 'Posted',
     lines: [
-      JournalLine(account: '1301 · Raw Materials Inventory', narration: 'Materials batch #INV-2024-0089', debit: 8750),
-      JournalLine(account: '2001 · Accounts Payable', narration: 'Supplier: BuildMat LLC', credit: 8750),
+      JournalLine(
+        account: '1301 · Raw Materials Inventory',
+        narration: 'Materials batch #INV-2024-0089',
+        debit: 8750,
+      ),
+      JournalLine(
+        account: '2001 · Accounts Payable',
+        narration: 'Supplier: BuildMat LLC',
+        credit: 8750,
+      ),
     ],
   ),
 ];
@@ -166,49 +242,62 @@ class _ExpandableRowsExampleState extends State<ExpandableRowsExample> {
 
   late final SuperTableController<JournalEntry> _c =
       SuperTableController<JournalEntry>(
-    mode: SuperTableMode.readable,
-    selectionMode: SuperSelectionMode.singleRow,
-    columns: [
-      SuperTextColumn(key: 'ref', label: 'Reference', width: 148, mono: true),
-      SuperTextColumn(key: 'date', label: 'Date', width: 114, mono: true),
-      SuperTextColumn(key: 'description', label: 'Description', width: 280),
-      SuperEnumerationColumn<String>(
-        key: 'type',
-        label: 'Type',
-        width: 126,
-        values: const [
-          'Opening',
-          'Purchase',
-          'Revenue',
-          'Payroll',
-          'Depreciation',
-          'Receipt',
+        mode: SuperTableMode.readable,
+        selectionMode: SuperSelectionMode.singleRow,
+        columns: [
+          SuperTextColumn(
+            key: 'ref',
+            label: 'Reference',
+            width: 148,
+            mono: true,
+          ),
+          SuperTextColumn(key: 'date', label: 'Date', width: 114, mono: true),
+          SuperTextColumn(key: 'description', label: 'Description', width: 280),
+          SuperEnumerationColumn<String>(
+            key: 'type',
+            label: 'Type',
+            width: 126,
+            values: const [
+              'Opening',
+              'Purchase',
+              'Revenue',
+              'Payroll',
+              'Depreciation',
+              'Receipt',
+            ],
+          ),
+          SuperCurrencyColumn(
+            key: 'totalDebit',
+            label: 'Total Debit',
+            width: 136,
+            agg: SuperAgg.sum,
+          ),
+          SuperCurrencyColumn(
+            key: 'totalCredit',
+            label: 'Total Credit',
+            width: 136,
+            agg: SuperAgg.sum,
+          ),
+          SuperEnumerationColumn<String>(
+            key: 'status',
+            label: 'Status',
+            width: 108,
+            values: const ['Posted', 'Draft'],
+          ),
         ],
-      ),
-      SuperCurrencyColumn(
-          key: 'totalDebit', label: 'Total Debit', width: 136, agg: SuperAgg.sum),
-      SuperCurrencyColumn(
-          key: 'totalCredit', label: 'Total Credit', width: 136, agg: SuperAgg.sum),
-      SuperEnumerationColumn<String>(
-        key: 'status',
-        label: 'Status',
-        width: 108,
-        values: const ['Posted', 'Draft'],
-      ),
-    ],
-    rows: [
-      for (final e in _seed)
-        SuperRow<JournalEntry>.of(e, {
-          'ref': e.ref,
-          'date': e.date,
-          'description': e.description,
-          'type': e.type,
-          'totalDebit': e.totalDebit,
-          'totalCredit': e.totalCredit,
-          'status': e.status,
-        }),
-    ],
-  );
+        rows: [
+          for (final e in _seed)
+            SuperRow<JournalEntry>.of(e, {
+              'ref': e.ref,
+              'date': e.date,
+              'description': e.description,
+              'type': e.type,
+              'totalDebit': e.totalDebit,
+              'totalCredit': e.totalCredit,
+              'status': e.status,
+            }),
+        ],
+      );
 
   @override
   void dispose() {
@@ -255,7 +344,7 @@ class _ExpandableRowsExampleState extends State<ExpandableRowsExample> {
                 Text(
                   'EXPANSION MODE',
                   style: TextStyle(
-                    fontFamily: SuperTokensFonts.body,
+                    fontFamily: context.superTheme.tokens.bodyFont,
                     fontSize: 10,
                     fontWeight: FontWeight.w700,
                     letterSpacing: 0.6,
@@ -267,14 +356,16 @@ class _ExpandableRowsExampleState extends State<ExpandableRowsExample> {
                   label: 'Multi',
                   active: !isSingle,
                   onTap: () => setState(
-                      () => _expansionMode = SuperRowExpansionMode.multi),
+                    () => _expansionMode = SuperRowExpansionMode.multi,
+                  ),
                 ),
                 const SizedBox(width: 6),
                 _ModeChip(
                   label: 'Single',
                   active: isSingle,
                   onTap: () => setState(
-                      () => _expansionMode = SuperRowExpansionMode.single),
+                    () => _expansionMode = SuperRowExpansionMode.single,
+                  ),
                 ),
               ],
             ),
@@ -291,15 +382,14 @@ class _ExpandableRowsExampleState extends State<ExpandableRowsExample> {
               padding: const EdgeInsets.only(bottom: 14),
               child: Row(
                 children: [
-                  Icon(Icons.info_outline_rounded,
-                      size: 13, color: t.fg3),
+                  Icon(Icons.info_outline_rounded, size: 13, color: t.fg3),
                   const SizedBox(width: 7),
                   Text(
                     isSingle
                         ? 'Single mode — only one row can be open at a time (accordion).'
                         : 'Multi mode — multiple rows can be expanded simultaneously.',
                     style: TextStyle(
-                      fontFamily: SuperTokensFonts.body,
+                      fontFamily: context.superTheme.tokens.bodyFont,
                       fontSize: 12.5,
                       color: t.fg3,
                     ),
@@ -308,7 +398,7 @@ class _ExpandableRowsExampleState extends State<ExpandableRowsExample> {
                   Text(
                     'Tap the chevron (▾) in the row number column to expand.',
                     style: TextStyle(
-                      fontFamily: SuperTokensFonts.body,
+                      fontFamily: context.superTheme.tokens.bodyFont,
                       fontSize: 12.5,
                       color: t.fg4,
                     ),
@@ -321,8 +411,10 @@ class _ExpandableRowsExampleState extends State<ExpandableRowsExample> {
                 controller: _c,
                 // Dim draft rows
                 styles: {
-                  (ctx, c, row) => row['status'] == 'Draft':
-                      const SuperRowStyle(foreground: Color(0xFF94A0B4)),
+                  (ctx, c, row) =>
+                      row['status'] == 'Draft': const SuperRowStyle(
+                    foreground: Color(0xFF94A0B4),
+                  ),
                 },
                 // ── Expandable rows ───────────────────────────────────────
                 expansion: _expansion,
@@ -341,8 +433,9 @@ class _LineItemsPanel extends StatelessWidget {
   const _LineItemsPanel({required this.entry});
   final JournalEntry entry;
 
-  String _fmt(num v) =>
-      v == 0 ? '—' : '\$${v.toStringAsFixed(2).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}';
+  String _fmt(num v) => v == 0
+      ? '—'
+      : '\$${v.toStringAsFixed(2).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}';
 
   @override
   Widget build(BuildContext context) {
@@ -366,10 +459,10 @@ class _LineItemsPanel extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 12),
             child: Row(
               children: [
-                _colHead(t, 'ACCOUNT', flex: 4),
-                _colHead(t, 'NARRATION', flex: 3),
-                _colHeadFixed(t, 'DEBIT', width: 120, end: true),
-                _colHeadFixed(t, 'CREDIT', width: 120, end: true),
+                _colHead(context, t, 'ACCOUNT', flex: 4),
+                _colHead(context, t, 'NARRATION', flex: 3),
+                _colHeadFixed(context, t, 'DEBIT', width: 120, end: true),
+                _colHeadFixed(context, t, 'CREDIT', width: 120, end: true),
                 const SizedBox(width: 8),
               ],
             ),
@@ -391,7 +484,7 @@ class _LineItemsPanel extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        fontFamily: SuperTokensFonts.mono,
+                        fontFamily: context.superTheme.tokens.monoFont,
                         fontSize: 11.5,
                         color: t.fg2,
                       ),
@@ -404,7 +497,7 @@ class _LineItemsPanel extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        fontFamily: SuperTokensFonts.body,
+                        fontFamily: context.superTheme.tokens.bodyFont,
                         fontSize: 12,
                         color: t.fg3,
                       ),
@@ -416,7 +509,7 @@ class _LineItemsPanel extends StatelessWidget {
                       _fmt(line.debit),
                       textAlign: TextAlign.right,
                       style: TextStyle(
-                        fontFamily: SuperTokensFonts.mono,
+                        fontFamily: context.superTheme.tokens.monoFont,
                         fontSize: 12,
                         fontWeight: line.debit > 0
                             ? FontWeight.w600
@@ -431,7 +524,7 @@ class _LineItemsPanel extends StatelessWidget {
                       _fmt(line.credit),
                       textAlign: TextAlign.right,
                       style: TextStyle(
-                        fontFamily: SuperTokensFonts.mono,
+                        fontFamily: context.superTheme.tokens.monoFont,
                         fontSize: 12,
                         fontWeight: line.credit > 0
                             ? FontWeight.w600
@@ -449,36 +542,45 @@ class _LineItemsPanel extends StatelessWidget {
     );
   }
 
-  Widget _colHead(dynamic t, String label, {required int flex}) => Expanded(
-        flex: flex,
-        child: Text(
-          label,
-          style: TextStyle(
-            fontFamily: SuperTokensFonts.body,
-            fontSize: 9.5,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 0.55,
-            color: t.fg4,
-          ),
-        ),
-      );
+  Widget _colHead(
+    BuildContext context,
+    SuperThemeData t,
+    String label, {
+    required int flex,
+  }) => Expanded(
+    flex: flex,
+    child: Text(
+      label,
+      style: TextStyle(
+        fontFamily: context.superTheme.tokens.bodyFont,
+        fontSize: 9.5,
+        fontWeight: FontWeight.w700,
+        letterSpacing: 0.55,
+        color: t.fg4,
+      ),
+    ),
+  );
 
-  Widget _colHeadFixed(dynamic t, String label,
-          {required double width, bool end = false}) =>
-      SizedBox(
-        width: width,
-        child: Text(
-          label,
-          textAlign: end ? TextAlign.right : TextAlign.left,
-          style: TextStyle(
-            fontFamily: SuperTokensFonts.body,
-            fontSize: 9.5,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 0.55,
-            color: t.fg4,
-          ),
-        ),
-      );
+  Widget _colHeadFixed(
+    BuildContext context,
+    SuperThemeData t,
+    String label, {
+    required double width,
+    bool end = false,
+  }) => SizedBox(
+    width: width,
+    child: Text(
+      label,
+      textAlign: end ? TextAlign.right : TextAlign.left,
+      style: TextStyle(
+        fontFamily: context.superTheme.tokens.bodyFont,
+        fontSize: 9.5,
+        fontWeight: FontWeight.w700,
+        letterSpacing: 0.55,
+        color: t.fg4,
+      ),
+    ),
+  );
 }
 
 // ── Mode toggle chip ──────────────────────────────────────────────────────
@@ -508,18 +610,20 @@ class _ModeChip extends StatelessWidget {
           decoration: BoxDecoration(
             color: active
                 ? Color.alphaBlend(
-                    cs.primary.withOpacity(0.16), t.surface)
+                    cs.primary.withValues(alpha: 0.16),
+                    t.surface,
+                  )
                 : t.inputBg,
-            border: Border.all(
-              color: active ? cs.primary : t.borderStrong,
+            border: Border.all(color: active ? cs.primary : t.borderStrong),
+            borderRadius: BorderRadius.circular(
+              context.superTheme.spacing.radiusControl,
             ),
-            borderRadius: BorderRadius.circular(SuperThemeData.of(context).tokens.radiusControl),
           ),
           alignment: Alignment.center,
           child: Text(
             label,
             style: TextStyle(
-              fontFamily: SuperTokensFonts.body,
+              fontFamily: context.superTheme.tokens.bodyFont,
               fontSize: 12,
               fontWeight: FontWeight.w600,
               color: active ? cs.primary : t.fg2,

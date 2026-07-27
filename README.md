@@ -11,6 +11,21 @@ In editable mode, the table's `combo` columns are edited **through the real `Aut
 
 Light + dark themes, full LTR + RTL.
 
+## What's new in 2.4.0
+
+This release migrates the package to the consolidated `super_core 2.4.0` design
+system and `super_auto_suggestion_box 0.9.0`:
+
+- Responsive spacing, radii, control sizes, and page insets now come from
+  `context.superTheme.spacing`.
+- Gallery surfaces use `SuperSectionCard`; page framing uses `SuperScaffold`.
+- Font families come from the active `SuperThemeData.tokens`, so custom host
+  fonts propagate through table cells, headers, overlays, and editors.
+- `SuperMaterialThemeData.light()` / `.dark()` provide the complete theme;
+  manual extension registration is no longer required for normal use.
+
+See [MIGRATION.md](MIGRATION.md) for the exact consumer changes.
+
 ## What's new in 2.2.0
 
 The **interaction & column-config release** — two cooperating additions, both opt-in and backward compatible:
@@ -105,22 +120,22 @@ dependencies:
     path: ../super_table_field   # or a git / hosted ref
 ```
 
-Register **both** `ThemeExtension`s on your `ThemeData`:
+Use the generated `super_core` themes:
 
 ```dart
 import 'package:super_table_field/super_table_field.dart';
 
 MaterialApp(
-  theme: ThemeData(
-    brightness: Brightness.light,
-    extensions: const [SuperThemeData.light, AutoSuggestionsBoxThemeData.light],
-  ),
-  darkTheme: ThemeData(
-    brightness: Brightness.dark,
-    extensions: const [SuperThemeData.dark, AutoSuggestionsBoxThemeData.dark],
-  ),
+  theme: SuperMaterialThemeData.light(),
+  darkTheme: SuperMaterialThemeData.dark(),
+  themeMode: ThemeMode.system,
 );
 ```
+
+`super_table_field` re-exports both `super_core` and
+`super_auto_suggestion_box`. `AutoSuggestionsBoxThemeData` derives from the
+active `SuperMaterialThemeData`; register an explicit extension only when you
+need component-specific overrides.
 
 > **Fonts** — the design system uses Manrope (display), Inter (body), JetBrains Mono (numerics) and Noto Naskh Arabic. Drop the `.ttf` files under `assets/fonts/` and uncomment the `fonts:` block in `pubspec.yaml`; otherwise platform defaults are used.
 

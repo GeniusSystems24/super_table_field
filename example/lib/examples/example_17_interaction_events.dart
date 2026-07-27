@@ -166,7 +166,7 @@ class _InteractionEventsExampleState extends State<InteractionEventsExample> {
               const Spacer(),
               Text(_selection,
                   style: TextStyle(
-                      fontFamily: 'JetBrainsMono', fontSize: 12, color: t.fg1)),
+                      fontFamily: context.superTheme.tokens.monoFont, fontSize: 12, color: t.fg1)),
             ]),
             const SizedBox(height: 14),
             Expanded(
@@ -240,7 +240,7 @@ class _InteractionEventsExampleState extends State<InteractionEventsExample> {
                           padding: const EdgeInsets.symmetric(vertical: 4),
                           child: Text(e,
                               style: TextStyle(
-                                  fontFamily: 'JetBrainsMono',
+                                  fontFamily: context.superTheme.tokens.monoFont,
                                   fontSize: 12,
                                   color: t.fg2)),
                         ),
@@ -278,8 +278,8 @@ class _DetailCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 14, 12, 16),
       decoration: BoxDecoration(
-        color: Color.alphaBlend(t.fg1.withOpacity(0.06), t.surface),
-        border: Border.all(color: t.fg1.withOpacity(0.35)),
+        color: Color.alphaBlend(t.fg1.withValues(alpha: 0.06), t.surface),
+        border: Border.all(color: t.fg1.withValues(alpha: 0.35)),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Column(
@@ -291,7 +291,7 @@ class _DetailCard extends StatelessWidget {
             Expanded(
                 child: Text('Order ${order['no']}',
                     style: TextStyle(
-                        fontFamily: 'Manrope',
+                        fontFamily: context.superTheme.tokens.displayFont,
                         fontWeight: FontWeight.w800,
                         fontSize: 15,
                         color: t.fg1))),

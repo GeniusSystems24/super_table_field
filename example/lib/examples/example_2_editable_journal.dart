@@ -110,7 +110,13 @@ class _EditableJournalExampleState extends State<EditableJournalExample> {
                 const SizedBox(width: 10),
                 Text(balanced ? 'Balanced' : 'Out of balance', style: TextStyle(fontWeight: FontWeight.w700, color: t.fg1)),
                 const Spacer(),
-                Text('Debit \$${tot.debit}   ·   Credit \$${tot.credit}', style: TextStyle(fontFamily: 'JetBrainsMono', color: t.fg2)),
+                Text(
+                  'Debit \$${tot.debit}   ·   Credit \$${tot.credit}',
+                  style: TextStyle(
+                    fontFamily: context.superTheme.tokens.monoFont,
+                    color: t.fg2,
+                  ),
+                ),
               ]),
             ),
           ],

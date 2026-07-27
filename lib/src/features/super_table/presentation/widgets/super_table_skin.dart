@@ -42,18 +42,18 @@ class SuperTableSkin {
 
   /// `color-mix(accent N%, surface)` — the selection / active washes.
   Color accentWash(BuildContext context, double pct) =>
-      Color.alphaBlend(accent(context).withOpacity(pct), surface);
+      Color.alphaBlend(accent(context).withValues(alpha: pct), surface);
 
   /// `color-mix(accent N%, bg)` — gutter highlight.
   Color accentWashOnBg(BuildContext context, double pct) =>
-      Color.alphaBlend(accent(context).withOpacity(pct), bg);
+      Color.alphaBlend(accent(context).withValues(alpha: pct), bg);
 
   /// A semantic tint over the surface (enum pills, danger rows).
   Color tint(Color base, double pct) =>
-      Color.alphaBlend(base.withOpacity(pct), surface);
+      Color.alphaBlend(base.withValues(alpha: pct), surface);
 
   /// The dimmed fill for computed / readonly cells.
-  Color get dimFill => Color.alphaBlend(fg1.withOpacity(0.04), surface);
+  Color get dimFill => Color.alphaBlend(fg1.withValues(alpha: 0.04), surface);
 
   /// Popover shadow.
   List<BoxShadow> get popShadow => const [

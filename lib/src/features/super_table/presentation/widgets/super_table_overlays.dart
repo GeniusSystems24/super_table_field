@@ -15,6 +15,7 @@
 // ============================================================
 
 import 'package:flutter/material.dart';
+import 'package:super_table_field/super_table_field.dart';
 
 import '../../domain/entities/super_column.dart';
 import '../../domain/entities/super_filter.dart';
@@ -295,7 +296,7 @@ class _MenuRowState extends State<_MenuRow> {
                 child: Text(
                   e.label,
                   style: TextStyle(
-                    fontFamily: SuperTokensFonts.body,
+                    fontFamily: context.superTheme.tokens.bodyFont,
                     fontSize: 13,
                     color: fg,
                   ),
@@ -307,7 +308,7 @@ class _MenuRowState extends State<_MenuRow> {
                 Text(
                   e.hint!,
                   style: TextStyle(
-                    fontFamily: SuperTokensFonts.mono,
+                    fontFamily: context.superTheme.tokens.monoFont,
                     fontSize: 11,
                     color: s.fg4,
                   ),
@@ -340,7 +341,7 @@ Future<bool> showSuperConfirm(
   final skin = SuperTableSkin.of(context);
   final res = await showDialog<bool>(
     context: context,
-    barrierColor: Colors.black.withOpacity(0.5),
+    barrierColor: Colors.black.withValues(alpha: 0.5),
     builder: (ctx) => Center(
       child: Material(
         color: Colors.transparent,
@@ -384,7 +385,7 @@ Future<bool> showSuperConfirm(
                     child: Text(
                       title,
                       style: TextStyle(
-                        fontFamily: SuperTokensFonts.display,
+                        fontFamily: context.superTheme.tokens.displayFont,
                         fontWeight: FontWeight.w800,
                         fontSize: 16,
                         color: skin.fg1,
@@ -470,7 +471,7 @@ class _DialogBtn extends StatelessWidget {
             Text(
               label,
               style: TextStyle(
-                fontFamily: SuperTokensFonts.body,
+                fontFamily: context.superTheme.tokens.bodyFont,
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
                 color: fg,
@@ -507,7 +508,7 @@ Future<void> showSuperAdvancedFilter(
   final skin = SuperTableSkin.of(context);
   return showDialog<void>(
     context: context,
-    barrierColor: Colors.black.withOpacity(0.5),
+    barrierColor: Colors.black.withValues(alpha: 0.5),
     builder: (ctx) => Center(
       child: Material(
         color: Colors.transparent,
@@ -602,7 +603,7 @@ class _AdvancedFilterPanelState extends State<_AdvancedFilterPanel> {
                     Text(
                       'Advanced filter',
                       style: TextStyle(
-                        fontFamily: SuperTokensFonts.display,
+                        fontFamily: context.superTheme.tokens.displayFont,
                         fontWeight: FontWeight.w800,
                         fontSize: 17,
                         color: s.fg1,
@@ -747,7 +748,7 @@ class _AdvancedFilterPanelState extends State<_AdvancedFilterPanel> {
             child: Text(
               '${i + 1}',
               style: TextStyle(
-                fontFamily: SuperTokensFonts.mono,
+                fontFamily: context.superTheme.tokens.monoFont,
                 fontSize: 11,
                 color: s.fg4,
               ),
@@ -867,7 +868,7 @@ class _AdvancedFilterPanelState extends State<_AdvancedFilterPanel> {
           icon: Icon(Icons.expand_more_rounded, size: 16, color: s.fg3),
           dropdownColor: s.surface,
           style: TextStyle(
-            fontFamily: SuperTokensFonts.body,
+            fontFamily: context.superTheme.tokens.bodyFont,
             fontSize: 12.5,
             color: s.fg1,
           ),
@@ -906,7 +907,9 @@ class _AdvancedFilterPanelState extends State<_AdvancedFilterPanel> {
             : TextInputType.text,
         onChanged: onChanged,
         style: TextStyle(
-          fontFamily: numeric ? SuperTokensFonts.mono : SuperTokensFonts.body,
+          fontFamily: numeric
+              ? context.superTheme.tokens.monoFont
+              : context.superTheme.tokens.bodyFont,
           fontSize: 12.5,
           color: s.fg1,
         ),
@@ -975,7 +978,7 @@ Future<void> showSuperShortcuts(BuildContext context) {
   ];
   return showDialog<void>(
     context: context,
-    barrierColor: Colors.black.withOpacity(0.5),
+    barrierColor: Colors.black.withValues(alpha: 0.5),
     builder: (ctx) => Center(
       child: Material(
         color: Colors.transparent,
@@ -1015,7 +1018,7 @@ Future<void> showSuperShortcuts(BuildContext context) {
                       child: Text(
                         'Keyboard shortcuts',
                         style: TextStyle(
-                          fontFamily: SuperTokensFonts.display,
+                          fontFamily: context.superTheme.tokens.displayFont,
                           fontWeight: FontWeight.w800,
                           fontSize: 19,
                           color: skin.fg1,
@@ -1106,7 +1109,7 @@ class _Kbd extends StatelessWidget {
             child: Text(
               part,
               style: TextStyle(
-                fontFamily: SuperTokensFonts.mono,
+                fontFamily: context.superTheme.tokens.monoFont,
                 fontSize: 11.5,
                 fontWeight: FontWeight.w600,
                 color: skin.fg2,
@@ -1130,7 +1133,7 @@ Future<void> showSuperValidationPanel<R>(
   final issues = controller.validateAll();
   return showDialog<void>(
     context: context,
-    barrierColor: Colors.black.withOpacity(0.5),
+    barrierColor: Colors.black.withValues(alpha: 0.5),
     builder: (ctx) => Center(
       child: Material(
         color: Colors.transparent,
@@ -1157,7 +1160,7 @@ Future<void> showSuperValidationPanel<R>(
                     decoration: BoxDecoration(
                       color:
                           (issues.isEmpty ? skin.success : skin.danger(context))
-                              .withOpacity(0.14),
+                              .withValues(alpha: 0.14),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(
@@ -1177,7 +1180,7 @@ Future<void> showSuperValidationPanel<R>(
                           ? 'All rows valid'
                           : '${issues.length} validation issue${issues.length == 1 ? '' : 's'}',
                       style: TextStyle(
-                        fontFamily: SuperTokensFonts.display,
+                        fontFamily: context.superTheme.tokens.displayFont,
                         fontWeight: FontWeight.w800,
                         fontSize: 19,
                         color: skin.fg1,
@@ -1271,7 +1274,7 @@ class _ValidationIssueTile extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 10),
             decoration: BoxDecoration(
               color: skin.tint(skin.danger(context), 0.05),
-              border: Border.all(color: skin.danger(context).withOpacity(0.25)),
+              border: Border.all(color: skin.danger(context).withValues(alpha: 0.25)),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
@@ -1289,7 +1292,7 @@ class _ValidationIssueTile extends StatelessWidget {
                   child: Text(
                     'Row ${issue.sourceIndex + 1}',
                     style: TextStyle(
-                      fontFamily: SuperTokensFonts.mono,
+                      fontFamily: context.superTheme.tokens.monoFont,
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
                       color: skin.fg2,
@@ -1447,7 +1450,7 @@ Future<void> showSuperColumnManager<R>(
   final skin = SuperTableSkin.of(context);
   return showDialog<void>(
     context: context,
-    barrierColor: Colors.black.withOpacity(0.5),
+    barrierColor: Colors.black.withValues(alpha: 0.5),
     builder: (ctx) => Center(
       child: Material(
         color: Colors.transparent,
@@ -1527,7 +1530,7 @@ class _ColumnManagerPanelState<R> extends State<_ColumnManagerPanel<R>> {
                     Text(
                       'Manage columns',
                       style: TextStyle(
-                        fontFamily: SuperTokensFonts.display,
+                        fontFamily: context.superTheme.tokens.displayFont,
                         fontWeight: FontWeight.w800,
                         fontSize: 17,
                         color: s.fg1,
@@ -1586,7 +1589,7 @@ class _ColumnManagerPanelState<R> extends State<_ColumnManagerPanel<R>> {
               Text(
                 '$shown of ${cols.length} shown',
                 style: TextStyle(
-                  fontFamily: SuperTokensFonts.mono,
+                  fontFamily: context.superTheme.tokens.monoFont,
                   fontSize: 11.5,
                   color: s.fg3,
                 ),
@@ -1675,7 +1678,7 @@ class _ColumnManagerRow<R> extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  fontFamily: SuperTokensFonts.body,
+                  fontFamily: context.superTheme.tokens.bodyFont,
                   fontSize: 13.5,
                   fontWeight: FontWeight.w600,
                   color: visible ? s.fg1 : s.fg4,
@@ -1791,12 +1794,4 @@ class _PinSegment extends StatelessWidget {
       ),
     );
   }
-}
-
-/// Re-export the brand font family names for terse use in this folder.
-abstract final class SuperTokensFonts {
-  static const String display = 'Manrope';
-  static const String body = 'Inter';
-  static const String mono = 'JetBrainsMono';
-  static const String arabic = 'NotoNaskhArabic';
 }

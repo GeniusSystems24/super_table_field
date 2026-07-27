@@ -303,7 +303,7 @@ class _PlaygroundExampleState extends State<PlaygroundExample> {
         height: 34,
         padding: const EdgeInsets.symmetric(horizontal: 12),
         decoration: BoxDecoration(
-          color: on ? cs.primary.withOpacity(0.12) : Colors.transparent,
+          color: on ? cs.primary.withValues(alpha: 0.12) : Colors.transparent,
           border: Border.all(color: on ? cs.primary : t.borderStrong),
           borderRadius: BorderRadius.circular(6),
         ),

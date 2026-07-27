@@ -134,7 +134,15 @@ class _ExportExampleState extends State<ExportExample> {
                   border: Border.all(color: t.border),
                 ),
                 child: SingleChildScrollView(
-                  child: SelectableText(_preview, style: TextStyle(fontFamily: 'JetBrainsMono', fontSize: 12, height: 1.5, color: t.fg2)),
+                  child: SelectableText(
+                    _preview,
+                    style: TextStyle(
+                      fontFamily: context.superTheme.tokens.monoFont,
+                      fontSize: 12,
+                      height: 1.5,
+                      color: t.fg2,
+                    ),
+                  ),
                 ),
               ),
             ),
