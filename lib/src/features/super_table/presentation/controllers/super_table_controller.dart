@@ -487,10 +487,11 @@ class SuperTableController<R> extends ChangeNotifier {
       }
     }
     for (final e in _deletedRows) {
-      if (!e.row.isNew)
+      if (!e.row.isNew) {
         deleted.add(
           SuperRowChange<R>(state: SuperRowState.deleted, row: e.row),
         );
+      }
     }
     return SuperChangeSet<R>(
       added: added,
@@ -794,8 +795,9 @@ class SuperTableController<R> extends ChangeNotifier {
   /// null, every column that declares an aggregate (`agg != none`) is used —
   /// hidden columns included.
   List<SuperColumn> _aggColumns(Iterable<String>? keys) {
-    if (keys != null)
+    if (keys != null) {
       return keys.map(colByKey).whereType<SuperColumn>().toList();
+    }
     return _rawColumns.where((c) => c.agg != SuperAgg.none).toList();
   }
 
@@ -934,8 +936,9 @@ class SuperTableController<R> extends ChangeNotifier {
       case SuperColumnType.color:
         return SuperColumnLogic.colorFromHex(col, '#4A7CFF');
       case SuperColumnType.enumeration:
-        if (col.optValues != null && col.optValues!.isNotEmpty)
+        if (col.optValues != null && col.optValues!.isNotEmpty) {
           return col.optValues!.first;
+        }
         if (col.opts != null && col.opts!.isNotEmpty) return col.opts!.first;
         return '';
       case SuperColumnType.number:
@@ -1343,10 +1346,12 @@ class SuperTableController<R> extends ChangeNotifier {
             col,
             col.rawValue(r),
             r,
-          ).toLowerCase().contains(q))
+          ).toLowerCase().contains(q)) {
             return true;
-          if (SuperColumnLogic.arText(col, r).toLowerCase().contains(q))
+          }
+          if (SuperColumnLogic.arText(col, r).toLowerCase().contains(q)) {
             return true;
+          }
         }
         return false;
       }
@@ -1381,10 +1386,12 @@ class SuperTableController<R> extends ChangeNotifier {
           col,
           col.rawValue(r),
           r,
-        ).toLowerCase().contains(q))
+        ).toLowerCase().contains(q)) {
           return true;
-        if (SuperColumnLogic.arText(col, r).toLowerCase().contains(q))
+        }
+        if (SuperColumnLogic.arText(col, r).toLowerCase().contains(q)) {
           return true;
+        }
       }
       return false;
     }

@@ -299,13 +299,15 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
     if (it?.onRowTap == null || r >= c.view.length) return;
     final entry = c.view[r];
     final row = entry.row;
-    if (row != null)
+    if (row != null) {
       it!.onRowTap!(_rowInteraction(row, r, entry.sourceIndex, _lastPointer));
+    }
   }
 
   void _onVScroll() {
-    if (c.pagination != SuperPagination.infinite || !_vScroll.hasClients)
+    if (c.pagination != SuperPagination.infinite || !_vScroll.hasClients) {
       return;
+    }
     final p = _vScroll.position;
     if (p.pixels >= p.maxScrollExtent - 80) c.requestLoadMore();
   }
@@ -378,8 +380,9 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
         } else if (bottom > vpTop + vpH) {
           to = bottom - vpH;
         }
-        if (to != null)
+        if (to != null) {
           _vScroll.jumpTo(to.clamp(0.0, _vScroll.position.maxScrollExtent));
+        }
       }
     }
     if (_hScroll.hasClients && !context.isRtl) {
@@ -397,8 +400,9 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
       } else if (right > vpL + vpW) {
         to = right - vpW;
       }
-      if (to != null)
+      if (to != null) {
         _hScroll.jumpTo(to.clamp(0.0, _hScroll.position.maxScrollExtent));
+      }
     }
   }
 
@@ -410,11 +414,13 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
 
   KeyEventResult _onKey(FocusNode node, KeyEvent e) {
     // Host hook first — return true to mark handled and skip defaults.
-    if (c.onKey != null && c.onKey!(context, c, node, e))
+    if (c.onKey != null && c.onKey!(context, c, node, e)) {
       return KeyEventResult.handled;
+    }
 
-    if (e is! KeyDownEvent && e is! KeyRepeatEvent)
+    if (e is! KeyDownEvent && e is! KeyRepeatEvent) {
       return KeyEventResult.ignored;
+    }
 
     final keys = HardwareKeyboard.instance.logicalKeysPressed;
     final shift = HardwareKeyboard.instance.isShiftPressed;
@@ -2482,8 +2488,9 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
         ),
       );
     }
-    if (c.pagination == SuperPagination.pages && !c.grouped && c.pageCount > 1)
+    if (c.pagination == SuperPagination.pages && !c.grouped && c.pageCount > 1) {
       out.add(_buildPager(skin));
+    }
     out.add(_buildStatusHint(skin));
     return out;
   }
@@ -2500,7 +2507,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
     final widgets = <Widget>[];
     int? prev;
     for (final i in pages) {
-      if (prev != null && i - prev > 1)
+      if (prev != null && i - prev > 1) {
         widgets.add(
           SizedBox(
             width: 20,
@@ -2509,6 +2516,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
             ),
           ),
         );
+      }
       widgets.add(
         _PageNumBtn(
           skin: skin,

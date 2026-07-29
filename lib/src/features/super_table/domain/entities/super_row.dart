@@ -90,12 +90,11 @@ class SuperCell {
 class SuperRow<R> {
   SuperRow({
     required this.value,
-    required Map<String, SuperCell> cells,
+    required this.cells,
     Object? fingerPrint,
     int? id,
     this.isNew = false,
-  }) : cells = cells,
-       _fingerPrint = fingerPrint ?? _fpSeq++,
+  }) : _fingerPrint = fingerPrint ?? _fpSeq++,
        id = id ?? _idSeq++;
 
   /// Whether this row was created after the controller's change-tracking

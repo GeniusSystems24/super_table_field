@@ -154,13 +154,16 @@ abstract final class SuperColumnLogic {
   // ── color helpers ──
   /// Resolve a color column's cell value to a hex `#RRGGBB` string.
   static String colorHex(SuperColumn col, Object? v) {
-    if (v is Color)
+    if (v is Color) {
       return '#${(v.value & 0xFFFFFF).toRadixString(16).padLeft(6, '0').toUpperCase()}';
-    if (v is int)
+    }
+    if (v is int) {
       return '#${(v & 0xFFFFFF).toRadixString(16).padLeft(6, '0').toUpperCase()}';
+    }
     final s = '$v'.trim();
-    if (RegExp(r'^#?[0-9a-fA-F]{6}$').hasMatch(s))
+    if (RegExp(r'^#?[0-9a-fA-F]{6}$').hasMatch(s)) {
       return s.startsWith('#') ? s.toUpperCase() : '#${s.toUpperCase()}';
+    }
     return s;
   }
 
@@ -289,8 +292,9 @@ abstract final class SuperColumnLogic {
     if (t == SuperColumnType.checkbox) {
       final yes = ['true', 'yes', '1'].contains(s.toLowerCase());
       final no = ['false', 'no', '0'].contains(s.toLowerCase());
-      if (!yes && !no)
+      if (!yes && !no) {
         return CoerceResult.fail(strings.expectsTrueFalse(col.label, s));
+      }
       return CoerceResult.ok(yes);
     }
     if (t == SuperColumnType.enumeration) {
@@ -334,11 +338,13 @@ abstract final class SuperColumnLogic {
   }) {
     final mode = agg ?? col.agg;
     if (mode == SuperAgg.none) return null;
-    if (mode == SuperAgg.custom)
+    if (mode == SuperAgg.custom) {
       return (aggregator ?? col.aggregator)?.call(rows);
+    }
     if (mode == SuperAgg.count) return rows.length;
-    if (rows.isEmpty)
+    if (rows.isEmpty) {
       return mode == SuperAgg.sum || mode == SuperAgg.avg ? 0 : null;
+    }
     final nums = rows.map((r) => numVal(col.rawValue(r)));
     switch (mode) {
       case SuperAgg.sum:
@@ -398,8 +404,9 @@ abstract final class SuperColumnLogic {
     final d = s.replaceAll(RegExp(r'[^\d]'), '');
     final dd = d.length > 8 ? d.substring(0, 8) : d;
     var out = dd.length >= 4 ? dd.substring(0, 4) : dd;
-    if (dd.length > 4)
+    if (dd.length > 4) {
       out += '-${dd.substring(4, dd.length > 6 ? 6 : dd.length)}';
+    }
     if (dd.length > 6) out += '-${dd.substring(6)}';
     return out;
   }

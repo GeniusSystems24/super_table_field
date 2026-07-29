@@ -17,11 +17,6 @@
 import 'package:flutter/material.dart';
 import 'package:super_table_field/super_table_field.dart';
 
-import '../../domain/entities/super_column.dart';
-import '../../domain/entities/super_filter.dart';
-import '../../domain/entities/super_validation.dart';
-import '../controllers/super_table_controller.dart';
-import 'super_table_skin.dart';
 
 /// A single popup-menu entry.
 ///
