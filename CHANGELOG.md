@@ -16,6 +16,12 @@ All notable changes to **super_table_field** are documented here. Format follows
 - Example 19 now showcases every column type plus common table/controller
   usages: grouping, totals, filters, saved views, validation, change tracking,
   row actions, fill actions, and interaction callbacks.
+- Example 19 readable mode now includes a loading-mode selector for off, pages,
+  load-more, and infinite-scroll pagination.
+- Added `SuperTable.showCopyJsonButton`, `showUndoButton`, and `showRedoButton`
+  to control the editable action-bar buttons individually.
+- The shortcuts dialog is now opened with F1; the editable action-bar shortcuts
+  button was removed.
 
 ### Fixed
 

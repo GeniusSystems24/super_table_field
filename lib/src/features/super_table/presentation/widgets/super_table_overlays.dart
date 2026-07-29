@@ -952,6 +952,7 @@ Future<void> showSuperShortcuts(BuildContext context) {
         ('↑ ↓ ← →', l10n.moveBetweenCells),
         ('Tab / ⇧Tab', l10n.nextPreviousCell),
         ('Home / End', l10n.firstLastColumn),
+        ('F1', l10n.shortcuts),
         ('⌘Home / ⌘End', l10n.firstLastCell),
       ],
     ),

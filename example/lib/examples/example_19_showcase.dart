@@ -8,8 +8,9 @@
 //   date, time, link, checkbox, readonly, and a hidden grouping field.
 //
 // Also demonstrates editable/readable mode, column manager, grouping, totals,
-// column filters, saved views, validation, change tracking, row actions,
-// fill down/right, row activation, selection stats, and sort/cell callbacks.
+// column filters, readable loading modes, saved views, validation, change
+// tracking, row actions, fill down/right, row activation, selection stats, and
+// sort/cell callbacks.
 // ============================================================
 
 import 'package:flutter/material.dart';
@@ -50,11 +51,26 @@ class _ShowcaseExampleState extends State<ShowcaseExample> {
     '#EF4444',
     '#06B6D4',
   ];
+  static const _generatedNames = [
+    'Bluetooth Speaker',
+    'Leather Wallet',
+    'Almond Milk',
+    'Paint Roller',
+    'Sticky Notes',
+    'Webcam HD',
+    'Safety Gloves',
+    'Receipt Paper',
+  ];
+  static const int _maxRows = 34;
 
   late final SuperTableController<_Row> _c;
+  int _nextGenerated = _seedRows.length;
   bool _grouped = false;
   bool _totals = true;
   bool _filters = true;
+  bool _showCopyJsonButton = true;
+  bool _showUndoButton = true;
+  bool _showRedoButton = true;
   Map<String, dynamic>? _savedView;
   String _status = 'Ready';
 
@@ -252,12 +268,10 @@ class _ShowcaseExampleState extends State<ShowcaseExample> {
           row['status'] != 'Discontinued' ||
           column.key == 'status' ||
           column.key == 'active',
+      onLoadMore: _loadMore,
       onNotify: (kind, message) => _setStatus(message),
       columns: _columns,
-      rows: [
-        for (final row in _seedRows)
-          SuperRow.map(Map<String, dynamic>.from(row)),
-      ],
+      rows: _initialRows(),
     );
     _c.addListener(_sync);
   }
@@ -284,6 +298,43 @@ class _ShowcaseExampleState extends State<ShowcaseExample> {
     _setStatus(
       _grouped ? 'Grouped by warehouse and category.' : 'Grouping cleared.',
     );
+  }
+
+  void _setLoadingMode(SuperPagination pagination) {
+    if (_c.mode != SuperTableMode.readable) return;
+    if (pagination == SuperPagination.none ||
+        pagination == SuperPagination.pages) {
+      _nextGenerated = _seedRows.length;
+      _c.updateRows(_initialRows());
+      _c.setLoadMoreState(hasMore: false, loadingMore: false);
+    } else {
+      _c.setLoadMoreState(
+        hasMore: _c.rows.length < _maxRows,
+        loadingMore: false,
+      );
+    }
+    _c.setPagination(pagination);
+    _setStatus('Loading mode: ${_loadingModeLabel(pagination)}.');
+  }
+
+  void _loadMore(SuperFilterState _) {
+    Future<void>.delayed(const Duration(milliseconds: 650), () {
+      if (!mounted) return;
+      if (_c.pagination != SuperPagination.loadMore &&
+          _c.pagination != SuperPagination.infinite) {
+        return;
+      }
+      final remaining = _maxRows - _c.rows.length;
+      if (remaining <= 0) {
+        _c.setLoadMoreState(hasMore: false, loadingMore: false);
+        return;
+      }
+      final count = remaining < 6 ? remaining : 6;
+      final more = _generatedRows(_nextGenerated, count);
+      _nextGenerated += count;
+      _c.appendRows(more, hasMore: _c.rows.length + count < _maxRows);
+      _setStatus('Loaded $count more rows.');
+    });
   }
 
   Future<void> _copyCsv() async {
@@ -382,8 +433,13 @@ class _ShowcaseExampleState extends State<ShowcaseExample> {
                 controller: _c,
                 showTotals: _totals,
                 columnFilters: _filters,
+                showCopyJsonButton: _showCopyJsonButton,
+                showRedoUndoButtons: _showUndoButton,
                 groupFooters: true,
                 skeletonRows: 5,
+                maxHeight: _c.pagination == SuperPagination.infinite
+                    ? 420
+                    : null,
                 interactions: SuperInteractions<_Row>(
                   onRowActivate: (details) {
                     final row = details.row.value;
@@ -428,7 +484,6 @@ class _ShowcaseExampleState extends State<ShowcaseExample> {
   }
 
   Widget _toolbar(SuperMaterialThemeData theme, bool editable) {
-    final t = theme.superTheme;
     return Wrap(
       spacing: 8,
       runSpacing: 8,
@@ -459,6 +514,20 @@ class _ShowcaseExampleState extends State<ShowcaseExample> {
         _chip(theme, 'Filters', Icons.filter_alt_outlined, _filters, () {
           setState(() => _filters = !_filters);
         }),
+        if (!editable) _loadingModePicker(theme),
+        _chip(
+          theme,
+          'JSON btn',
+          Icons.content_copy_rounded,
+          _showCopyJsonButton,
+          () => setState(() => _showCopyJsonButton = !_showCopyJsonButton),
+        ),
+        _chip(theme, 'Undo btn', Icons.undo_rounded, _showUndoButton, () {
+          setState(() => _showUndoButton = !_showUndoButton);
+        }),
+        _chip(theme, 'Redo btn', Icons.redo_rounded, _showRedoButton, () {
+          setState(() => _showRedoButton = !_showRedoButton);
+        }),
         _btn(theme, Icons.add_rounded, 'Add row', _addRow),
         _btn(theme, Icons.keyboard_arrow_up_rounded, 'Move up', _moveUp),
         _btn(theme, Icons.keyboard_arrow_down_rounded, 'Move down', _moveDown),
@@ -487,11 +556,56 @@ class _ShowcaseExampleState extends State<ShowcaseExample> {
     );
   }
 
+  Widget _loadingModePicker(SuperMaterialThemeData theme) {
+    final t = theme.superTheme;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          'LOAD ',
+          style: TextStyle(
+            color: t.fg4,
+            fontSize: 10,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(width: 6),
+        SegmentedButton<SuperPagination>(
+          showSelectedIcon: false,
+          segments: const [
+            ButtonSegment(
+              value: SuperPagination.none,
+              icon: Icon(Icons.view_list_rounded, size: 15),
+              label: Text('Off'),
+            ),
+            ButtonSegment(
+              value: SuperPagination.pages,
+              icon: Icon(Icons.auto_stories_rounded, size: 15),
+              label: Text('Pages'),
+            ),
+            ButtonSegment(
+              value: SuperPagination.loadMore,
+              icon: Icon(Icons.arrow_downward_rounded, size: 15),
+              label: Text('Load+'),
+            ),
+            ButtonSegment(
+              value: SuperPagination.infinite,
+              icon: Icon(Icons.all_inclusive_rounded, size: 15),
+              label: Text('Infinite'),
+            ),
+          ],
+          selected: {_c.pagination},
+          onSelectionChanged: (selected) => _setLoadingMode(selected.first),
+        ),
+      ],
+    );
+  }
+
   Widget _statusLine(SuperMaterialThemeData theme, bool editable) {
     final t = theme.superTheme;
     final modeText = editable
-        ? 'Editable: Enter opens/closes the editor; boolean cells toggle with Space while editing.'
-        : 'Readable: Enter activates the row; Space does not edit display cells.';
+        ? 'Editable: Enter opens/closes the editor; boolean cells toggle with Space; F1 opens shortcuts.'
+        : 'Readable: Enter activates the row; Space does not edit display cells; F1 opens shortcuts.';
 
     return Row(
       children: [
@@ -612,6 +726,56 @@ class _ShowcaseExampleState extends State<ShowcaseExample> {
     'active': true,
     'ref': 'NEW-${DateTime.now().millisecondsSinceEpoch}',
   };
+
+  static String _loadingModeLabel(SuperPagination pagination) {
+    return switch (pagination) {
+      SuperPagination.none => 'Off',
+      SuperPagination.pages => 'Pages',
+      SuperPagination.loadMore => 'Load more',
+      SuperPagination.infinite => 'Infinite scroll',
+    };
+  }
+
+  static List<SuperRow<_Row>> _initialRows() => [
+    for (final row in _seedRows) SuperRow.map(Map<String, dynamic>.from(row)),
+  ];
+
+  static List<SuperRow<_Row>> _generatedRows(int start, int count) {
+    return [for (var i = 0; i < count; i++) _generatedRow(start + i + 1)];
+  }
+
+  static SuperRow<_Row> _generatedRow(int n) {
+    final category = _categories[n % _categories.length];
+    final units = _unitsFor(category);
+    final status = _statuses[n % _statuses.length];
+    final qty = ((n * 47) % 760) + 18;
+    final discount = (n * 3) % 25;
+    final level = ((n * 19) % 100) / 100;
+    final sku = 'SKU-${(1000 + n).toString().padLeft(4, '0')}';
+
+    return SuperRow.map(
+      _row(
+        sku: sku,
+        name:
+            '${_generatedNames[n % _generatedNames.length]} ${(n ~/ _generatedNames.length) + 1}',
+        nameAr: _generatedNames[n % _generatedNames.length],
+        lot: 'G${n.toString().padLeft(2, '0')}',
+        warehouse: _warehouses[n % _warehouses.length],
+        category: category,
+        status: status,
+        qty: qty,
+        discount: discount,
+        uom: units[n % units.length],
+        cost: (((n * 11) % 95) + 3.5),
+        level: level,
+        tag: _tagColors[n % _tagColors.length],
+        updated: '2026-07-${((n % 27) + 1).toString().padLeft(2, '0')}',
+        received: _recvTimes[n % _recvTimes.length],
+        active: status != 'Discontinued',
+        ref: 'INV-${1000 + n}',
+      ),
+    );
+  }
 
   static final List<_Row> _seedRows = [
     _row(

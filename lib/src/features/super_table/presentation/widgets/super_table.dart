@@ -65,6 +65,16 @@ class SuperTable<R> extends StatefulWidget {
   final bool showTotals;
   final bool showFooter;
   final bool formulaBar;
+
+  /// Show the editable-mode "Copy JSON" action in the table action bar.
+  final bool showCopyJsonButton;
+
+  /// Show the editable-mode redo/undo action in the table action bar.
+  final bool showRedoUndoButtons;
+
+  /// Show the editable-mode redo action in the table action bar.
+  bool get showRedoButton => showRedoUndoButtons;
+
   final VoidCallback? onAddColumn;
   final bool columnFilters;
 
@@ -120,6 +130,8 @@ class SuperTable<R> extends StatefulWidget {
     this.showTotals = true,
     this.showFooter = true,
     this.formulaBar = true,
+    this.showCopyJsonButton = true,
+    this.showRedoUndoButtons = true,
     this.onAddColumn,
     this.columnFilters = true,
     this.advancedFilter = true,
@@ -322,6 +334,10 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
   bool get _editable => c.mode == SuperTableMode.editable;
   bool get _showAdvanced =>
       widget.advancedFilter && c.mode == SuperTableMode.readable;
+  bool get _hasFormulaBarActions =>
+      widget.showCopyJsonButton ||
+      widget.showRedoUndoButtons ||
+      widget.showRedoButton;
 
   // ── conditional style resolution ──
   SuperRowStyle? _rowStyle(SuperRow<R> row) {
@@ -399,13 +415,19 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
 
     if (e is! KeyDownEvent && e is! KeyRepeatEvent)
       return KeyEventResult.ignored;
-    if (c.editCell != null) return KeyEventResult.ignored;
 
     final keys = HardwareKeyboard.instance.logicalKeysPressed;
     final shift = HardwareKeyboard.instance.isShiftPressed;
     final meta = _meta(keys);
     final k = e.logicalKey;
     final ed = _editable;
+
+    if (e is KeyDownEvent && k == LogicalKeyboardKey.f1) {
+      showSuperShortcuts(context);
+      return KeyEventResult.handled;
+    }
+
+    if (c.editCell != null) return KeyEventResult.ignored;
 
     // ── Expansion keyboard shortcuts ───────────────────────────────────────
     // Checked here — before the meta/arrow blocks — so Ctrl+Shift+↓/↑ does
@@ -843,7 +865,8 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            if (widget.formulaBar && _editable) _buildFormulaBar(skin),
+            if (widget.formulaBar && _editable && _hasFormulaBarActions)
+              _buildFormulaBar(skin),
             if (c.grouped) _buildGroupBar(skin),
             Flexible(
               child: Container(
@@ -1062,42 +1085,49 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
   // ── formula bar (editable) ──
   Widget _buildFormulaBar(SuperTableSkin skin) {
     final l10n = context.superTableTranslations;
+    final actions = <Widget>[];
+
+    void addAction(Widget action) {
+      if (actions.isNotEmpty) actions.add(const SizedBox(width: 8));
+      actions.add(action);
+    }
+
+    if (widget.showCopyJsonButton) {
+      addAction(
+        _BarButton(
+          skin: skin,
+          icon: Icons.content_copy_rounded,
+          label: l10n.copyJson,
+          onTap: () => (c.rowMode && c.selRows.isNotEmpty)
+              ? c.copyRowsJson(c.selRows.toList())
+              : c.copyJson(),
+        ),
+      );
+    }
+    if (widget.showRedoUndoButtons) {
+      addAction(
+        _BarButton(
+          skin: skin,
+          icon: Icons.undo_rounded,
+          enabled: c.canUndo,
+          onTap: c.undo,
+        ),
+      );
+    }
+    if (widget.showRedoButton) {
+      addAction(
+        _BarButton(
+          skin: skin,
+          icon: Icons.redo_rounded,
+          enabled: c.canRedo,
+          onTap: c.redo,
+        ),
+      );
+    }
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        children: [
-          const Spacer(),
-          _BarButton(
-            skin: skin,
-            icon: Icons.content_copy_rounded,
-            label: l10n.copyJson,
-            onTap: () => (c.rowMode && c.selRows.isNotEmpty)
-                ? c.copyRowsJson(c.selRows.toList())
-                : c.copyJson(),
-          ),
-          const SizedBox(width: 8),
-          _BarButton(
-            skin: skin,
-            icon: Icons.undo_rounded,
-            enabled: c.canUndo,
-            onTap: c.undo,
-          ),
-          const SizedBox(width: 8),
-          _BarButton(
-            skin: skin,
-            icon: Icons.redo_rounded,
-            enabled: c.canRedo,
-            onTap: c.redo,
-          ),
-          const SizedBox(width: 8),
-          _BarButton(
-            skin: skin,
-            icon: Icons.keyboard_rounded,
-            label: l10n.shortcuts,
-            onTap: () => showSuperShortcuts(context),
-          ),
-        ],
-      ),
+      child: Row(children: [const Spacer(), ...actions]),
     );
   }
 
