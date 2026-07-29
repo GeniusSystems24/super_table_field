@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
-import '../../localization/generated/l10n.dart';
+import 'generated/l10n.dart';
 
 /// Localization setup for Super Table Field.
 ///

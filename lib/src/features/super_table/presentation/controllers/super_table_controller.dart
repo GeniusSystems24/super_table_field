@@ -41,7 +41,7 @@ import '../../domain/entities/super_validation.dart';
 import '../../domain/entities/super_view_state.dart';
 import '../../domain/usecases/super_column_logic.dart';
 import '../../../../../localization/generated/l10n.dart';
-import '../../../../localization/super_table_localizations.dart';
+import '../../../../../localization/super_table_localizations.dart';
 
 /// Host hook for raw key handling (readable + editable). Return `true` to mark
 /// the event handled (the table will not apply its own default for that key).

@@ -22,7 +22,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'package:super_auto_suggestion_box/super_auto_suggestion_box.dart';
-import '../../../../localization/super_table_localizations.dart';
+import '../../../../../localization/super_table_localizations.dart';
 import '../../domain/entities/super_column.dart';
 import '../../domain/entities/super_row.dart';
 import '../../domain/entities/super_style.dart';
