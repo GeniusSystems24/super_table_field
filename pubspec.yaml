@@ -9,7 +9,7 @@ description: >
   light/dark themes and LTR/RTL via SuperMaterialThemeData.
 
 # package version
-version: 2.4.0
+version: 2.5.0
 
 # package homepage, repository, and issue tracker
 homepage: https://geniussystems24.github.io/super_table_field
@@ -30,14 +30,28 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  intl: ^0.20.0
   # Shared GeniusLink design-system foundation and migrated typeahead.
   super_core: ">=3.0.0 <4.0.0"
   super_auto_suggestion_box: ">=0.9.0 <1.0.0"
 
 dev_dependencies:
+  intl_utils: ^2.8.14
+  flutter_lints: ^3.0.0
   flutter_test:
     sdk: flutter
-  flutter_lints: ^3.0.0
+
+# ============================================================
+# 🌐 إعدادات التدويل (Internationalization)
+# ============================================================
+flutter_intl:
+  enabled: true
+  class_name: SuperTableTranslation
+  use_deferred_loading: true
+  arb_dir: lib/localization
+  output_dir: lib/localization/generated
 
 flutter:
   uses-material-design: true

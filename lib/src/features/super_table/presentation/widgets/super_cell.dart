@@ -468,6 +468,7 @@ class _SuperComboEditorState extends State<_SuperComboEditor> {
     final skin = SuperTableSkin.of(context);
     final col = _combo;
     final opts = widget.col.opts ?? const <String>[];
+    final l10n = context.superTableTranslations;
     return Theme(
       data: Theme.of(context).copyWith(extensions: [_boxTheme(skin)]),
       child: AutoSuggestionsBox(
@@ -489,7 +490,7 @@ class _SuperComboEditorState extends State<_SuperComboEditor> {
         leading: col?.leading,
         hintText:
             col?.hintText ??
-            (opts.isEmpty ? 'Type a value\u2026' : 'Type or pick\u2026'),
+            (opts.isEmpty ? l10n.typeValueHint : l10n.typeOrPickHint),
         textStyle: TextStyle(
           fontFamily: widget.col.mono
               ? context.superTheme.tokens.monoFont
@@ -1142,21 +1143,6 @@ class _MiniCalendar extends StatefulWidget {
 class _MiniCalendarState extends State<_MiniCalendar> {
   late int _y;
   late int _m;
-  static const _months = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec',
-  ];
-  static const _dow = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
   @override
   void initState() {
@@ -1190,6 +1176,30 @@ class _MiniCalendarState extends State<_MiniCalendar> {
   @override
   Widget build(BuildContext context) {
     final skin = SuperTableSkin.of(context);
+    final l10n = context.superTableTranslations;
+    final months = [
+      l10n.monthJan,
+      l10n.monthFeb,
+      l10n.monthMar,
+      l10n.monthApr,
+      l10n.monthMay,
+      l10n.monthJun,
+      l10n.monthJul,
+      l10n.monthAug,
+      l10n.monthSep,
+      l10n.monthOct,
+      l10n.monthNov,
+      l10n.monthDec,
+    ];
+    final dow = [
+      l10n.weekdaySun,
+      l10n.weekdayMon,
+      l10n.weekdayTue,
+      l10n.weekdayWed,
+      l10n.weekdayThu,
+      l10n.weekdayFri,
+      l10n.weekdaySat,
+    ];
     final days = DateTime(_y, _m + 1, 0).day;
     final startDow = DateTime(_y, _m, 1).weekday % 7;
     final now = DateTime.now();
@@ -1222,7 +1232,7 @@ class _MiniCalendarState extends State<_MiniCalendar> {
               children: [
                 navBtn(Icons.chevron_left_rounded, () => _step(-1)),
                 Text(
-                  '${_months[_m - 1]} $_y',
+                  '${months[_m - 1]} $_y',
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
@@ -1241,7 +1251,7 @@ class _MiniCalendarState extends State<_MiniCalendar> {
             crossAxisSpacing: 2,
             childAspectRatio: 1.15,
             children: [
-              for (final d in _dow)
+              for (final d in dow)
                 Center(
                   child: Text(
                     d,
@@ -1273,7 +1283,7 @@ class _MiniCalendarState extends State<_MiniCalendar> {
                 GestureDetector(
                   onTap: () => widget.onPick(todayIso),
                   child: Text(
-                    'Today',
+                    l10n.today,
                     style: TextStyle(
                       fontSize: 11.5,
                       fontWeight: FontWeight.w600,

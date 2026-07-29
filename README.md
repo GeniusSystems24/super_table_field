@@ -9,7 +9,38 @@ A **GeniusLink design-system** Flutter package providing a generic data grid, wi
 
 In editable mode, the table's `combo` columns are edited **through the real `AutoSuggestionsBox`** — one keyboard model, one look, no duplicate combobox.
 
-Light + dark themes, full LTR + RTL.
+Light + dark themes, full LTR + RTL, and localized package strings in English
+and Arabic.
+
+## What's new in 2.5.0
+
+This release adds package-level localization for the table UI through
+`flutter_localizations`:
+
+- English (`en`) and Arabic (`ar`) ARB files with generated
+  `SuperTableTranslation` messages.
+- `SuperTableLocalizations.localizationsDelegates` and
+  `SuperTableLocalizations.supportedLocales` exported from the main barrel.
+- Localized table menus, filters, validation messages, column manager,
+  shortcuts dialog, calendar labels, status/footer text, and clipboard
+  notifications.
+
+Register the helpers on the host `MaterialApp`:
+
+```dart
+MaterialApp(
+  localizationsDelegates: const [
+    GlobalMaterialLocalizations.delegate,
+    GlobalWidgetsLocalizations.delegate,
+    GlobalCupertinoLocalizations.delegate,
+    SuperTableLocalizations.delegate,
+  ],
+  supportedLocales: SuperTableLocalizations.supportedLocales,
+  theme: SuperMaterialThemeData.light(extensions: [ AutoSuggestionsBoxThemeData.light],),
+  darkTheme: SuperMaterialThemeData.dark(extensions: [AutoSuggestionsBoxThemeData.dark],),
+  home: const MyTableScreen(),
+);
+```
 
 ## What's new in 2.4.0
 
@@ -109,6 +140,8 @@ See the [CHANGELOG](CHANGELOG.md) for the full list and migration notes.
 - ✅ **Fill down / fill right** and **Σ group footers** (2.1.0).
 - ✅ **Interaction events** — `SuperInteractions`: cell/row tap, double-tap/activate, secondary tap, selection + sort snapshots (2.2.0).
 - ✅ **Runtime column config** — drag-reorder / show-hide / pin via `showSuperColumnManager` + header menus + a controller API; pins persist in saved views (2.2.0).
+- ✅ **Localized table UI** — English and Arabic package strings via
+  `SuperTableLocalizations` (2.5.0).
 
 ## Getting started
 
@@ -126,6 +159,8 @@ Use the generated `super_core` themes:
 import 'package:super_table_field/super_table_field.dart';
 
 MaterialApp(
+  localizationsDelegates: SuperTableLocalizations.localizationsDelegates,
+  supportedLocales: SuperTableLocalizations.supportedLocales,
   theme: SuperMaterialThemeData.light(),
   darkTheme: SuperMaterialThemeData.dark(),
   themeMode: ThemeMode.system,
@@ -136,6 +171,21 @@ MaterialApp(
 `super_auto_suggestion_box`. `AutoSuggestionsBoxThemeData` derives from the
 active `SuperMaterialThemeData`; register an explicit extension only when you
 need component-specific overrides.
+
+`SuperTableLocalizations` registers the package translation delegate plus the
+Flutter Material, Cupertino, and Widgets localization delegates. Supported
+package locales are `Locale('en')` and `Locale('ar')`.
+
+If you prefer explicit delegate registration:
+
+```dart
+localizationsDelegates: const [
+  GlobalMaterialLocalizations.delegate,
+  GlobalWidgetsLocalizations.delegate,
+  GlobalCupertinoLocalizations.delegate,
+  SuperTableLocalizations.delegate,
+],
+```
 
 > **Fonts** — the design system uses Manrope (display), Inter (body), JetBrains Mono (numerics) and Noto Naskh Arabic. Drop the `.ttf` files under `assets/fonts/` and uncomment the `fonts:` block in `pubspec.yaml`; otherwise platform defaults are used.
 

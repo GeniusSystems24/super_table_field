@@ -22,6 +22,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'package:super_auto_suggestion_box/super_auto_suggestion_box.dart';
+import '../../../../localization/super_table_localizations.dart';
 import '../../domain/entities/super_column.dart';
 import '../../domain/entities/super_row.dart';
 import '../../domain/entities/super_style.dart';
@@ -562,12 +563,12 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
   Future<void> _confirmDeleteRow([int? viewR]) async {
     final vr = viewR ?? c.sel.r;
     if (vr >= c.nRows) return;
+    final l10n = context.superTableTranslations;
     final label = c.firstColText(vr);
     final ok = await showSuperConfirm(
       context,
-      title: 'Delete row?',
-      body:
-          'Row ${vr + 1} (${label.isEmpty ? '—' : label}) will be permanently removed. This cannot be undone.',
+      title: l10n.deleteRowTitle,
+      body: l10n.deleteRowBody(vr + 1, label.isEmpty ? '-' : label),
     );
     if (ok) c.deleteRow(vr);
   }
@@ -587,12 +588,13 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
 
   // ── header menu (opens on RIGHT-click / touch double-tap) ──
   void _openHeaderMenu(SuperColumn col, Offset pos) {
+    final l10n = context.superTableTranslations;
     final entries = <SuperMenuEntry>[];
     if (col.sortable) {
       entries.add(
         SuperMenuEntry(
           icon: Icons.arrow_upward_rounded,
-          label: 'Sort ascending',
+          label: l10n.sortAscending,
           checked: c.sort.key == col.key && c.sort.ascending,
           onTap: () => c.sortBy(col, true),
         ),
@@ -600,7 +602,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
       entries.add(
         SuperMenuEntry(
           icon: Icons.arrow_downward_rounded,
-          label: 'Sort descending',
+          label: l10n.sortDescending,
           checked: c.sort.key == col.key && !c.sort.ascending,
           onTap: () => c.sortBy(col, false),
         ),
@@ -609,7 +611,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
         entries.add(
           SuperMenuEntry(
             icon: Icons.sort_rounded,
-            label: 'Clear sort',
+            label: l10n.clearSort,
             onTap: c.clearSort,
           ),
         );
@@ -620,8 +622,8 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
         SuperMenuEntry(
           icon: Icons.workspaces_outline,
           label: c.groupKeys.contains(col.key)
-              ? 'Remove from grouping'
-              : 'Group by this column',
+              ? l10n.removeFromGrouping
+              : l10n.groupByThisColumn,
           separatorBefore: true,
           checked: c.groupKeys.contains(col.key),
           onTap: () => c.toggleGroup(col.key),
@@ -632,7 +634,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
       entries.add(
         SuperMenuEntry(
           icon: Icons.visibility_off_outlined,
-          label: 'Hide column',
+          label: l10n.hideColumn,
           separatorBefore: !widget.columnManager,
           disabled: c.visibleColumnCount <= 1,
           onTap: () => c.hideColumn(col.key),
@@ -645,24 +647,24 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
           icon: c.pinOf(col) == SuperPin.none
               ? Icons.push_pin_outlined
               : Icons.push_pin_rounded,
-          label: 'Pin',
+          label: l10n.pin,
           separatorBefore: true,
           children: [
             SuperMenuEntry(
               icon: Icons.first_page_rounded,
-              label: 'Pin left',
+              label: l10n.pinLeft,
               checked: c.pinOf(col) == SuperPin.left,
               onTap: () => c.setColumnPin(col.key, SuperPin.left),
             ),
             SuperMenuEntry(
               icon: Icons.last_page_rounded,
-              label: 'Pin right',
+              label: l10n.pinRight,
               checked: c.pinOf(col) == SuperPin.right,
               onTap: () => c.setColumnPin(col.key, SuperPin.right),
             ),
             SuperMenuEntry(
               icon: Icons.remove_rounded,
-              label: 'Unpinned',
+              label: l10n.unpinned,
               checked: c.pinOf(col) == SuperPin.none,
               onTap: () => c.setColumnPin(col.key, SuperPin.none),
             ),
@@ -673,7 +675,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
         entries.add(
           SuperMenuEntry(
             icon: Icons.visibility_off_outlined,
-            label: 'Hide column',
+            label: l10n.hideColumn,
             disabled: c.visibleColumnCount <= 1,
             onTap: () => c.hideColumn(col.key),
           ),
@@ -682,7 +684,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
       entries.add(
         SuperMenuEntry(
           icon: Icons.view_column_rounded,
-          label: 'Manage columns…',
+          label: l10n.manageColumns,
           onTap: () => showSuperColumnManager<R>(context, c),
         ),
       );
@@ -692,11 +694,12 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
 
   void _openRowMenu(int viewR, Offset pos) {
     if (viewR >= c.view.length) return;
+    final l10n = context.superTableTranslations;
     final row = c.view[viewR].row!;
     final entries = <SuperMenuEntry>[
       SuperMenuEntry(
         icon: Icons.content_copy_rounded,
-        label: 'Copy as JSON',
+        label: l10n.copyAsJson,
         hint: '⌘C',
         onTap: () => (c.rowMode && c.selRows.isNotEmpty)
             ? c.copyRowsJson(c.selRows.toList())
@@ -707,27 +710,27 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
       entries.addAll([
         SuperMenuEntry(
           icon: Icons.vertical_align_top_rounded,
-          label: 'Insert row above',
+          label: l10n.insertRowAbove,
           hint: '⌘⇧↵',
           separatorBefore: true,
           onTap: () => c.insertRow(viewR, after: false),
         ),
         SuperMenuEntry(
           icon: Icons.vertical_align_bottom_rounded,
-          label: 'Insert row below',
+          label: l10n.insertRowBelow,
           hint: '⌘↵',
           onTap: () => c.insertRow(viewR, after: true),
         ),
         SuperMenuEntry(
           icon: Icons.copy_all_rounded,
-          label: 'Duplicate row',
+          label: l10n.duplicateRow,
           hint: '⌘D',
           onTap: () => c.duplicateRow(viewR),
         ),
         if (c.trackChanges) ...[
           SuperMenuEntry(
             icon: Icons.restore_rounded,
-            label: 'Revert cell',
+            label: l10n.revertCell,
             separatorBefore: true,
             disabled:
                 !(c.sel.r == viewR &&
@@ -737,27 +740,27 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
           ),
           SuperMenuEntry(
             icon: Icons.settings_backup_restore_rounded,
-            label: row.isNew ? 'Revert row (remove added)' : 'Revert row',
+            label: row.isNew ? l10n.revertRowRemoveAdded : l10n.revertRow,
             disabled: !c.isRowDirty(row),
             onTap: () => c.revertRow(row),
           ),
         ],
         SuperMenuEntry(
           icon: Icons.arrow_upward_rounded,
-          label: 'Move row up',
+          label: l10n.moveRowUp,
           separatorBefore: true,
           disabled: viewR == 0,
           onTap: () => c.moveRowUp(viewR),
         ),
         SuperMenuEntry(
           icon: Icons.arrow_downward_rounded,
-          label: 'Move row down',
+          label: l10n.moveRowDown,
           disabled: viewR >= c.view.length - 1,
           onTap: () => c.moveRowDown(viewR),
         ),
         SuperMenuEntry(
           icon: Icons.delete_outline_rounded,
-          label: 'Delete row',
+          label: l10n.deleteRow,
           hint: '⌘⌫',
           danger: true,
           separatorBefore: true,
@@ -770,7 +773,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
         entries.add(
           SuperMenuEntry(
             icon: Icons.workspaces_outline,
-            label: 'Group by',
+            label: l10n.groupBy,
             separatorBefore: true,
             children: [
               for (final col in groupables)
@@ -1055,6 +1058,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
 
   // ── formula bar (editable) ──
   Widget _buildFormulaBar(SuperTableSkin skin) {
+    final l10n = context.superTableTranslations;
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
@@ -1063,7 +1067,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
           _BarButton(
             skin: skin,
             icon: Icons.content_copy_rounded,
-            label: 'Copy JSON',
+            label: l10n.copyJson,
             onTap: () => (c.rowMode && c.selRows.isNotEmpty)
                 ? c.copyRowsJson(c.selRows.toList())
                 : c.copyJson(),
@@ -1086,7 +1090,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
           _BarButton(
             skin: skin,
             icon: Icons.keyboard_rounded,
-            label: 'Shortcuts',
+            label: l10n.shortcuts,
             onTap: () => showSuperShortcuts(context),
           ),
         ],
@@ -1113,7 +1117,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
               ),
               const SizedBox(width: 6),
               Text(
-                'GROUPED BY',
+                context.superTableTranslations.groupedBy,
                 style: TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.w700,
@@ -1128,7 +1132,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
           GestureDetector(
             onTap: c.clearGroups,
             child: Text(
-              'Clear all',
+              context.superTableTranslations.clearAll,
               style: TextStyle(
                 fontSize: 11.5,
                 color: skin.fg3,
@@ -1222,8 +1226,8 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
                   skin: skin,
                   icon: Icons.tune_rounded,
                   tooltip: active
-                      ? 'Advanced filter active — edit'
-                      : 'Advanced filter',
+                      ? context.superTableTranslations.advancedFilterActiveEdit
+                      : context.superTableTranslations.advancedFilter,
                   accent: active,
                   onTap: _openAdvancedFilter,
                 ),
@@ -1258,7 +1262,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
           ? _IconHoverButton(
               skin: skin,
               icon: Icons.add_rounded,
-              tooltip: 'Add column',
+              tooltip: context.superTableTranslations.addColumn,
               onTap: widget.onAddColumn!,
             )
           : Icon(Icons.delete_outline_rounded, size: 13, color: skin.fg4),
@@ -1301,6 +1305,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
 
   Widget _filterGutter(SuperTableSkin skin) {
     final active = c.hasColumnFilters;
+    final l10n = context.superTableTranslations;
     return Container(
       width: _gutterW,
       height: _kFilterRowH,
@@ -1319,7 +1324,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
               icon: active
                   ? Icons.filter_alt_off_rounded
                   : Icons.filter_alt_outlined,
-              tooltip: active ? 'Clear all filters' : 'Filter rows',
+              tooltip: active ? l10n.clearAllFilters : l10n.filterRows,
               onTap: active ? c.clearColumnFilters : () {},
             ),
     );
@@ -1358,7 +1363,9 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
         col,
         current,
         options: const ['Yes', 'No'],
-        labelFor: (v) => v == 'Yes' ? 'Checked' : 'Unchecked',
+        labelFor: (v) => v == 'Yes'
+            ? context.superTableTranslations.checked
+            : context.superTableTranslations.unchecked,
       );
     } else {
       field = _filterText(skin, col, current);
@@ -1411,7 +1418,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
                   minWidth: 25,
                   minHeight: 24,
                 ),
-                hintText: 'Filter…',
+                hintText: context.superTableTranslations.filterHint,
                 hintStyle: TextStyle(fontSize: 12, color: skin.fg4),
               ),
             ),
@@ -1439,13 +1446,14 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
     required List<String> options,
     String Function(String)? labelFor,
   }) {
+    final l10n = context.superTableTranslations;
     final active = current.trim().isNotEmpty;
-    final label = active ? (labelFor?.call(current) ?? current) : 'All';
+    final label = active ? (labelFor?.call(current) ?? current) : l10n.all;
     return _DropdownTap(
       onOpen: (pos) {
         final entries = <SuperMenuEntry>[
           SuperMenuEntry(
-            label: 'All',
+            label: l10n.all,
             checked: !active,
             onTap: () => c.setColumnFilter(col.key, ''),
           ),
@@ -1916,14 +1924,14 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
           ? _IconHoverButton(
               skin: skin,
               icon: Icons.delete_outline_rounded,
-              tooltip: 'Delete row',
+              tooltip: context.superTableTranslations.deleteRow,
               danger: true,
               onTap: () => _confirmDeleteRow(r),
             )
           : _IconHoverButton(
               skin: skin,
               icon: Icons.drag_indicator_rounded,
-              tooltip: 'Row options',
+              tooltip: context.superTableTranslations.rowOptions,
               onTap: () {},
             ),
     );
@@ -2342,7 +2350,10 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
         children: [
           Icon(Icons.inbox_rounded, size: 26, color: skin.fg3),
           const SizedBox(height: 10),
-          Text('No rows', style: TextStyle(fontSize: 13, color: skin.fg3)),
+          Text(
+            context.superTableTranslations.noRows,
+            style: TextStyle(fontSize: 13, color: skin.fg3),
+          ),
         ],
       ),
     );
@@ -2392,7 +2403,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
       );
     } else if (i == 0) {
       child = Text(
-        'TOTALS',
+        context.superTableTranslations.totals,
         style: TextStyle(
           fontSize: 10,
           fontWeight: FontWeight.w700,
@@ -2418,6 +2429,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
   }
 
   List<Widget> _buildFooterStack(SuperTableSkin skin) {
+    final l10n = context.superTableTranslations;
     final out = <Widget>[];
     if (c.pagination == SuperPagination.loadMore &&
         c.hasMore &&
@@ -2429,7 +2441,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
             child: _BarButton(
               skin: skin,
               icon: c.loadingMore ? null : Icons.arrow_downward_rounded,
-              label: c.loadingMore ? 'Loading…' : 'Load more',
+              label: c.loadingMore ? l10n.loading : l10n.loadMore,
               enabled: !c.loadingMore,
               onTap: c.requestLoadMore,
             ),
@@ -2444,6 +2456,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
   }
 
   Widget _buildPager(SuperTableSkin skin) {
+    final l10n = context.superTableTranslations;
     final total = c.sortedRows.length;
     final from = total == 0 ? 0 : c.page * c.pageSize + 1;
     final to = (c.page * c.pageSize + c.pageSize).clamp(0, total);
@@ -2478,7 +2491,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
       child: Row(
         children: [
           Text(
-            total == 0 ? '0 of 0' : '$from–$to of $total',
+            total == 0 ? l10n.pageRangeEmpty : l10n.pageRange(from, to, total),
             style: TextStyle(fontSize: 12, color: skin.fg3),
           ),
           const Spacer(),
@@ -2507,13 +2520,15 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
   }
 
   Widget _buildStatusHint(SuperTableSkin skin) {
+    final l10n = context.superTableTranslations;
     final n = _editable ? c.rows.length : c.sortedRows.length;
     final expKeys = !_editable && widget.expansion?.keymap != null
-        ? ' · ⌘⇧↓ expand · ⌘⇧↑ collapse'
+        ? l10n.expandCollapseHint
         : '';
+    final rowCount = l10n.rowCount(n, n == 1 ? '' : 's');
     final hint = _editable
-        ? '$n row${n == 1 ? '' : 's'} · ↵ edit · Tab next (new row at end) · ⌘↵ insert after · ⌘C/V JSON · ⌘Z undo'
-        : '$n row${n == 1 ? '' : 's'} · ⇧+arrows to range-select · right-click header for options · ⌘C copy$expKeys';
+        ? l10n.editableStatusHint(rowCount)
+        : l10n.readableStatusHint(rowCount, expKeys);
     final stats = c.selectionStats;
     final issues = _editable ? c.errorCount : 0;
     String fmt(num v) =>
@@ -2535,7 +2550,13 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
           ],
           if (stats != null && stats.hasAggregate) ...[
             Text(
-              'Sum ${fmt(stats.sum)}  ·  Avg ${fmt(stats.average)}  ·  Min ${fmt(stats.min!)}  ·  Max ${fmt(stats.max!)}  ·  Count ${stats.numericCount}',
+              l10n.selectionStats(
+                fmt(stats.sum),
+                fmt(stats.average),
+                fmt(stats.min!),
+                fmt(stats.max!),
+                stats.numericCount,
+              ),
               style: TextStyle(
                 fontFamily: context.superTheme.tokens.monoFont,
                 fontSize: 11.5,
@@ -2546,7 +2567,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
           ],
           if (c.rowMode && c.selRows.isNotEmpty)
             Text(
-              '${c.selRows.length} selected',
+              l10n.selectedCount(c.selRows.length),
               style: TextStyle(fontSize: 12, color: skin.accent(context)),
             ),
         ],
@@ -2614,7 +2635,9 @@ class _ValidationChip extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
           decoration: BoxDecoration(
             color: skin.tint(skin.danger(context), 0.07),
-            border: Border.all(color: skin.danger(context).withValues(alpha: 0.3)),
+            border: Border.all(
+              color: skin.danger(context).withValues(alpha: 0.3),
+            ),
             borderRadius: BorderRadius.circular(6),
           ),
           child: Row(
@@ -2627,7 +2650,10 @@ class _ValidationChip extends StatelessWidget {
               ),
               const SizedBox(width: 5),
               Text(
-                '$count issue${count == 1 ? '' : 's'}',
+                context.superTableTranslations.issueCount(
+                  count,
+                  count == 1 ? '' : 's',
+                ),
                 style: TextStyle(
                   fontSize: 11.5,
                   fontWeight: FontWeight.w700,

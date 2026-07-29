@@ -11,6 +11,7 @@
 
 import 'package:flutter/widgets.dart' show Color;
 
+import '../../../../../localization/generated/l10n.dart';
 import '../entities/super_column.dart';
 import '../entities/super_columns.dart';
 import '../entities/super_filter.dart';
@@ -229,47 +230,59 @@ abstract final class SuperColumnLogic {
   }
 
   // ── built-in type validation (editable mode; runs before column.validator) ──
-  static String? validateCell(SuperColumn col, Object? v) {
+  static String? validateCell(
+    SuperColumn col,
+    Object? v, {
+    SuperTableTranslation? l10n,
+  }) {
     final s = (v == null ? '' : '$v').trim();
-    final name = col.label.isNotEmpty ? '“${col.label}”' : 'This cell';
-    if (col.required && s.isEmpty) return '$name is required';
+    final strings = l10n ?? SuperTableTranslation();
+    final name = col.label.isNotEmpty ? '"${col.label}"' : strings.thisCell;
+    if (col.required && s.isEmpty) return strings.isRequired(name);
     if (col.type.isNumeric &&
         s.isNotEmpty &&
         double.tryParse(s.replaceAll(RegExp(r'[^0-9.\-]'), '')) == null) {
-      return '$name must be a number';
+      return strings.mustBeNumber(name);
     }
     if (col.type == SuperColumnType.date &&
         s.isNotEmpty &&
         !RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(s)) {
-      return '$name must be a date (YYYY-MM-DD)';
+      return strings.mustBeDate(name);
     }
     if (col.type == SuperColumnType.time &&
         s.isNotEmpty &&
         !RegExp(r'^\d{2}:\d{2}$').hasMatch(s)) {
-      return '$name must be a time (HH:mm)';
+      return strings.mustBeTime(name);
     }
     if (col.type == SuperColumnType.color &&
         s.isNotEmpty &&
         !RegExp(r'^#?[0-9a-fA-F]{6}$').hasMatch(s)) {
-      return '$name must be a hex color (#RRGGBB)';
+      return strings.mustBeHexColor(name);
     }
     return null;
   }
 
   // ── paste coercion ──
-  static CoerceResult coercePaste(SuperColumn col, Object? raw) {
+  static CoerceResult coercePaste(
+    SuperColumn col,
+    Object? raw, {
+    SuperTableTranslation? l10n,
+  }) {
+    final strings = l10n ?? SuperTableTranslation();
     final t = col.type;
     if (t == SuperColumnType.computed || t == SuperColumnType.readonly) {
-      return CoerceResult.fail('“${col.label}” is read-only');
+      return CoerceResult.fail(strings.isReadOnly(col.label));
     }
     final s = raw == null ? '' : '$raw'.trim();
     if (s.isEmpty) {
-      if (col.required) return CoerceResult.fail('“${col.label}” is required');
+      if (col.required) {
+        return CoerceResult.fail(strings.columnIsRequired(col.label));
+      }
       return const CoerceResult.ok('');
     }
     if (t.isNumeric) {
       if (double.tryParse(s.replaceAll(RegExp(r'[^0-9.\-]'), '')) == null) {
-        return CoerceResult.fail('“${col.label}” expects a number — got “$s”');
+        return CoerceResult.fail(strings.expectsNumber(col.label, s));
       }
       return CoerceResult.ok(clampNum(numVal(s), col));
     }
@@ -277,15 +290,13 @@ abstract final class SuperColumnLogic {
       final yes = ['true', 'yes', '1'].contains(s.toLowerCase());
       final no = ['false', 'no', '0'].contains(s.toLowerCase());
       if (!yes && !no)
-        return CoerceResult.fail(
-          '“${col.label}” expects true/false — got “$s”',
-        );
+        return CoerceResult.fail(strings.expectsTrueFalse(col.label, s));
       return CoerceResult.ok(yes);
     }
     if (t == SuperColumnType.enumeration) {
       if (col.opts != null && !col.opts!.contains(s)) {
         return CoerceResult.fail(
-          '“${col.label}” must be one of: ${col.opts!.join(', ')}',
+          strings.mustBeOneOf(col.label, col.opts!.join(', ')),
         );
       }
       // map a display string back to its raw value where possible
@@ -298,14 +309,14 @@ abstract final class SuperColumnLogic {
     }
     if (t == SuperColumnType.date &&
         !RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(s)) {
-      return CoerceResult.fail('“${col.label}” expects YYYY-MM-DD — got “$s”');
+      return CoerceResult.fail(strings.expectsDate(col.label, s));
     }
     if (t == SuperColumnType.time && !RegExp(r'^\d{2}:\d{2}$').hasMatch(s)) {
-      return CoerceResult.fail('“${col.label}” expects HH:mm — got “$s”');
+      return CoerceResult.fail(strings.expectsTime(col.label, s));
     }
     if (t == SuperColumnType.color &&
         !RegExp(r'^#?[0-9a-fA-F]{6}$').hasMatch(s)) {
-      return CoerceResult.fail('“${col.label}” expects #RRGGBB — got “$s”');
+      return CoerceResult.fail(strings.expectsHexColor(col.label, s));
     }
     return CoerceResult.ok(s);
   }

@@ -335,10 +335,12 @@ Future<bool> showSuperConfirm(
   BuildContext context, {
   required String title,
   required String body,
-  String confirmLabel = 'Delete',
+  String? confirmLabel,
   bool danger = true,
 }) async {
   final skin = SuperTableSkin.of(context);
+  final effectiveConfirmLabel =
+      confirmLabel ?? context.superTableTranslations.delete;
   final res = await showDialog<bool>(
     context: context,
     barrierColor: Colors.black.withValues(alpha: 0.5),
@@ -405,13 +407,13 @@ Future<bool> showSuperConfirm(
                 children: [
                   _DialogBtn(
                     skin: skin,
-                    label: 'Cancel',
+                    label: context.superTableTranslations.cancel,
                     onTap: () => Navigator.pop(ctx, false),
                   ),
                   const SizedBox(width: 9),
                   _DialogBtn(
                     skin: skin,
-                    label: confirmLabel,
+                    label: effectiveConfirmLabel,
                     filled: true,
                     danger: danger,
                     icon: danger
@@ -565,6 +567,7 @@ class _AdvancedFilterPanelState extends State<_AdvancedFilterPanel> {
   @override
   Widget build(BuildContext context) {
     final s = widget.skin;
+    final l10n = context.superTableTranslations;
     return Container(
       width: 560,
       constraints: const BoxConstraints(maxHeight: 600),
@@ -601,7 +604,7 @@ class _AdvancedFilterPanelState extends State<_AdvancedFilterPanel> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Advanced filter',
+                      l10n.advancedFilter,
                       style: TextStyle(
                         fontFamily: context.superTheme.tokens.displayFont,
                         fontWeight: FontWeight.w800,
@@ -610,7 +613,7 @@ class _AdvancedFilterPanelState extends State<_AdvancedFilterPanel> {
                       ),
                     ),
                     Text(
-                      'All conditions must match (AND). Column filters are disabled while this is active.',
+                      l10n.advancedFilterDescription,
                       style: TextStyle(fontSize: 11.5, color: s.fg3),
                     ),
                   ],
@@ -659,7 +662,7 @@ class _AdvancedFilterPanelState extends State<_AdvancedFilterPanel> {
                 Icon(Icons.add_rounded, size: 15, color: s.accent(context)),
                 const SizedBox(width: 6),
                 Text(
-                  'Add condition',
+                  l10n.addCondition,
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -674,7 +677,7 @@ class _AdvancedFilterPanelState extends State<_AdvancedFilterPanel> {
             children: [
               _DialogBtn(
                 skin: s,
-                label: 'Clear',
+                label: l10n.clear,
                 icon: Icons.filter_alt_off_outlined,
                 onTap: () {
                   widget.onClear();
@@ -684,13 +687,13 @@ class _AdvancedFilterPanelState extends State<_AdvancedFilterPanel> {
               const Spacer(),
               _DialogBtn(
                 skin: s,
-                label: 'Cancel',
+                label: l10n.cancel,
                 onTap: () => Navigator.pop(context),
               ),
               const SizedBox(width: 9),
               _DialogBtn(
                 skin: s,
-                label: 'Apply filter',
+                label: l10n.applyFilter,
                 filled: true,
                 icon: Icons.check_rounded,
                 onTap: () {
@@ -941,38 +944,39 @@ class _AdvancedFilterPanelState extends State<_AdvancedFilterPanel> {
 /// Keyboard-shortcuts reference dialog.
 Future<void> showSuperShortcuts(BuildContext context) {
   final skin = SuperTableSkin.of(context);
+  final l10n = context.superTableTranslations;
   final groups = <(String, List<(String, String)>)>[
     (
-      'Navigate',
+      l10n.navigate,
       [
-        ('↑ ↓ ← →', 'Move between cells'),
-        ('Tab / ⇧Tab', 'Next / previous cell'),
-        ('Home / End', 'First / last column'),
-        ('⌘Home / ⌘End', 'First / last cell'),
+        ('↑ ↓ ← →', l10n.moveBetweenCells),
+        ('Tab / ⇧Tab', l10n.nextPreviousCell),
+        ('Home / End', l10n.firstLastColumn),
+        ('⌘Home / ⌘End', l10n.firstLastCell),
       ],
     ),
     (
-      'Edit',
+      l10n.edit,
       [
-        ('Type', 'Overwrite the cell'),
-        ('Enter / F2', 'Edit, or open a select'),
-        ('Enter↓ · Tab→', 'Commit & move'),
-        ('Tab at end', 'Append a new row'),
-        ('⌫ / Delete', 'Clear the cell'),
-        ('Esc', 'Cancel editing'),
+        ('Type', l10n.overwriteCell),
+        ('Enter / F2', l10n.editOrOpenSelect),
+        ('Enter↓ · Tab→', l10n.commitAndMove),
+        ('Tab at end', l10n.appendNewRow),
+        ('⌫ / Delete', l10n.clearCell),
+        ('Esc', l10n.cancelEditing),
       ],
     ),
     (
-      'Rows & clipboard',
+      l10n.rowsAndClipboard,
       [
-        ('⌘Enter', 'Insert row after'),
-        ('⌘⇧Enter', 'Insert row before'),
-        ('⌘D', 'Duplicate row · fill down (multi-row range)'),
-        ('⌘R', 'Fill right across the range'),
-        ('⌘⌫', 'Delete row'),
-        ('⌘C', 'Copy selection as JSON'),
-        ('⌘X / ⌘V', 'Cut / paste (validated)'),
-        ('⌘Z / ⌘⇧Z', 'Undo / redo'),
+        ('⌘Enter', l10n.insertRowAfter),
+        ('⌘⇧Enter', l10n.insertRowBefore),
+        ('⌘D', l10n.duplicateRowFillDown),
+        ('⌘R', l10n.fillRightAcrossRange),
+        ('⌘⌫', l10n.deleteRow),
+        ('⌘C', l10n.copySelectionAsJson),
+        ('⌘X / ⌘V', l10n.cutPasteValidated),
+        ('⌘Z / ⌘⇧Z', l10n.undoRedo),
       ],
     ),
   ];
@@ -1016,7 +1020,7 @@ Future<void> showSuperShortcuts(BuildContext context) {
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'Keyboard shortcuts',
+                        l10n.keyboardShortcuts,
                         style: TextStyle(
                           fontFamily: context.superTheme.tokens.displayFont,
                           fontWeight: FontWeight.w800,
@@ -1130,6 +1134,7 @@ Future<void> showSuperValidationPanel<R>(
   SuperTableController<R> controller,
 ) {
   final skin = SuperTableSkin.of(context);
+  final l10n = context.superTableTranslations;
   final issues = controller.validateAll();
   return showDialog<void>(
     context: context,
@@ -1177,8 +1182,11 @@ Future<void> showSuperValidationPanel<R>(
                   Expanded(
                     child: Text(
                       issues.isEmpty
-                          ? 'All rows valid'
-                          : '${issues.length} validation issue${issues.length == 1 ? '' : 's'}',
+                          ? l10n.allRowsValid
+                          : l10n.validationIssueCount(
+                              issues.length,
+                              issues.length == 1 ? '' : 's',
+                            ),
                       style: TextStyle(
                         fontFamily: context.superTheme.tokens.displayFont,
                         fontWeight: FontWeight.w800,
@@ -1212,7 +1220,7 @@ Future<void> showSuperValidationPanel<R>(
                 Padding(
                   padding: const EdgeInsets.only(bottom: 4),
                   child: Text(
-                    'Every cell passes the type rules, unique constraints and column validators.',
+                    l10n.allRowsValidBody,
                     style: TextStyle(
                       fontSize: 13,
                       color: skin.fg3,
@@ -1274,7 +1282,9 @@ class _ValidationIssueTile extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 10),
             decoration: BoxDecoration(
               color: skin.tint(skin.danger(context), 0.05),
-              border: Border.all(color: skin.danger(context).withValues(alpha: 0.25)),
+              border: Border.all(
+                color: skin.danger(context).withValues(alpha: 0.25),
+              ),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
@@ -1490,6 +1500,7 @@ class _ColumnManagerPanelState<R> extends State<_ColumnManagerPanel<R>> {
   @override
   Widget build(BuildContext context) {
     final s = widget.skin;
+    final l10n = context.superTableTranslations;
     final cols = c.managedColumns;
     final shown = cols.where((col) => c.isColumnVisible(col.key)).length;
     return Container(
@@ -1528,7 +1539,7 @@ class _ColumnManagerPanelState<R> extends State<_ColumnManagerPanel<R>> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Manage columns',
+                      l10n.manageColumns,
                       style: TextStyle(
                         fontFamily: context.superTheme.tokens.displayFont,
                         fontWeight: FontWeight.w800,
@@ -1537,7 +1548,7 @@ class _ColumnManagerPanelState<R> extends State<_ColumnManagerPanel<R>> {
                       ),
                     ),
                     Text(
-                      'Drag to reorder · toggle visibility · pin to an edge',
+                      l10n.manageColumnsDescription,
                       style: TextStyle(fontSize: 11.5, color: s.fg3),
                     ),
                   ],
@@ -1587,7 +1598,7 @@ class _ColumnManagerPanelState<R> extends State<_ColumnManagerPanel<R>> {
           Row(
             children: [
               Text(
-                '$shown of ${cols.length} shown',
+                l10n.shownOfColumns(shown, cols.length),
                 style: TextStyle(
                   fontFamily: context.superTheme.tokens.monoFont,
                   fontSize: 11.5,
@@ -1597,14 +1608,14 @@ class _ColumnManagerPanelState<R> extends State<_ColumnManagerPanel<R>> {
               const Spacer(),
               _DialogBtn(
                 skin: s,
-                label: 'Reset',
+                label: l10n.reset,
                 icon: Icons.restart_alt_rounded,
                 onTap: () => c.resetViewState(clearFilters: false),
               ),
               const SizedBox(width: 9),
               _DialogBtn(
                 skin: s,
-                label: 'Done',
+                label: l10n.done,
                 filled: true,
                 icon: Icons.check_rounded,
                 onTap: () => Navigator.pop(context),

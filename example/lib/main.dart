@@ -10,6 +10,7 @@
 // ============================================================
 
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:super_table_field/super_table_field.dart';
 
 import 'examples/example_1_readonly_report.dart';
@@ -47,9 +48,13 @@ class _ExampleAppState extends State<ExampleApp> {
   TextDirection _dir = TextDirection.ltr;
 
   void _toggleTheme() => setState(
-      () => _mode = _mode == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark);
-  void _toggleDir() => setState(() =>
-      _dir = _dir == TextDirection.ltr ? TextDirection.rtl : TextDirection.ltr);
+    () => _mode = _mode == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark,
+  );
+  void _toggleDir() => setState(
+    () => _dir = _dir == TextDirection.ltr
+        ? TextDirection.rtl
+        : TextDirection.ltr,
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -59,8 +64,19 @@ class _ExampleAppState extends State<ExampleApp> {
       themeMode: _mode,
       theme: SuperMaterialThemeData.light(),
       darkTheme: SuperMaterialThemeData.dark(),
-      builder: (context, child) =>
-          Directionality(textDirection: _dir, child: child!),
+      locale: _dir == TextDirection.rtl
+          ? const Locale('ar')
+          : const Locale('en'),
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        SuperTableLocalizations.delegate,
+      ],
+      supportedLocales: SuperTableLocalizations.supportedLocales,
+
+      // builder: (context, child) =>
+      //     Directionality(textDirection: _dir, child: child!),
       home: _Launcher(
         mode: _mode,
         dir: _dir,
@@ -94,99 +110,125 @@ class _Launcher extends StatelessWidget {
 
   static final List<_Demo> _demos = [
     _Demo(
-        'Super Table',
-        'Editable/readable grid · typed columns · combo ⇒ AutoSuggestionsBox',
-        Icons.grid_on_outlined,
-        (_) => const SuperTableDemo()),
+      'Super Table',
+      'Editable/readable grid · typed columns · combo ⇒ AutoSuggestionsBox',
+      Icons.grid_on_outlined,
+      (_) => const SuperTableDemo(),
+    ),
     _Demo(
-        '1 · Read-only report',
-        'Readable mode · typed model · conditional row styling',
-        Icons.assessment_outlined,
-        (_) => const ReadonlyReportExample()),
+      '1 · Read-only report',
+      'Readable mode · typed model · conditional row styling',
+      Icons.assessment_outlined,
+      (_) => const ReadonlyReportExample(),
+    ),
     _Demo(
-        '2 · Editable journal',
-        'validator + onChange · Ctrl+Enter insert · live balance',
-        Icons.edit_note_outlined,
-        (_) => const EditableJournalExample()),
+      '2 · Editable journal',
+      'validator + onChange · Ctrl+Enter insert · live balance',
+      Icons.edit_note_outlined,
+      (_) => const EditableJournalExample(),
+    ),
     _Demo(
-        '3 · Async combo',
-        'SuperComboColumn sourceController · fingerPrint rebuild',
-        Icons.cloud_sync_outlined,
-        (_) => const AsyncComboExample()),
+      '3 · Async combo',
+      'SuperComboColumn sourceController · fingerPrint rebuild',
+      Icons.cloud_sync_outlined,
+      (_) => const AsyncComboExample(),
+    ),
     _Demo(
-        '4 · Controller-driven',
-        'setMode · onLoadMore · programmatic filters + selection',
-        Icons.tune_outlined,
-        (_) => const ControllerDrivenExample()),
+      '4 · Controller-driven',
+      'setMode · onLoadMore · programmatic filters + selection',
+      Icons.tune_outlined,
+      (_) => const ControllerDrivenExample(),
+    ),
     _Demo(
-        '5 · Styling & filters',
-        'Cell/row styles · FilterItem dropdowns · onKey',
-        Icons.palette_outlined,
-        (_) => const StylingAndFiltersExample()),
+      '5 · Styling & filters',
+      'Cell/row styles · FilterItem dropdowns · onKey',
+      Icons.palette_outlined,
+      (_) => const StylingAndFiltersExample(),
+    ),
     _Demo(
-        '6 · Playground',
-        'Full toolbar · mode/search/select/paging/totals/filters',
-        Icons.dashboard_customize_outlined,
-        (_) => const PlaygroundExample()),
+      '6 · Playground',
+      'Full toolbar · mode/search/select/paging/totals/filters',
+      Icons.dashboard_customize_outlined,
+      (_) => const PlaygroundExample(),
+    ),
     _Demo(
-        '7 · Change tracking',
-        'trackChanges · dirty cells · changes delta · save/revert',
-        Icons.fact_check_outlined,
-        (_) => const ChangeTrackingExample()),
+      '7 · Change tracking',
+      'trackChanges · dirty cells · changes delta · save/revert',
+      Icons.fact_check_outlined,
+      (_) => const ChangeTrackingExample(),
+    ),
     _Demo(
-        '8 · Selection statistics',
-        'multiCells · selectionStats · Sum/Avg/Min/Max status bar',
-        Icons.functions_outlined,
-        (_) => const SelectionStatsExample()),
-    _Demo('9 · Export', 'toCsv / toTsv / toJsonRows · respects filter + sort',
-        Icons.file_download_outlined, (_) => const ExportExample()),
+      '8 · Selection statistics',
+      'multiCells · selectionStats · Sum/Avg/Min/Max status bar',
+      Icons.functions_outlined,
+      (_) => const SelectionStatsExample(),
+    ),
     _Demo(
-        '10 · Aggregations',
-        'min / max / custom aggregator · weighted average · aggLabel',
-        Icons.summarize_outlined,
-        (_) => const AggregationsExample()),
+      '9 · Export',
+      'toCsv / toTsv / toJsonRows · respects filter + sort',
+      Icons.file_download_outlined,
+      (_) => const ExportExample(),
+    ),
     _Demo(
-        '11 · Cell locking',
-        'cellEditable · lock posted rows · read-only cells',
-        Icons.lock_outline,
-        (_) => const CellLockingExample()),
-    _Demo('12 · Row reordering', 'moveRowUp / moveRowDown / moveRow · undo',
-        Icons.swap_vert_outlined, (_) => const RowReorderExample()),
+      '10 · Aggregations',
+      'min / max / custom aggregator · weighted average · aggLabel',
+      Icons.summarize_outlined,
+      (_) => const AggregationsExample(),
+    ),
     _Demo(
-        '13 · Group aggregates · Hidden columns',
-        'groupAggregates / aggregateBy / grandTotals · filter+group-only columns',
-        Icons.account_tree_outlined,
-        (_) => const GroupAggregatesExample()),
+      '11 · Cell locking',
+      'cellEditable · lock posted rows · read-only cells',
+      Icons.lock_outline,
+      (_) => const CellLockingExample(),
+    ),
     _Demo(
-        '14 · Expandable rows',
-        'SuperRowExpansion · multi & single mode · per-row heights · animated panels',
-        Icons.unfold_more_outlined,
-        (_) => const ExpandableRowsExample()),
+      '12 · Row reordering',
+      'moveRowUp / moveRowDown / moveRow · undo',
+      Icons.swap_vert_outlined,
+      (_) => const RowReorderExample(),
+    ),
     _Demo(
-        '15 · Validation · saved views',
-        'validateAll + unique · isValid gate · viewStateJson / applyViewJson',
-        Icons.rule_outlined,
-        (_) => const ValidationViewsExample()),
+      '13 · Group aggregates · Hidden columns',
+      'groupAggregates / aggregateBy / grandTotals · filter+group-only columns',
+      Icons.account_tree_outlined,
+      (_) => const GroupAggregatesExample(),
+    ),
     _Demo(
-        '16 · Fill · group footers · revert',
-        '⌘D/⌘R fill · Σ subtotal rows · revert cell/row',
-        Icons.south_outlined,
-        (_) => const FillAndFootersExample()),
+      '14 · Expandable rows',
+      'SuperRowExpansion · multi & single mode · per-row heights · animated panels',
+      Icons.unfold_more_outlined,
+      (_) => const ExpandableRowsExample(),
+    ),
     _Demo(
-        '17 · Interaction events',
-        'SuperInteractions · onRowActivate · cell/row taps · selection + sort',
-        Icons.ads_click_outlined,
-        (_) => const InteractionEventsExample()),
+      '15 · Validation · saved views',
+      'validateAll + unique · isValid gate · viewStateJson / applyViewJson',
+      Icons.rule_outlined,
+      (_) => const ValidationViewsExample(),
+    ),
     _Demo(
-        '18 · Column config',
-        'showSuperColumnManager · reorder / pin / show-hide · pins persist in views',
-        Icons.view_column_outlined,
-        (_) => const ColumnConfigExample()),
+      '16 · Fill · group footers · revert',
+      '⌘D/⌘R fill · Σ subtotal rows · revert cell/row',
+      Icons.south_outlined,
+      (_) => const FillAndFootersExample(),
+    ),
     _Demo(
-        '19 · Showcase',
-        'Interactions + column manager + grouping + totals + tracking + export',
-        Icons.dashboard_outlined,
-        (_) => const ShowcaseExample()),
+      '17 · Interaction events',
+      'SuperInteractions · onRowActivate · cell/row taps · selection + sort',
+      Icons.ads_click_outlined,
+      (_) => const InteractionEventsExample(),
+    ),
+    _Demo(
+      '18 · Column config',
+      'showSuperColumnManager · reorder / pin / show-hide · pins persist in views',
+      Icons.view_column_outlined,
+      (_) => const ColumnConfigExample(),
+    ),
+    _Demo(
+      '19 · Showcase',
+      'Interactions + column manager + grouping + totals + tracking + export',
+      Icons.dashboard_outlined,
+      (_) => const ShowcaseExample(),
+    ),
   ];
 
   @override
@@ -263,9 +305,9 @@ class _DemoCard extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return SuperSectionCard(
-      onTap: () => Navigator.of(context).push(
-        MaterialPageRoute<void>(builder: demo.builder),
-      ),
+      onTap: () => Navigator.of(
+        context,
+      ).push(MaterialPageRoute<void>(builder: demo.builder)),
       padding: spacing.cardPadding,
       child: Row(
         children: [
@@ -279,11 +321,7 @@ class _DemoCard extends StatelessWidget {
               ),
               borderRadius: spacing.borderRadiusControl,
             ),
-            child: Icon(
-              demo.icon,
-              size: 22,
-              color: colorScheme.primary,
-            ),
+            child: Icon(demo.icon, size: 22, color: colorScheme.primary),
           ),
           SizedBox(width: spacing.space4),
           Expanded(

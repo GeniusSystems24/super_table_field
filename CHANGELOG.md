@@ -3,6 +3,40 @@
 All notable changes to **super_table_field** are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/); versioning is [SemVer](https://semver.org/).
 
+## [2.5.0] — 2026-07-29
+
+### Added
+
+- Added package-level localization for SuperTable UI strings in English (`en`)
+  and Arabic (`ar`) through `flutter_localizations`, ARB files, and the exported
+  `SuperTableLocalizations` helper.
+- Exported `SuperTableTranslation` and `SuperTableLocalizations` from the main
+  `super_table_field.dart` barrel.
+- Localized table chrome, menus, filters, column manager, shortcuts dialog,
+  validation panel, mini calendar labels, pagination/status text, and
+  controller notification/validation messages.
+
+### Changed
+
+- The example app now registers
+  `SuperTableLocalizations.localizationsDelegates` and
+  `SuperTableLocalizations.supportedLocales`.
+- `intl_utils` is used as a development dependency for generated translations.
+
+### Migration
+
+Register the package localization helpers on the host `MaterialApp`:
+
+```dart
+MaterialApp(
+  localizationsDelegates: SuperTableLocalizations.localizationsDelegates,
+  supportedLocales: SuperTableLocalizations.supportedLocales,
+  // ...
+)
+```
+
+---
+
 ## [2.4.0] — 2026-07-27
 
 ### Changed

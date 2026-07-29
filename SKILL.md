@@ -13,9 +13,9 @@ description: >
   pins/filters as JSON), interaction events (cell/row tap, activate, selection/
   sort), runtime column config (reorder/pin/show-hide + a column manager),
   undo/redo) and AutoSuggestionsBox (a filtering combobox).
-  Apply when a Flutter app needs a themed (light/dark, LTR/RTL) table, a typeahead
-  field, or an editable table whose `combo` columns are edited through the
-  AutoSuggestionsBox.
+  Apply when a Flutter app needs a themed (light/dark, LTR/RTL, English/Arabic)
+  table, a typeahead field, or an editable table whose `combo` columns are
+  edited through the AutoSuggestionsBox.
 ---
 
 # Super Table Field — Agent Skill
@@ -42,26 +42,36 @@ come for free.
 
 ```yaml
 dependencies:
-  super_table_field: ^2.3.2
+  super_table_field: ^2.5.0
 ```
 
 ```dart
 import 'package:super_table_field/super_table_field.dart';
 ```
 
-Register **both** theme extensions on your `ThemeData` (this is the most common
-omission — without them colors fall back to defaults):
+Use the generated SuperMaterial themes and register the package localization
+helpers on the host `MaterialApp`:
 
 ```dart
-theme: ThemeData(
-  brightness: Brightness.light,
-  extensions: [SuperThemeData.light, AutoSuggestionsBoxThemeData.light],
-),
-darkTheme: ThemeData(
-  brightness: Brightness.dark,
-  extensions: [SuperThemeData.dark, AutoSuggestionsBoxThemeData.dark],
-),
+MaterialApp(
+  localizationsDelegates: const [
+    GlobalMaterialLocalizations.delegate,
+    GlobalWidgetsLocalizations.delegate,
+    GlobalCupertinoLocalizations.delegate,
+    SuperTableLocalizations.delegate,
+  ],
+  supportedLocales: SuperTableLocalizations.supportedLocales,
+  theme: SuperMaterialThemeData.light(extensions: [ AutoSuggestionsBoxThemeData.light],),
+  darkTheme: SuperMaterialThemeData.dark(extensions: [AutoSuggestionsBoxThemeData.dark],),
+  home: const MyTableScreen(),
+);
 ```
+
+`SuperTableLocalizations` includes the package `SuperTableTranslation` delegate
+and Flutter's Material, Cupertino, and Widgets localization delegates. Supported
+package locales are English (`en`) and Arabic (`ar`). The widgets still fall
+back to English if a host app forgets the delegate, but Arabic requires
+registration.
 
 ## SuperTable<R>
 
@@ -458,8 +468,11 @@ package's barrel. Add new column behavior in
 
 ## Common mistakes
 
-- Forgetting to register `AutoSuggestionsBoxThemeData` → combo overlay looks
-  unstyled. Register both extensions.
+- Forgetting `SuperTableLocalizations.localizationsDelegates` /
+  `SuperTableLocalizations.supportedLocales` on `MaterialApp` → package text
+  falls back to English instead of Arabic.
+- Forgetting to use `SuperMaterialThemeData.light()` / `.dark()` → the table and
+  combo editor miss the design-system theme.
 - Mutating the rows list directly instead of via the controller → breaks
   undo/redo and skips a rebuild.
 - Using `SuperColumnType.combo` directly instead of the typed `SuperComboColumn`

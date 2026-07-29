@@ -40,6 +40,8 @@ import '../../domain/entities/super_table_state.dart';
 import '../../domain/entities/super_validation.dart';
 import '../../domain/entities/super_view_state.dart';
 import '../../domain/usecases/super_column_logic.dart';
+import '../../../../../localization/generated/l10n.dart';
+import '../../../../localization/super_table_localizations.dart';
 
 /// Host hook for raw key handling (readable + editable). Return `true` to mark
 /// the event handled (the table will not apply its own default for that key).
@@ -132,6 +134,11 @@ class SuperTableController<R> extends ChangeNotifier {
   /// the controller can invoke column `onChange` / `validator` (which take a
   /// context). Null before the View mounts.
   BuildContext? viewContext;
+
+  SuperTableTranslation get _l10n {
+    final ctx = viewContext;
+    return ctx == null ? SuperTableTranslation() : ctx.superTableTranslations;
+  }
 
   /// Whether the render list should emit a [RenderItem.groupFooter] subtotal
   /// row after each expanded group (2.1.0). Set by the View each build from
@@ -639,7 +646,7 @@ class SuperTableController<R> extends ChangeNotifier {
         if (col.type.isDerived) continue;
         final cell = row.cells[col.key];
         final value = cell?.value;
-        String? err = SuperColumnLogic.validateCell(col, value);
+        String? err = SuperColumnLogic.validateCell(col, value, l10n: _l10n);
         if (err == null && col.unique) {
           final text = SuperColumnLogic.toText(
             col,
@@ -653,8 +660,7 @@ class SuperTableController<R> extends ChangeNotifier {
             );
             final first = bucket[text];
             if (first != null) {
-              err =
-                  '“${col.label}” must be unique — duplicates row ${first + 1}';
+              err = _l10n.columnMustBeUniqueDuplicate(col.label, first + 1);
             } else {
               bucket[text] = si;
             }
@@ -669,7 +675,7 @@ class SuperTableController<R> extends ChangeNotifier {
             } catch (_) {
               // A host validator with a narrower value type than the stored
               // value — report it instead of crashing the pass.
-              err = '“${col.label}” has an invalid value';
+              err = _l10n.columnInvalidValue(col.label);
             }
           }
         }
@@ -779,10 +785,7 @@ class SuperTableController<R> extends ChangeNotifier {
   /// Convenience: copy the current view as CSV onto the system clipboard.
   Future<void> copyCsvToClipboard() async {
     await Clipboard.setData(ClipboardData(text: toCsv()));
-    onNotify?.call(
-      SuperNotifyKind.ok,
-      'Copied ${sortedRows.length} rows as CSV',
-    );
+    onNotify?.call(SuperNotifyKind.ok, _l10n.copiedRowsCsv(sortedRows.length));
   }
 
   // ── programmatic aggregation (1.1.0) ───────────────────────────
@@ -1972,7 +1975,7 @@ class SuperTableController<R> extends ChangeNotifier {
     SuperCell cell,
     Object? value,
   ) {
-    final builtin = SuperColumnLogic.validateCell(col, value);
+    final builtin = SuperColumnLogic.validateCell(col, value, l10n: _l10n);
     if (builtin != null) return builtin;
     if (col.unique) {
       final u = _uniqueError(col, row, value);
@@ -1997,7 +2000,7 @@ class SuperTableController<R> extends ChangeNotifier {
         other.cells[col.key]?.value,
         other,
       ).trim().toLowerCase();
-      if (t == text) return '“${col.label}” must be unique';
+      if (t == text) return _l10n.columnMustBeUnique(col.label);
     }
     return null;
   }
@@ -2321,7 +2324,7 @@ class SuperTableController<R> extends ChangeNotifier {
         for (var cc = c0 + 1; cc <= c1 && cc < theCols.length; cc++) {
           final col = theCols[cc];
           if (!canEditRow(col, row)) continue;
-          final res = SuperColumnLogic.coercePaste(col, v);
+          final res = SuperColumnLogic.coercePaste(col, v, l10n: _l10n);
           if (!res.ok) continue; // incompatible target type — skip the cell
           writeInto(col, row, res.value);
         }
@@ -2332,7 +2335,7 @@ class SuperTableController<R> extends ChangeNotifier {
     _applyRows([..._rows], undoSnapshot: snap);
     onNotify?.call(
       SuperNotifyKind.ok,
-      'Filled $changed cell${changed == 1 ? '' : 's'}',
+      _l10n.filledCells(changed, changed == 1 ? '' : 's'),
     );
     notifyListeners();
   }
@@ -2361,7 +2364,7 @@ class SuperTableController<R> extends ChangeNotifier {
     );
     onNotify?.call(
       SuperNotifyKind.ok,
-      'Copied ${data.length} row${data.length == 1 ? '' : 's'} as JSON',
+      _l10n.copiedRowsJson(data.length, data.length == 1 ? '' : 's'),
     );
   }
 
@@ -2382,7 +2385,7 @@ class SuperTableController<R> extends ChangeNotifier {
     );
     onNotify?.call(
       SuperNotifyKind.ok,
-      'Copied ${data.length} row${data.length == 1 ? '' : 's'} as JSON',
+      _l10n.copiedRowsJson(data.length, data.length == 1 ? '' : 's'),
     );
   }
 
@@ -2398,7 +2401,7 @@ class SuperTableController<R> extends ChangeNotifier {
       if (entry != null && col != null && canEditRow(col, entry.row!)) {
         final c = entry.row!.cells[col.key] ??= SuperCell(columnKey: col.key);
         c.value = '';
-        c.error = SuperColumnLogic.validateCell(col, '');
+        c.error = SuperColumnLogic.validateCell(col, '', l10n: _l10n);
         col.writeBacking(entry.row!.value, '');
         changed = true;
       }
@@ -2411,13 +2414,12 @@ class SuperTableController<R> extends ChangeNotifier {
     final keyOf = {for (final c in cols) c.key: c};
     for (var i = 0; i < data.length; i++) {
       final obj = data[i];
-      if (obj is! Map) return 'Row ${i + 1} is not an object';
+      if (obj is! Map) return _l10n.rowIsNotObject(i + 1);
       for (final field in obj.keys) {
         final col = keyOf[field];
-        if (col == null)
-          return 'Unknown field “$field” — not a column in this table';
-        final res = SuperColumnLogic.coercePaste(col, obj[field]);
-        if (!res.ok) return 'Row ${i + 1}: ${res.error}';
+        if (col == null) return _l10n.unknownField('${field ?? ''}');
+        final res = SuperColumnLogic.coercePaste(col, obj[field], l10n: _l10n);
+        if (!res.ok) return _l10n.rowError(i + 1, res.error ?? '');
       }
     }
     final snap = _snapshot(); // BEFORE pasted values mutate cells in place
@@ -2437,7 +2439,7 @@ class SuperTableController<R> extends ChangeNotifier {
       }
       for (final field in obj.keys) {
         final col = keyOf[field]!;
-        final res = SuperColumnLogic.coercePaste(col, obj[field]);
+        final res = SuperColumnLogic.coercePaste(col, obj[field], l10n: _l10n);
         if (res.ok) {
           (target.cells[col.key] ??= SuperCell(columnKey: col.key)).value =
               res.value;
@@ -2454,10 +2456,13 @@ class SuperTableController<R> extends ChangeNotifier {
     for (var ri = 0; ri < grid.length; ri++) {
       for (var ci = 0; ci < grid[ri].length; ci++) {
         final col = (startC + ci) < cols.length ? cols[startC + ci] : null;
-        if (col == null)
-          return 'Pasted block is wider than the table (column ${startC + ci + 1} doesn\'t exist)';
-        final res = SuperColumnLogic.coercePaste(col, grid[ri][ci]);
-        if (!res.ok) return 'Cell ${ri + 1}×${ci + 1}: ${res.error}';
+        if (col == null) return _l10n.pastedBlockTooWide(startC + ci + 1);
+        final res = SuperColumnLogic.coercePaste(
+          col,
+          grid[ri][ci],
+          l10n: _l10n,
+        );
+        if (!res.ok) return _l10n.cellError(ri + 1, ci + 1, res.error ?? '');
       }
     }
     final snap = _snapshot(); // BEFORE pasted values mutate cells in place
@@ -2476,7 +2481,11 @@ class SuperTableController<R> extends ChangeNotifier {
       }
       for (var ci = 0; ci < grid[ri].length; ci++) {
         final col = cols[startC + ci];
-        final res = SuperColumnLogic.coercePaste(col, grid[ri][ci]);
+        final res = SuperColumnLogic.coercePaste(
+          col,
+          grid[ri][ci],
+          l10n: _l10n,
+        );
         if (res.ok) {
           (target.cells[col.key] ??= SuperCell(columnKey: col.key)).value =
               res.value;
@@ -2490,10 +2499,7 @@ class SuperTableController<R> extends ChangeNotifier {
 
   Future<void> paste() async {
     if (_mode != SuperTableMode.editable) {
-      onNotify?.call(
-        SuperNotifyKind.error,
-        'Paste is only allowed in Editable mode',
-      );
+      onNotify?.call(SuperNotifyKind.error, _l10n.pasteEditableOnly);
       return;
     }
     final data = await Clipboard.getData(Clipboard.kTextPlain);
@@ -2506,7 +2512,7 @@ class SuperTableController<R> extends ChangeNotifier {
       try {
         parsed = jsonDecode(trimmed);
       } catch (_) {
-        onNotify?.call(SuperNotifyKind.error, 'Clipboard is not valid JSON');
+        onNotify?.call(SuperNotifyKind.error, _l10n.clipboardInvalidJson);
         return;
       }
       final list = parsed is List ? parsed : [parsed];
@@ -2523,7 +2529,7 @@ class SuperTableController<R> extends ChangeNotifier {
     if (err != null) {
       onNotify?.call(SuperNotifyKind.error, err);
     } else {
-      onNotify?.call(SuperNotifyKind.ok, 'Pasted');
+      onNotify?.call(SuperNotifyKind.ok, _l10n.pasted);
     }
     notifyListeners();
   }
