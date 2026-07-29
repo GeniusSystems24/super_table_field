@@ -8,8 +8,7 @@
 //   • an ADVANCED-FILTER button in the row-number header (red badge when
 //     active; while active the per-column filter fields are cleared, disabled
 //     and struck through with a slash),
-//   • RIGHT-CLICK (or touch double-tap) opens the column header menu; the LEFT
-//     button drags to reorder,
+//   • RIGHT-CLICK (or touch double-tap) opens the column header menu,
 //   • conditional ROW styles (via `SuperTable.styles`) and CELL styles (via
 //     each column's `styles`) — row styles win,
 //   • a host `onKey` hook (on the controller) consulted before defaults,
@@ -144,8 +143,6 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
   final ScrollController _vScrollG = ScrollController();
   final ScrollController _hScroll = ScrollController();
   final Map<String, TextEditingController> _filterCtrls = {};
-  int? _dragSlot;
-  int? _overSlot;
   CellPos? _lastSel;
   bool _wasEditing = false;
 
@@ -1383,15 +1380,9 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
     return Container(
       height: _kFilterRowH,
       color: active ? skin.accentWash(context, 0.07) : Colors.transparent,
-      padding: const EdgeInsetsDirectional.only(start: 9, end: 4),
+      // padding: const EdgeInsetsDirectional.only(start: 4, end: 4),
       child: Row(
         children: [
-          Icon(
-            Icons.search_rounded,
-            size: 13,
-            color: active ? skin.accent(context) : skin.fg4,
-          ),
-          const SizedBox(width: 6),
           Expanded(
             child: TextField(
               controller: _filterCtrl(col.key),
@@ -1408,8 +1399,18 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
               cursorColor: skin.accent(context),
               cursorHeight: 14,
               decoration: InputDecoration(
-                isCollapsed: true,
+                isDense: false,
                 border: InputBorder.none,
+                contentPadding: EdgeInsets.zero,
+                prefixIcon: Icon(
+                  Icons.search_rounded,
+                  size: 13,
+                  color: active ? skin.accent(context) : skin.fg4,
+                ),
+                prefixIconConstraints: const BoxConstraints(
+                  minWidth: 25,
+                  minHeight: 24,
+                ),
                 hintText: 'Filter…',
                 hintStyle: TextStyle(fontSize: 12, color: skin.fg4),
               ),
@@ -1490,25 +1491,17 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
   Widget _headerCell(SuperTableSkin skin, SuperColumn col) {
     final w = c.widthOf(col);
     final active = c.sort.key == col.key;
-    final slot = c.slotOfKey(col.key);
     final isPinned = c.pinOf(col) != SuperPin.none;
-    final draggable = slot >= 0;
     final inGroup = c.groupKeys.contains(col.key);
-    final isDropTarget =
-        _overSlot == slot && _dragSlot != null && _dragSlot != slot;
 
     final isEnd = col.align == SuperAlign.end;
     // Column data types are never surfaced: the header shows only the label and
-    // its drag / pin / group / sort affordances.
+    // its pin / group / sort affordances.
     final labelRow = Row(
       mainAxisAlignment: isEnd
           ? MainAxisAlignment.end
           : MainAxisAlignment.start,
       children: [
-        if (draggable) ...[
-          Icon(Icons.drag_indicator_rounded, size: 11, color: skin.fg4),
-          const SizedBox(width: 4),
-        ],
         if (isPinned) ...[
           Icon(Icons.push_pin_outlined, size: 10, color: skin.accent(context)),
           const SizedBox(width: 4),
@@ -1557,11 +1550,9 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
       height: _headH,
       padding: const EdgeInsets.symmetric(horizontal: 11),
       decoration: BoxDecoration(
-        color: isDropTarget ? skin.accentWash(context, 0.12) : skin.bg,
+        color: skin.bg,
         border: BorderDirectional(
-          start: isDropTarget
-              ? BorderSide(color: skin.accent(context), width: 2)
-              : BorderSide.none,
+          start: BorderSide.none,
           end: BorderSide(color: skin.border),
         ),
       ),
@@ -1572,7 +1563,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
       ),
     );
 
-    // Right-click (mouse) or double-tap (touch) opens the menu; left button drags.
+    // Right-click (mouse) or double-tap (touch) opens the menu.
     Widget cell = GestureDetector(
       behavior: HitTestBehavior.opaque,
       // Left-click cycles sort: ascending → descending → clear (no-op for unsortable)
@@ -1611,56 +1602,6 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
       ],
     );
 
-    if (draggable) {
-      return DragTarget<int>(
-        onWillAcceptWithDetails: (d) {
-          setState(() => _overSlot = slot);
-          return true;
-        },
-        onLeave: (_) => setState(() => _overSlot = null),
-        onAcceptWithDetails: (d) {
-          c.reorder(d.data, slot);
-          setState(() {
-            _overSlot = null;
-            _dragSlot = null;
-          });
-        },
-        builder: (ctx, cand, rej) => Draggable<int>(
-          data: slot,
-          axis: Axis.horizontal,
-          onDragStarted: () => setState(() => _dragSlot = slot),
-          onDragEnd: (_) => setState(() {
-            _dragSlot = null;
-            _overSlot = null;
-          }),
-          feedback: Material(
-            color: Colors.transparent,
-            child: Opacity(
-              opacity: 0.9,
-              child: Container(
-                width: w,
-                height: _headH,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: skin.accent(context),
-                  borderRadius: BorderRadius.circular(5),
-                ),
-                child: Text(
-                  col.label.toUpperCase(),
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-            ),
-          ),
-          childWhenDragging: Opacity(opacity: 0.35, child: cell),
-          child: cell,
-        ),
-      );
-    }
     return cell;
   }
 

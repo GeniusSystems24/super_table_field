@@ -50,4 +50,3 @@ export 'presentation/widgets/super_table_skin.dart';
 export 'presentation/widgets/super_cell.dart';
 export 'presentation/widgets/super_table_overlays.dart';
 export 'presentation/widgets/super_table.dart';
-export 'presentation/pages/super_table_demo.dart';

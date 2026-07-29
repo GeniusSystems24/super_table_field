@@ -11,14 +11,7 @@
 
 import 'package:flutter/material.dart';
 
-import 'package:super_auto_suggestion_box/super_auto_suggestion_box.dart';
-import '../../domain/entities/super_column.dart';
-import '../../domain/entities/super_columns.dart';
-import '../../domain/entities/super_row.dart';
-import '../../domain/entities/super_style.dart';
-import '../../domain/entities/super_table_state.dart';
-import '../controllers/super_table_controller.dart';
-import '../widgets/super_table.dart';
+import 'package:super_table_field/super_table_field.dart';
 
 typedef _Row = Map<String, dynamic>;
 

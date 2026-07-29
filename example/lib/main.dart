@@ -31,6 +31,7 @@ import 'examples/example_16_fill_and_footers.dart';
 import 'examples/example_17_interaction_events.dart';
 import 'examples/example_18_column_config.dart';
 import 'examples/example_19_showcase.dart';
+import 'super_table_demo.dart';
 
 void main() => runApp(const ExampleApp());
 
