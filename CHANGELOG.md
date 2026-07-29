@@ -3,6 +3,35 @@
 All notable changes to **super_table_field** are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/); versioning is [SemVer](https://semver.org/).
 
+## [2.5.1] - 2026-07-29
+
+### Changed
+
+- Editable cells now use `super_form_field` controls for text, numeric, date,
+  enum/select, and boolean editors, while combo columns continue to use the real
+  `AutoSuggestionsBox`.
+- In editable mode, Enter opens the active cell editor; Enter inside the editor
+  now commits and closes editing without moving to the next row.
+- Added `super_form_field: ^1.5.0` as a direct dependency.
+- Example 19 now showcases every column type plus common table/controller
+  usages: grouping, totals, filters, saved views, validation, change tracking,
+  row actions, fill actions, and interaction callbacks.
+
+### Fixed
+
+- Typed column `validator` / `onChange` callbacks no longer throw when invoked
+  through editable enum/select commits.
+- Editing no longer throws when a committed cell mirrors into an immutable
+  map-backed row; the cell value remains committed in `SuperRow.cells`.
+- Editable boolean cells now render as a compact checkbox only, without the
+  `Checked` / `Unchecked` caption.
+- Editable boolean cells now stay in edit mode while Space toggles their draft
+  value; Enter commits the current draft and closes the editor.
+- Editable boolean cells now take keyboard focus correctly, so Space/Enter/Tab
+  shortcuts work while editing.
+- Space no longer starts editing from display mode; enter edit mode first with
+  Enter, then use Space for boolean draft toggles.
+
 ## [2.5.0] — 2026-07-29
 
 ### Added

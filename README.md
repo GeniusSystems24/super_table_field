@@ -7,10 +7,24 @@ A **GeniusLink design-system** Flutter package providing a generic data grid, wi
 - **`SuperTable<R>`** — a generic, keyboard-first data grid with `readable` and `editable` modes, a typed column hierarchy, per-column **and** advanced (cross-column) filtering, conditional row/cell styling, multi-level grouping, totals, pagination, clipboard, and undo/redo.
 - **`AutoSuggestionsBox`** — a typeahead / combobox field with local + remote sources, fuzzy matching, multi-select, free-text, and an advanced-search overlay. It now lives in the companion [`super_auto_suggestion_box`](../super_auto_suggestion_box) package, which this package **depends on and re-exports** (along with the shared GeniusLink `core` foundation).
 
-In editable mode, the table's `combo` columns are edited **through the real `AutoSuggestionsBox`** — one keyboard model, one look, no duplicate combobox.
+In editable mode, text, numeric, date, enum/select, and boolean cells use the
+matching [`super_form_field`](https://pub.dev/packages/super_form_field)
+controls. `combo` columns are edited **through the real `AutoSuggestionsBox`**
+— one keyboard model, one look, no duplicate combobox.
 
 Light + dark themes, full LTR + RTL, and localized package strings in English
 and Arabic.
+
+## What's new in 2.5.1
+
+Editable mode now reuses `super_form_field: ^1.5.0` for inline form-style cell
+editors:
+
+- Text/custom/link cells use `SuperTextFormField`.
+- Number/currency/progress cells use `SuperNumericFormField`.
+- Date cells use `SuperDateFormField`.
+- Enum cells use `SuperSelectFormField`.
+- Boolean cells use `SuperBoolFormField`.
 
 ## What's new in 2.5.0
 

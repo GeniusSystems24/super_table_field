@@ -552,6 +552,9 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
       if (col != null && c.canEdit(col)) c.writeCell(c.sel.r, col, '');
       return KeyEventResult.handled;
     }
+    if (k == LogicalKeyboardKey.space) {
+      return KeyEventResult.handled;
+    }
     final ch = e.character;
     if (ch != null && ch.isNotEmpty && ch.codeUnitAt(0) >= 32 && !meta) {
       c.beginEdit(initial: ch == ' ' ? '' : ch);
@@ -2535,11 +2538,11 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
         v == v.roundToDouble() ? v.toInt().toString() : v.toStringAsFixed(2);
     return Padding(
       padding: const EdgeInsets.only(top: 10),
-      child: Row(
+      child: Wrap(
+        runSpacing: 12,
+        spacing: 12,
         children: [
-          Expanded(
-            child: Text(hint, style: TextStyle(fontSize: 12, color: skin.fg3)),
-          ),
+          Text(hint, style: TextStyle(fontSize: 12, color: skin.fg3)),
           if (issues > 0) ...[
             _ValidationChip(
               skin: skin,

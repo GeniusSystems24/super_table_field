@@ -14,6 +14,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:super_form_field/super_form_field.dart' as sff;
 
 import '../../../../../super_table_field.dart';
 
@@ -553,13 +554,75 @@ class _SuperCellEditorState extends State<SuperCellEditor> {
   final FocusNode _focus = FocusNode();
   final LayerLink _link = LayerLink();
   OverlayEntry? _popup;
+  bool? _boolDraft;
+  sff.SuperTextFieldController? _textField;
+  sff.SuperNumericFieldController? _numericField;
+  sff.SuperDateFieldController? _dateField;
+  sff.SuperSelectFieldController<Object?>? _selectField;
 
   @override
   void initState() {
     super.initState();
     final t = widget.col.type;
+    if (t == SuperColumnType.text ||
+        t == SuperColumnType.custom ||
+        t == SuperColumnType.link) {
+      _textField = sff.SuperTextFieldController(initialValue: widget.value);
+    } else if (t.isNumeric) {
+      _numericField = sff.SuperNumericFieldController(
+        initialValue: _initialNum(widget.value),
+      );
+    } else if (t == SuperColumnType.date) {
+      _dateField = sff.SuperDateFieldController(
+        initialValue: _initialDate(widget.value),
+      );
+    } else if (t == SuperColumnType.enumeration) {
+      _selectField = sff.SuperSelectFieldController<Object?>(
+        initialValue: _enumDraftValue(),
+      );
+    } else if (t == SuperColumnType.checkbox) {
+      _boolDraft = _boolValue(widget.value);
+    }
+
     if (t == SuperColumnType.enumeration) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _openPopup());
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _selectField?.open();
+      });
+    } else if (t == SuperColumnType.text ||
+        t == SuperColumnType.custom ||
+        t == SuperColumnType.link) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        final c = _textField;
+        if (c == null) return;
+        c.focusNode.requestFocus();
+        c.text.selection = TextSelection(
+          baseOffset: 0,
+          extentOffset: c.text.text.length,
+        );
+      });
+    } else if (t.isNumeric) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        final c = _numericField;
+        if (c == null) return;
+        c.focusNode.requestFocus();
+        c.text.selection = TextSelection(
+          baseOffset: 0,
+          extentOffset: c.text.text.length,
+        );
+      });
+    } else if (t == SuperColumnType.date) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _dateField?.focusNode.requestFocus();
+      });
+    } else if (t == SuperColumnType.checkbox) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _focus.requestFocus();
+      });
     } else if (t != SuperColumnType.checkbox && t != SuperColumnType.combo) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _focus.requestFocus();
@@ -574,6 +637,10 @@ class _SuperCellEditorState extends State<SuperCellEditor> {
   @override
   void dispose() {
     _closePopup();
+    _textField?.dispose();
+    _numericField?.dispose();
+    _dateField?.dispose();
+    _selectField?.dispose();
     _ctrl.dispose();
     _focus.dispose();
     super.dispose();
@@ -726,6 +793,100 @@ class _SuperCellEditorState extends State<SuperCellEditor> {
 
   Object? _enumDraftValue() => _enumValueFor(widget.value);
 
+  sff.FieldDensity get _fieldDensity => sff.FieldDensity.compact;
+
+  InputDecoration _fieldDecoration(SuperColumn col) => InputDecoration(
+    hintText: _hint(col),
+    prefixText: col.prefix,
+    suffixText: col.suffix,
+  );
+
+  num? _initialNum(String value) {
+    final s = value.trim();
+    if (s.isEmpty) return null;
+    return num.tryParse(s.replaceAll(RegExp(r'[^0-9.\-]'), ''));
+  }
+
+  DateTime? _initialDate(String value) {
+    final s = value.trim();
+    if (!RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(s)) return null;
+    final parsed = DateTime.tryParse(s);
+    if (parsed == null) return null;
+    return parsed.year == int.parse(s.substring(0, 4)) &&
+            parsed.month == int.parse(s.substring(5, 7)) &&
+            parsed.day == int.parse(s.substring(8, 10))
+        ? parsed
+        : null;
+  }
+
+  String _dateText() {
+    final c = _dateField;
+    if (c == null) return widget.value;
+    final v = c.value;
+    if (v == null) return c.text.text;
+    return '${v.year.toString().padLeft(4, '0')}-'
+        '${v.month.toString().padLeft(2, '0')}-'
+        '${v.day.toString().padLeft(2, '0')}';
+  }
+
+  bool _boolValue(Object? value) =>
+      value == true || value == 'true' || value == 'Yes' || value == '1';
+
+  void _toggleBoolDraft() {
+    setState(() {
+      _boolDraft = !(_boolDraft ?? _boolValue(widget.value));
+    });
+  }
+
+  List<sff.SuperOption<Object?>> _enumOptions(SuperColumn col) {
+    final opts = col.opts ?? const <String>[];
+    final values = col.optValues;
+    return [
+      for (var i = 0; i < opts.length; i++)
+        sff.SuperOption<Object?>(
+          value: values != null && i < values.length ? values[i] : opts[i],
+          label: opts[i],
+        ),
+    ];
+  }
+
+  Widget _withCellKeys(Widget child) {
+    return Focus(
+      onKeyEvent: (_, e) {
+        _onKey(e);
+        return e is KeyDownEvent &&
+                (e.logicalKey == LogicalKeyboardKey.enter ||
+                    e.logicalKey == LogicalKeyboardKey.numpadEnter ||
+                    e.logicalKey == LogicalKeyboardKey.tab ||
+                    e.logicalKey == LogicalKeyboardKey.escape ||
+                    (widget.col.type == SuperColumnType.checkbox &&
+                        e.logicalKey == LogicalKeyboardKey.space))
+            ? KeyEventResult.handled
+            : KeyEventResult.ignored;
+      },
+      child: child,
+    );
+  }
+
+  Widget _withBoolCellKeys(Widget child) {
+    return Focus(
+      focusNode: _focus,
+      autofocus: true,
+      onKeyEvent: (_, e) {
+        _onKey(e);
+        return e is KeyDownEvent &&
+                (e.logicalKey == LogicalKeyboardKey.space ||
+                    e.logicalKey == LogicalKeyboardKey.enter ||
+                    e.logicalKey == LogicalKeyboardKey.numpadEnter ||
+                    e.logicalKey == LogicalKeyboardKey.tab ||
+                    e.logicalKey == LogicalKeyboardKey.escape)
+            ? KeyEventResult.handled
+            : KeyEventResult.ignored;
+      },
+      child: child,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final skin = SuperTableSkin.of(context);
@@ -763,28 +924,120 @@ class _SuperCellEditorState extends State<SuperCellEditor> {
     );
 
     if (col.type == SuperColumnType.checkbox) {
-      final on =
-          widget.value == 'true' ||
-          widget.value == 'Yes' ||
-          widget.value == '1';
-      return GestureDetector(
-        onTap: () => widget.onCommit(override: !on),
-        child: Container(
-          color: skin.surface,
-          alignment: Alignment.center,
-          child: Icon(
-            on ? Icons.check_rounded : Icons.close_rounded,
-            size: 16,
-            color: on ? skin.success : skin.fg4,
+      final on = _boolDraft ?? _boolValue(widget.value);
+      return _withBoolCellKeys(
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: _toggleBoolDraft,
+          child: SizedBox(
+            height: widget.height,
+            child: Center(
+              child: AnimatedContainer(
+                duration: context.superTheme.tokens.durFast,
+                width: 20,
+                height: 20,
+                decoration: BoxDecoration(
+                  color: on ? skin.accent(context) : Colors.transparent,
+                  border: Border.all(
+                    color: on ? skin.accent(context) : skin.borderStrong,
+                    width: 1.4,
+                  ),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: on
+                    ? const Icon(
+                        Icons.check_rounded,
+                        size: 15,
+                        color: Colors.white,
+                      )
+                    : null,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    if (col.type == SuperColumnType.enumeration) {
+      return _withCellKeys(
+        SizedBox(
+          height: widget.height,
+          child: Center(
+            child: sff.SuperSelectFormField<Object?>(
+              controller: _selectField,
+              options: _enumOptions(col),
+              initialValue: _enumDraftValue(),
+              density: _fieldDensity,
+              searchable: (col.opts?.length ?? 0) > 8,
+              decoration: _fieldDecoration(col),
+              onChanged: (v) => widget.onCommit(override: v),
+            ),
+          ),
+        ),
+      );
+    }
+
+    if (col.type == SuperColumnType.text ||
+        col.type == SuperColumnType.custom ||
+        col.type == SuperColumnType.link) {
+      return _withCellKeys(
+        SizedBox(
+          height: widget.height,
+          child: Center(
+            child: sff.SuperTextFormField(
+              controller: _textField,
+              autofocus: true,
+              clearable: false,
+              density: _fieldDensity,
+              required: col.required,
+              decoration: _fieldDecoration(col),
+              onChanged: widget.onChanged,
+            ),
+          ),
+        ),
+      );
+    }
+
+    if (col.type.isNumeric) {
+      return _withCellKeys(
+        SizedBox(
+          height: widget.height,
+          child: Center(
+            child: sff.SuperNumericFormField(
+              controller: _numericField,
+              density: _fieldDensity,
+              required: col.required,
+              min: col.min,
+              max: col.max,
+              decimals: col.decimals ?? 0,
+              stepper: false,
+              decoration: _fieldDecoration(col),
+              onChanged: (v) => widget.onChanged(v == null ? '' : '$v'),
+            ),
+          ),
+        ),
+      );
+    }
+
+    if (col.type == SuperColumnType.date) {
+      return _withCellKeys(
+        SizedBox(
+          height: widget.height,
+          child: Center(
+            child: sff.SuperDateFormField(
+              controller: _dateField,
+              density: _fieldDensity,
+              required: col.required,
+              decoration: _fieldDecoration(col),
+              onChanged: (_) => widget.onChanged(_dateText()),
+            ),
           ),
         ),
       );
     }
 
     final showTrigger =
-        col.type == SuperColumnType.date ||
-        col.type == SuperColumnType.time ||
-        col.type == SuperColumnType.color;
+        col.type == SuperColumnType.time || col.type == SuperColumnType.color;
 
     return CompositedTransformTarget(
       link: _link,
@@ -859,7 +1112,6 @@ class _SuperCellEditorState extends State<SuperCellEditor> {
                   ),
                   child: Icon(
                     switch (col.type) {
-                      SuperColumnType.date => Icons.calendar_today_rounded,
                       SuperColumnType.time => Icons.schedule_rounded,
                       _ => Icons.expand_more_rounded,
                     },
@@ -888,32 +1140,54 @@ class _SuperCellEditorState extends State<SuperCellEditor> {
     if (e is! KeyDownEvent) return;
     final k = e.logicalKey;
     if (k == LogicalKeyboardKey.enter || k == LogicalKeyboardKey.numpadEnter) {
-      _commitClamped(dr: 1, dc: 0);
+      _commitClamped(dr: 0, dc: 0);
     } else if (k == LogicalKeyboardKey.tab) {
       final shift = HardwareKeyboard.instance.isShiftPressed;
       _commitClamped(dr: 0, dc: shift ? -1 : 1);
     } else if (k == LogicalKeyboardKey.escape) {
       _closePopup();
       widget.onCancel();
+    } else if (widget.col.type == SuperColumnType.checkbox &&
+        k == LogicalKeyboardKey.space) {
+      _toggleBoolDraft();
     }
   }
 
   void _commitClamped({required int dr, required int dc}) {
     _closePopup();
     if (widget.col.type.isNumeric) {
-      final s = _ctrl.text.trim();
-      if (s.isEmpty) {
-        widget.onCommit(override: '', dr: dr, dc: dc);
-      } else {
-        widget.onCommit(
-          override: SuperColumnLogic.clampNum(
-            SuperColumnLogic.numVal(s),
-            widget.col,
-          ),
-          dr: dr,
-          dc: dc,
-        );
-      }
+      final n = _numericField?.value;
+      widget.onCommit(
+        override: n == null ? '' : SuperColumnLogic.clampNum(n, widget.col),
+        dr: dr,
+        dc: dc,
+      );
+      return;
+    }
+    if (widget.col.type == SuperColumnType.date) {
+      widget.onCommit(override: _dateText(), dr: dr, dc: dc);
+      return;
+    }
+    if (widget.col.type == SuperColumnType.text ||
+        widget.col.type == SuperColumnType.custom ||
+        widget.col.type == SuperColumnType.link) {
+      widget.onCommit(
+        override: _textField?.value ?? _ctrl.text,
+        dr: dr,
+        dc: dc,
+      );
+      return;
+    }
+    if (widget.col.type == SuperColumnType.enumeration) {
+      widget.onCommit(override: _selectField?.value, dr: dr, dc: dc);
+      return;
+    }
+    if (widget.col.type == SuperColumnType.checkbox) {
+      widget.onCommit(
+        override: _boolDraft ?? _boolValue(widget.value),
+        dr: dr,
+        dc: dc,
+      );
       return;
     }
     widget.onCommit(override: _ctrl.text, dr: dr, dc: dc);
@@ -976,8 +1250,9 @@ class _OptionListState extends State<_OptionList> {
   }
 
   KeyEventResult _onKey(FocusNode n, KeyEvent e) {
-    if (e is! KeyDownEvent && e is! KeyRepeatEvent)
+    if (e is! KeyDownEvent && e is! KeyRepeatEvent) {
       return KeyEventResult.ignored;
+    }
     final k = e.logicalKey;
     if (k == LogicalKeyboardKey.arrowDown) {
       _move(1);
@@ -988,8 +1263,9 @@ class _OptionListState extends State<_OptionList> {
       return KeyEventResult.handled;
     }
     if (k == LogicalKeyboardKey.enter || k == LogicalKeyboardKey.numpadEnter) {
-      if (_hi >= 0 && _hi < widget.options.length)
+      if (_hi >= 0 && _hi < widget.options.length) {
         widget.onPick(widget.options[_hi]);
+      }
       return KeyEventResult.handled;
     }
     if (k == LogicalKeyboardKey.escape) {
@@ -997,8 +1273,9 @@ class _OptionListState extends State<_OptionList> {
       return KeyEventResult.handled;
     }
     if (k == LogicalKeyboardKey.tab) {
-      if (_hi >= 0 && _hi < widget.options.length)
+      if (_hi >= 0 && _hi < widget.options.length) {
         widget.onPick(widget.options[_hi]);
+      }
       return KeyEventResult.handled;
     }
     return KeyEventResult.ignored;
@@ -1096,7 +1373,7 @@ class _SwatchGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     final skin = SuperTableSkin.of(context);
     String hex(Color c) =>
-        '#${(c.value & 0xFFFFFF).toRadixString(16).padLeft(6, '0').toUpperCase()}';
+        '#${(c.toARGB32() & 0xFFFFFF).toRadixString(16).padLeft(6, '0').toUpperCase()}';
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [

@@ -1,7 +1,7 @@
 # super_table_field example
 
-Runnable gallery for `super_table_field 2.4.0`, using `super_core 2.4.0` and the
-re-exported `super_auto_suggestion_box 0.9.0`.
+Runnable gallery for `super_table_field 2.5.1`, using `super_core 3.x`,
+`super_auto_suggestion_box 0.9.x`, and `super_form_field 1.5.x`.
 
 ```bash
 flutter pub get

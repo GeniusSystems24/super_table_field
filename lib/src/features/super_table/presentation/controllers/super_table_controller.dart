@@ -1981,10 +1981,11 @@ class SuperTableController<R> extends ChangeNotifier {
       final u = _uniqueError(col, row, value);
       if (u != null) return u;
     }
-    final v = col.validator;
     final ctx = viewContext;
-    if (v != null && ctx != null) return v(ctx, this, row, cell, value);
-    return null;
+    if (ctx == null) return null;
+    final validator = (col as dynamic).validator;
+    if (validator is! Function) return null;
+    return Function.apply(validator, [ctx, this, row, cell, value]) as String?;
   }
 
   /// The `unique:` constraint for one candidate [value] of [col] in [row]:
@@ -2013,10 +2014,11 @@ class SuperTableController<R> extends ChangeNotifier {
     Object? prev,
     Object? next,
   ) {
-    final cb = col.onChange;
     final ctx = viewContext;
-    if (cb == null || ctx == null) return true;
-    return cb(ctx, this, row, cell, prev, next);
+    if (ctx == null) return true;
+    final callback = (col as dynamic).onChange;
+    if (callback is! Function) return true;
+    return Function.apply(callback, [ctx, this, row, cell, prev, next]) == true;
   }
 
   /// Write a committed value into a cell (used by Delete-clear + paste + the
@@ -2050,7 +2052,6 @@ class SuperTableController<R> extends ChangeNotifier {
     if (_committing) return;
     _committing = true;
     final ec = _editCell;
-    var armAdvance = false;
     if (ec != null) {
       final col = ec.c < cols.length ? cols[ec.c] : null;
       final entry = ec.r < view.length ? view[ec.r] : null;
@@ -2081,13 +2082,9 @@ class SuperTableController<R> extends ChangeNotifier {
           cell.error = err;
         }
       }
-      armAdvance =
-          move == null &&
-          (col?.type == SuperColumnType.combo ||
-              col?.type == SuperColumnType.enumeration);
     }
     _editCell = null;
-    _advanceOnEnter = armAdvance;
+    _advanceOnEnter = false;
     final baseR = ec?.r ?? _sel.r;
     final baseC = ec?.c ?? _sel.c;
     if (move != null) {
@@ -2210,8 +2207,9 @@ class SuperTableController<R> extends ChangeNotifier {
     final entry = vr < view.length ? view[vr] : null;
     if (entry == null) return;
     final snap = _snapshot(); // BEFORE the deleted-row log gains an entry
-    if (trackChanges)
+    if (trackChanges) {
       _deletedRows.add((index: entry.sourceIndex, row: entry.row!));
+    }
     _pruneCombos(entry.row!);
     _applyRows([
       for (var i = 0; i < _rows.length; i++)

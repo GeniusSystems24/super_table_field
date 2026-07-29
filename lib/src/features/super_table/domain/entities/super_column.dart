@@ -307,7 +307,15 @@ class SuperColumn<T> {
       write!(backing, value as T);
       return;
     }
-    if (backing is Map) backing[key] = value;
+    if (backing is Map) {
+      try {
+        backing[key] = value;
+      } on UnsupportedError {
+        // Some hosts pass const / unmodifiable map rows. The editable cell
+        // value is already committed in SuperRow.cells; immutable backing data
+        // simply cannot be mirrored by the default map writer.
+      }
+    }
   }
 
   /// Resolve the effective filter items: explicit [filterItems], else a sync

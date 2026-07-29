@@ -11,6 +11,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:super_form_field/super_form_field.dart';
 import 'package:super_table_field/super_table_field.dart';
 
 import 'examples/example_1_readonly_report.dart';
@@ -72,6 +73,7 @@ class _ExampleAppState extends State<ExampleApp> {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
         SuperTableLocalizations.delegate,
+        SuperFormTranslation.delegate,
       ],
       supportedLocales: SuperTableLocalizations.supportedLocales,
 

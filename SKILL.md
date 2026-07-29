@@ -42,7 +42,7 @@ come for free.
 
 ```yaml
 dependencies:
-  super_table_field: ^2.5.0
+  super_table_field: ^2.5.1
 ```
 
 ```dart
