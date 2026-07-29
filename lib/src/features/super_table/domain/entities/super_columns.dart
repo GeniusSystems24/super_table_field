@@ -209,14 +209,14 @@ class SuperComboColumn<T> extends SuperColumn<T> {
   // ── rebuildable options (per row, re-created on fingerPrint change) ──
   final AutoSuggestionsSource<T> Function(
     BuildContext context,
-    SuperTableController<T> controller,
+    SuperTableController<dynamic> controller,
     SuperRow row,
     SuperCell cell,
   )?
   sourceController;
   final AutoSuggestionsBoxController<T> Function(
     BuildContext context,
-    SuperTableController<T> controller,
+    SuperTableController<dynamic> controller,
     SuperRow row,
     SuperCell cell,
   )?

@@ -37,6 +37,9 @@ All notable changes to **super_table_field** are documented here. Format follows
   shortcuts work while editing.
 - Space no longer starts editing from display mode; enter edit mode first with
   Enter, then use Space for boolean draft toggles.
+- `SuperComboColumn.sourceController` and `cellController` no longer throw
+  runtime type errors in editable mode when combo values are typed, such as
+  `String`.
 
 ## [2.5.0] — 2026-07-29
 
