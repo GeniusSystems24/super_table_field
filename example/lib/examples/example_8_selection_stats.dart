@@ -103,7 +103,7 @@ class _SelectionStatsExampleState extends State<SelectionStatsExample> {
           Text(
             value,
             style: TextStyle(
-              fontFamily: context.superTheme.tokens.monoFont,
+              fontFamily: context.superTextTheme.mono.fontFamily,
               fontSize: 16,
               fontWeight: FontWeight.w700,
               color: t.fg1,

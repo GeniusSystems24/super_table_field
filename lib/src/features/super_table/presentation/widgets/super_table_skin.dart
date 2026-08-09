@@ -2,9 +2,9 @@
 // features/super_table/presentation/widgets/super_table_skin.dart
 // ------------------------------------------------------------
 // Derives the SuperTable's extra surfaces (surface-2, accent washes, shimmer)
-// from the shared core SuperThemeData so the unified grid themes from the same
-// single source as the rest of the kit. A thin value object resolved once per
-// build from context.
+// from the shared core SuperThemeData so colors, spacing, and semantic surfaces
+// stay aligned with the rest of the kit. Typography is intentionally resolved
+// separately through context.superTextTheme under the super_core 3.3.0 API.
 // ============================================================
 
 import 'package:flutter/material.dart';

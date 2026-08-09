@@ -1,7 +1,8 @@
-# Migration to super_table_field 2.4.0
+# Migration to super_table_field 2.6.0
 
-Version 2.4.0 aligns the package with `super_core 2.4.0` and
-`super_auto_suggestion_box 0.9.0`.
+Version 2.6.0 aligns the package with the explicit typography API introduced in
+`super_core 3.3.0`, together with the matching `super_auto_suggestion_box 0.13.0`
+and `super_form_field 1.8.1+` packages.
 
 ## Requirements
 
@@ -11,10 +12,11 @@ environment:
   flutter: ">=3.32.0"
 
 dependencies:
-  super_table_field: ^2.4.0
-  # Only add these directly when your app imports them independently.
-  super_core: ">=3.0.0 <4.0.0"
-  super_auto_suggestion_box: 0.9.0
+  super_table_field: ^2.6.0
+  # Add these directly only when your app imports them independently.
+  super_core: ">=3.3.0 <4.0.0"
+  super_auto_suggestion_box: ">=0.13.0 <1.0.0"
+  super_form_field: ">=1.8.1 <2.0.0"
 ```
 
 The `super_table_field` barrel continues to re-export `super_core` and
@@ -22,47 +24,79 @@ The `super_table_field` barrel continues to re-export `super_core` and
 
 ## Theme setup
 
-Use the generated Material themes instead of manually registering light and
-dark theme extensions:
+`SuperMaterialThemeData.light` and `.dark` now require explicit
+`SuperTextTheme` values for both Material typography slots:
 
 ```dart
 import 'package:super_table_field/super_table_field.dart';
 
+final typography = SuperTextTheme();
+
 MaterialApp(
-  theme: SuperMaterialThemeData.light(),
-  darkTheme: SuperMaterialThemeData.dark(),
+  theme: SuperMaterialThemeData.light(
+    textTheme: typography,
+    primaryTextTheme: typography,
+  ),
+  darkTheme: SuperMaterialThemeData.dark(
+    textTheme: typography,
+    primaryTextTheme: typography,
+  ),
   themeMode: ThemeMode.system,
 );
 ```
 
-`AutoSuggestionsBoxThemeData.of(context)` derives from the active
-`SuperMaterialThemeData`. Add an explicit extension only for custom overrides.
+Use `SuperTextTheme(isArabic: true)` for an Arabic-first typography ramp. For
+desktop density, use `SuperTextTheme(isDesktop: true)` or derive the flag from
+the same `SuperDeviceMode` used to build the Material theme.
 
-## super_core 2.4.0 replacements
+`AutoSuggestionsBoxThemeData.of(context)` continues to derive its defaults from
+the active `SuperMaterialThemeData`. Register an explicit extension only when
+overriding the component theme.
 
-- Replace `SectionCard`, `SuperSection`, and `SuperCard` with
-  `SuperSectionCard`.
-- Replace `SectionHeader` with `SuperSectionHeader`.
-- Read spacing, radii, control heights, and insets from
-  `context.superTheme.spacing`.
-- Read brand font families and motion from `context.superTheme.tokens`.
-- Prefer `SuperScaffold` and `SuperGrid` for responsive page layouts.
-- Use `color.withValues(alpha: value)` instead of `withOpacity`.
+## Typography migration
 
-Example:
+`SuperThemeData` no longer exposes `textTheme`. Replace old reads:
 
 ```dart
+// Before
 final theme = context.superTheme;
-final spacing = theme.spacing;
+Text('Inventory', style: theme.textTheme.heading);
 
-SuperSectionCard(
-  padding: spacing.cardPadding,
-  child: Text(
-    'Inventory',
-    style: theme.textTheme.heading.copyWith(color: theme.fg1),
-  ),
+// After
+final theme = context.superTheme;
+final typography = context.superTextTheme;
+Text(
+  'Inventory',
+  style: typography.heading.copyWith(color: theme.fg1),
 );
 ```
+
+Do not use these patterns in new code:
+
+```dart
+context.superTheme.textTheme
+SuperThemeData.of(context).textTheme
+context.superTheme.tokens.bodyFont
+context.superTheme.tokens.displayFont
+context.superTheme.tokens.monoFont
+```
+
+For text rendering, use the corresponding `SuperTextTheme` family instead:
+
+```dart
+context.superTextTheme.body.fontFamily
+context.superTextTheme.h1.fontFamily
+context.superTextTheme.mono.fontFamily
+```
+
+`SuperMaterialThemeData` no longer infers token font metadata from the supplied
+`SuperTextTheme`. Configure body/display faces through
+`SuperTextTheme(bodyFont:, otherFont:)`; pass `fontFamily` to
+`SuperMaterialThemeData` only when a token-level override is intentionally
+required.
+
+Spacing, radii, colors, motion, and semantic tokens remain available from
+`context.superTheme`.
 
 ## Validation
 
@@ -80,5 +114,5 @@ flutter pub get
 flutter analyze
 ```
 
-The example lockfile was removed because it referenced the previous dependency
-graph. `flutter pub get` regenerates it against the migrated versions.
+Regenerate lockfiles with `flutter pub get` after upgrading the dependency
+graph.

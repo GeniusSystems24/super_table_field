@@ -113,7 +113,7 @@ class _EditableJournalExampleState extends State<EditableJournalExample> {
                 Text(
                   'Debit \$${tot.debit}   ·   Credit \$${tot.credit}',
                   style: TextStyle(
-                    fontFamily: context.superTheme.tokens.monoFont,
+                    fontFamily: context.superTextTheme.mono.fontFamily,
                     color: t.fg2,
                   ),
                 ),

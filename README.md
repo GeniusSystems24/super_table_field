@@ -42,9 +42,9 @@ import 'package:super_table_field/super_table_field.dart';
 |---|---|---
 | Dart SDK | `3.8.0` |
 | Flutter SDK | `3.32.0` |
-| `super_core` | `3.0.0` |
-| `super_auto_suggestion_box` | `0.9.0` |
-| `super_form_field` | `1.5.0` |
+| `super_core` | `3.3.0` |
+| `super_auto_suggestion_box` | `0.13.0` |
+| `super_form_field` | `1.8.1` |
 
 ## Installation
 
@@ -52,7 +52,7 @@ Add the package to `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  super_table_field: ^2.5.1
+  super_table_field: ^2.6.0
 ```
 
 Then install the dependency:
@@ -86,19 +86,33 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final typography = SuperTextTheme();
+
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       localizationsDelegates:
           SuperTableLocalizations.localizationsDelegates,
       supportedLocales: SuperTableLocalizations.supportedLocales,
-      theme: SuperMaterialThemeData.light(),
-      darkTheme: SuperMaterialThemeData.dark(),
+      theme: SuperMaterialThemeData.light(
+        textTheme: typography,
+        primaryTextTheme: typography,
+      ),
+      darkTheme: SuperMaterialThemeData.dark(
+        textTheme: typography,
+        primaryTextTheme: typography,
+      ),
       themeMode: ThemeMode.system,
       home: const InventoryTablePage(),
     );
   }
 }
 ```
+
+`super_core 3.3.0` requires explicit `SuperTextTheme` values for both
+`textTheme` and `primaryTextTheme`. `SuperThemeData` no longer exposes
+`textTheme`; read the branded typography through `context.superTextTheme` or
+`SuperMaterialThemeData.of(context).textTheme`. The table follows the ambient
+`SuperTextTheme` body/display/mono font families.
 
 `SuperTableLocalizations` includes the package translation delegate together with Flutter's Material, Cupertino, and Widgets delegates. The package currently supports:
 
@@ -1014,13 +1028,21 @@ The visual system derives its colors, typography, spacing, and component behavio
 Set the application locale normally:
 
 ```dart
+final typography = SuperTextTheme(isArabic: true);
+
 MaterialApp(
   locale: const Locale('ar'),
   localizationsDelegates:
       SuperTableLocalizations.localizationsDelegates,
   supportedLocales: SuperTableLocalizations.supportedLocales,
-  theme: SuperMaterialThemeData.light(),
-  darkTheme: SuperMaterialThemeData.dark(),
+  theme: SuperMaterialThemeData.light(
+    textTheme: typography,
+    primaryTextTheme: typography,
+  ),
+  darkTheme: SuperMaterialThemeData.dark(
+    textTheme: typography,
+    primaryTextTheme: typography,
+  ),
   home: const InventoryTablePage(),
 );
 ```

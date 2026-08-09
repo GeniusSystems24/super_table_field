@@ -42,7 +42,7 @@ come for free.
 
 ```yaml
 dependencies:
-  super_table_field: ^2.5.1
+  super_table_field: ^2.6.0
 ```
 
 ```dart
@@ -53,6 +53,8 @@ Use the generated SuperMaterial themes and register the package localization
 helpers on the host `MaterialApp`:
 
 ```dart
+final typography = SuperTextTheme();
+
 MaterialApp(
   localizationsDelegates: const [
     GlobalMaterialLocalizations.delegate,
@@ -61,8 +63,14 @@ MaterialApp(
     SuperTableLocalizations.delegate,
   ],
   supportedLocales: SuperTableLocalizations.supportedLocales,
-  theme: SuperMaterialThemeData.light(extensions: [ AutoSuggestionsBoxThemeData.light],),
-  darkTheme: SuperMaterialThemeData.dark(extensions: [AutoSuggestionsBoxThemeData.dark],),
+  theme: SuperMaterialThemeData.light(
+    textTheme: typography,
+    primaryTextTheme: typography,
+  ),
+  darkTheme: SuperMaterialThemeData.dark(
+    textTheme: typography,
+    primaryTextTheme: typography,
+  ),
   home: const MyTableScreen(),
 );
 ```
@@ -72,6 +80,25 @@ and Flutter's Material, Cupertino, and Widgets localization delegates. Supported
 package locales are English (`en`) and Arabic (`ar`). The widgets still fall
 back to English if a host app forgets the delegate, but Arabic requires
 registration.
+
+### super_core 3.3.0 typography rules
+
+- `SuperMaterialThemeData.light` and `.dark` require `textTheme` and
+  `primaryTextTheme`, both of type `SuperTextTheme`.
+- `SuperThemeData` no longer exposes `textTheme`. Never generate
+  `context.superTheme.textTheme`, `theme.superTheme.textTheme`, or
+  `SuperThemeData.of(context).textTheme`.
+- Read branded typography through `context.superTextTheme`, or through
+  `SuperMaterialThemeData.of(context).textTheme`.
+- Table body/display/mono font families must follow `SuperTextTheme`; do not use
+  `context.superTheme.tokens.bodyFont`, `.displayFont`, or `.monoFont` for new
+  text styling.
+- Configure custom body/display faces with `SuperTextTheme(bodyFont:,
+  otherFont:)`. `SuperMaterialThemeData` no longer infers token font metadata
+  from the supplied text theme; pass `fontFamily` only when a token-level
+  override is intentionally required.
+- For Arabic-first UI, construct `SuperTextTheme(isArabic: true)`. For desktop
+  density, construct it with `isDesktop: true` (or from the active device mode).
 
 ## SuperTable<R>
 
@@ -471,8 +498,9 @@ package's barrel. Add new column behavior in
 - Forgetting `SuperTableLocalizations.localizationsDelegates` /
   `SuperTableLocalizations.supportedLocales` on `MaterialApp` → package text
   falls back to English instead of Arabic.
-- Forgetting to use `SuperMaterialThemeData.light()` / `.dark()` → the table and
-  combo editor miss the design-system theme.
+- Forgetting to provide the required `SuperTextTheme` values to
+  `SuperMaterialThemeData.light` / `.dark` → the app does not compile against
+  `super_core 3.3.0`.
 - Mutating the rows list directly instead of via the controller → breaks
   undo/redo and skips a rebuild.
 - Using `SuperColumnType.combo` directly instead of the typed `SuperComboColumn`

@@ -129,7 +129,7 @@ class _ChangePanel extends StatelessWidget {
             Text(
               '$n',
               style: TextStyle(
-                fontFamily: context.superTheme.tokens.monoFont,
+                fontFamily: context.superTextTheme.mono.fontFamily,
                 fontWeight: FontWeight.w700,
                 color: color,
               ),

@@ -629,7 +629,7 @@ class _ShowcaseExampleState extends State<ShowcaseExample> {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: TextStyle(
-            fontFamily: t.tokens.monoFont,
+            fontFamily: theme.textTheme.mono.fontFamily,
             fontSize: 12,
             color: t.fg1,
           ),

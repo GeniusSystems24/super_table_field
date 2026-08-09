@@ -166,7 +166,7 @@ class _InteractionEventsExampleState extends State<InteractionEventsExample> {
               const Spacer(),
               Text(_selection,
                   style: TextStyle(
-                      fontFamily: context.superTheme.tokens.monoFont, fontSize: 12, color: t.fg1)),
+                      fontFamily: context.superTextTheme.mono.fontFamily, fontSize: 12, color: t.fg1)),
             ]),
             const SizedBox(height: 14),
             Expanded(
@@ -240,7 +240,7 @@ class _InteractionEventsExampleState extends State<InteractionEventsExample> {
                           padding: const EdgeInsets.symmetric(vertical: 4),
                           child: Text(e,
                               style: TextStyle(
-                                  fontFamily: context.superTheme.tokens.monoFont,
+                                  fontFamily: context.superTextTheme.mono.fontFamily,
                                   fontSize: 12,
                                   color: t.fg2)),
                         ),
@@ -291,7 +291,7 @@ class _DetailCard extends StatelessWidget {
             Expanded(
                 child: Text('Order ${order['no']}',
                     style: TextStyle(
-                        fontFamily: context.superTheme.tokens.displayFont,
+                        fontFamily: context.superTextTheme.h1.fontFamily,
                         fontWeight: FontWeight.w800,
                         fontSize: 15,
                         color: t.fg1))),

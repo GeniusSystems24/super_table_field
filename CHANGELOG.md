@@ -3,6 +3,32 @@
 All notable changes to **super_table_field** are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/); versioning is [SemVer](https://semver.org/).
 
+## [2.6.0] - 2026-08-10
+
+### Changed
+
+- Migrated the package to `super_core >=3.3.0 <4.0.0`.
+- Updated `super_auto_suggestion_box` to `>=0.13.0 <1.0.0` and
+  `super_form_field` to `>=1.8.1 <2.0.0`.
+- Updated all `SuperMaterialThemeData.light` / `.dark` examples to provide the
+  now-required `SuperTextTheme` values for `textTheme` and `primaryTextTheme`.
+- Migrated table body, display, and monospace font-family reads from
+  `SuperThemeData.tokens` to the ambient `SuperTextTheme`, so host typography
+  overrides propagate consistently into tables, overlays, editors, and demos.
+- Migrated gallery typography reads away from the removed
+  `SuperThemeData.textTheme` getter to `context.superTextTheme`.
+- Updated README, migration guidance, example metadata, and agent skill rules for
+  the `super_core 3.3.0` typography contract.
+
+### Migration
+
+- `SuperThemeData` no longer owns typography. Use `context.superTextTheme` (or
+  `SuperMaterialThemeData.of(context).textTheme`) for branded text styles.
+- `SuperMaterialThemeData.light` and `.dark` require explicit `textTheme` and
+  `primaryTextTheme` values of type `SuperTextTheme`.
+- Do not derive body/display/mono text families from `SuperThemeData.tokens`;
+  configure them on `SuperTextTheme`.
+
 ## [2.5.1] - 2026-07-29
 
 ### Changed

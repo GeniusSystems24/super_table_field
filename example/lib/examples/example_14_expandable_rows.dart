@@ -344,7 +344,7 @@ class _ExpandableRowsExampleState extends State<ExpandableRowsExample> {
                 Text(
                   'EXPANSION MODE',
                   style: TextStyle(
-                    fontFamily: context.superTheme.tokens.bodyFont,
+                    fontFamily: context.superTextTheme.body.fontFamily,
                     fontSize: 10,
                     fontWeight: FontWeight.w700,
                     letterSpacing: 0.6,
@@ -389,7 +389,7 @@ class _ExpandableRowsExampleState extends State<ExpandableRowsExample> {
                         ? 'Single mode — only one row can be open at a time (accordion).'
                         : 'Multi mode — multiple rows can be expanded simultaneously.',
                     style: TextStyle(
-                      fontFamily: context.superTheme.tokens.bodyFont,
+                      fontFamily: context.superTextTheme.body.fontFamily,
                       fontSize: 12.5,
                       color: t.fg3,
                     ),
@@ -398,7 +398,7 @@ class _ExpandableRowsExampleState extends State<ExpandableRowsExample> {
                   Text(
                     'Tap the chevron (▾) in the row number column to expand.',
                     style: TextStyle(
-                      fontFamily: context.superTheme.tokens.bodyFont,
+                      fontFamily: context.superTextTheme.body.fontFamily,
                       fontSize: 12.5,
                       color: t.fg4,
                     ),
@@ -484,7 +484,7 @@ class _LineItemsPanel extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        fontFamily: context.superTheme.tokens.monoFont,
+                        fontFamily: context.superTextTheme.mono.fontFamily,
                         fontSize: 11.5,
                         color: t.fg2,
                       ),
@@ -497,7 +497,7 @@ class _LineItemsPanel extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        fontFamily: context.superTheme.tokens.bodyFont,
+                        fontFamily: context.superTextTheme.body.fontFamily,
                         fontSize: 12,
                         color: t.fg3,
                       ),
@@ -509,7 +509,7 @@ class _LineItemsPanel extends StatelessWidget {
                       _fmt(line.debit),
                       textAlign: TextAlign.right,
                       style: TextStyle(
-                        fontFamily: context.superTheme.tokens.monoFont,
+                        fontFamily: context.superTextTheme.mono.fontFamily,
                         fontSize: 12,
                         fontWeight: line.debit > 0
                             ? FontWeight.w600
@@ -524,7 +524,7 @@ class _LineItemsPanel extends StatelessWidget {
                       _fmt(line.credit),
                       textAlign: TextAlign.right,
                       style: TextStyle(
-                        fontFamily: context.superTheme.tokens.monoFont,
+                        fontFamily: context.superTextTheme.mono.fontFamily,
                         fontSize: 12,
                         fontWeight: line.credit > 0
                             ? FontWeight.w600
@@ -552,7 +552,7 @@ class _LineItemsPanel extends StatelessWidget {
     child: Text(
       label,
       style: TextStyle(
-        fontFamily: context.superTheme.tokens.bodyFont,
+        fontFamily: context.superTextTheme.body.fontFamily,
         fontSize: 9.5,
         fontWeight: FontWeight.w700,
         letterSpacing: 0.55,
@@ -573,7 +573,7 @@ class _LineItemsPanel extends StatelessWidget {
       label,
       textAlign: end ? TextAlign.right : TextAlign.left,
       style: TextStyle(
-        fontFamily: context.superTheme.tokens.bodyFont,
+        fontFamily: context.superTextTheme.body.fontFamily,
         fontSize: 9.5,
         fontWeight: FontWeight.w700,
         letterSpacing: 0.55,
@@ -623,7 +623,7 @@ class _ModeChip extends StatelessWidget {
           child: Text(
             label,
             style: TextStyle(
-              fontFamily: context.superTheme.tokens.bodyFont,
+              fontFamily: context.superTextTheme.body.fontFamily,
               fontSize: 12,
               fontWeight: FontWeight.w600,
               color: active ? cs.primary : t.fg2,

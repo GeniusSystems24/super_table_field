@@ -1,8 +1,8 @@
 // ============================================================
 // example/lib/main.dart
 // ------------------------------------------------------------
-// Gallery launcher for super_table_field. Uses the super_core 2.4.0 generated
-// themes and responsive layout primitives, exposes a global Light/Dark + LTR/RTL
+// Gallery launcher for super_table_field. Uses the super_core 3.3.0 Material
+// theme with explicit SuperTextTheme typography, exposes Light/Dark + LTR/RTL
 // toggle, and lists the shipped demos:
 //   • SuperTable — the unified grid. Switch to Editable and double-click the
 //     "Unit" cell: it is a `combo` column edited through the AutoSuggestionsBox.
@@ -59,12 +59,22 @@ class _ExampleAppState extends State<ExampleApp> {
 
   @override
   Widget build(BuildContext context) {
+    final typography = SuperTextTheme(
+      isArabic: _dir == TextDirection.rtl,
+    );
+
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Super Table Field',
       themeMode: _mode,
-      theme: SuperMaterialThemeData.light(),
-      darkTheme: SuperMaterialThemeData.dark(),
+      theme: SuperMaterialThemeData.light(
+        textTheme: typography,
+        primaryTextTheme: typography,
+      ),
+      darkTheme: SuperMaterialThemeData.dark(
+        textTheme: typography,
+        primaryTextTheme: typography,
+      ),
       locale: _dir == TextDirection.rtl
           ? const Locale('ar')
           : const Locale('en'),
@@ -250,14 +260,14 @@ class _Launcher extends StatelessWidget {
               children: [
                 Text(
                   'SUPER TABLE FIELD • GALLERY',
-                  style: theme.textTheme.eyebrow.copyWith(
+                  style: context.superTextTheme.eyebrow.copyWith(
                     color: colorScheme.primary,
                   ),
                 ),
                 SizedBox(height: spacing.space2),
                 Text(
                   'Component Demos مكتبة المكونات',
-                  style: theme.textTheme.h1.copyWith(color: theme.fg1),
+                  style: context.superTextTheme.h1.copyWith(color: theme.fg1),
                 ),
                 SizedBox(height: spacing.space8),
                 for (final demo in _demos) ...[
@@ -332,12 +342,12 @@ class _DemoCard extends StatelessWidget {
               children: [
                 Text(
                   demo.title,
-                  style: theme.textTheme.heading.copyWith(color: theme.fg1),
+                  style: context.superTextTheme.heading.copyWith(color: theme.fg1),
                 ),
                 SizedBox(height: spacing.space1),
                 Text(
                   demo.subtitle,
-                  style: theme.textTheme.caption.copyWith(color: theme.fg3),
+                  style: context.superTextTheme.caption.copyWith(color: theme.fg3),
                 ),
               ],
             ),

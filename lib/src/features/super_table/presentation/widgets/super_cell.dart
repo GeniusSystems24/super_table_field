@@ -84,13 +84,13 @@ class SuperCellDisplay extends StatelessWidget {
     final v = col.rawValue(row);
     final baseColor = fg ?? skin.fg1;
     final mono = TextStyle(
-      fontFamily: context.superTheme.tokens.monoFont,
+      fontFamily: context.superTextTheme.mono.fontFamily,
       fontSize: 12.5,
       color: baseColor,
       fontWeight: weight,
     );
     final body = TextStyle(
-      fontFamily: context.superTheme.tokens.bodyFont,
+      fontFamily: context.superTextTheme.body.fontFamily,
       fontSize: 12.5,
       color: baseColor,
       fontWeight: weight,
@@ -494,8 +494,8 @@ class _SuperComboEditorState extends State<_SuperComboEditor> {
             (opts.isEmpty ? l10n.typeValueHint : l10n.typeOrPickHint),
         textStyle: TextStyle(
           fontFamily: widget.col.mono
-              ? context.superTheme.tokens.monoFont
-              : context.superTheme.tokens.bodyFont,
+              ? context.superTextTheme.mono.fontFamily
+              : context.superTextTheme.body.fontFamily,
           fontSize: 13,
           height: 1.2,
           color: skin.fg1,
@@ -712,7 +712,7 @@ class _SuperCellEditorState extends State<SuperCellEditor> {
           builder: (o) => Text(
             o,
             style: TextStyle(
-              fontFamily: context.superTheme.tokens.monoFont,
+              fontFamily: context.superTextTheme.mono.fontFamily,
               fontSize: 12.5,
               color: SuperTableSkin.of(context).fg1,
             ),
@@ -917,8 +917,8 @@ class _SuperCellEditorState extends State<SuperCellEditor> {
         col.type == SuperColumnType.color;
     final style = TextStyle(
       fontFamily: monoLike
-          ? context.superTheme.tokens.monoFont
-          : context.superTheme.tokens.bodyFont,
+          ? context.superTextTheme.mono.fontFamily
+          : context.superTextTheme.body.fontFamily,
       fontSize: 13,
       color: skin.fg1,
     );
@@ -1620,7 +1620,7 @@ class _CalDayState extends State<_CalDay> {
           child: Text(
             '${widget.day}',
             style: TextStyle(
-              fontFamily: context.superTheme.tokens.monoFont,
+              fontFamily: context.superTextTheme.mono.fontFamily,
               fontSize: 12.5,
               color: widget.selected ? Colors.white : s.fg1,
             ),

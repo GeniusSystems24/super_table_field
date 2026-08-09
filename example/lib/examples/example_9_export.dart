@@ -137,7 +137,7 @@ class _ExportExampleState extends State<ExportExample> {
                   child: SelectableText(
                     _preview,
                     style: TextStyle(
-                      fontFamily: context.superTheme.tokens.monoFont,
+                      fontFamily: context.superTextTheme.mono.fontFamily,
                       fontSize: 12,
                       height: 1.5,
                       color: t.fg2,

@@ -291,7 +291,7 @@ class _MenuRowState extends State<_MenuRow> {
                 child: Text(
                   e.label,
                   style: TextStyle(
-                    fontFamily: context.superTheme.tokens.bodyFont,
+                    fontFamily: context.superTextTheme.body.fontFamily,
                     fontSize: 13,
                     color: fg,
                   ),
@@ -303,7 +303,7 @@ class _MenuRowState extends State<_MenuRow> {
                 Text(
                   e.hint!,
                   style: TextStyle(
-                    fontFamily: context.superTheme.tokens.monoFont,
+                    fontFamily: context.superTextTheme.mono.fontFamily,
                     fontSize: 11,
                     color: s.fg4,
                   ),
@@ -382,7 +382,7 @@ Future<bool> showSuperConfirm(
                     child: Text(
                       title,
                       style: TextStyle(
-                        fontFamily: context.superTheme.tokens.displayFont,
+                        fontFamily: context.superTextTheme.h1.fontFamily,
                         fontWeight: FontWeight.w800,
                         fontSize: 16,
                         color: skin.fg1,
@@ -468,7 +468,7 @@ class _DialogBtn extends StatelessWidget {
             Text(
               label,
               style: TextStyle(
-                fontFamily: context.superTheme.tokens.bodyFont,
+                fontFamily: context.superTextTheme.body.fontFamily,
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
                 color: fg,
@@ -601,7 +601,7 @@ class _AdvancedFilterPanelState extends State<_AdvancedFilterPanel> {
                     Text(
                       l10n.advancedFilter,
                       style: TextStyle(
-                        fontFamily: context.superTheme.tokens.displayFont,
+                        fontFamily: context.superTextTheme.h1.fontFamily,
                         fontWeight: FontWeight.w800,
                         fontSize: 17,
                         color: s.fg1,
@@ -746,7 +746,7 @@ class _AdvancedFilterPanelState extends State<_AdvancedFilterPanel> {
             child: Text(
               '${i + 1}',
               style: TextStyle(
-                fontFamily: context.superTheme.tokens.monoFont,
+                fontFamily: context.superTextTheme.mono.fontFamily,
                 fontSize: 11,
                 color: s.fg4,
               ),
@@ -866,7 +866,7 @@ class _AdvancedFilterPanelState extends State<_AdvancedFilterPanel> {
           icon: Icon(Icons.expand_more_rounded, size: 16, color: s.fg3),
           dropdownColor: s.surface,
           style: TextStyle(
-            fontFamily: context.superTheme.tokens.bodyFont,
+            fontFamily: context.superTextTheme.body.fontFamily,
             fontSize: 12.5,
             color: s.fg1,
           ),
@@ -906,8 +906,8 @@ class _AdvancedFilterPanelState extends State<_AdvancedFilterPanel> {
         onChanged: onChanged,
         style: TextStyle(
           fontFamily: numeric
-              ? context.superTheme.tokens.monoFont
-              : context.superTheme.tokens.bodyFont,
+              ? context.superTextTheme.mono.fontFamily
+              : context.superTextTheme.body.fontFamily,
           fontSize: 12.5,
           color: s.fg1,
         ),
@@ -1018,7 +1018,7 @@ Future<void> showSuperShortcuts(BuildContext context) {
                       child: Text(
                         l10n.keyboardShortcuts,
                         style: TextStyle(
-                          fontFamily: context.superTheme.tokens.displayFont,
+                          fontFamily: context.superTextTheme.h1.fontFamily,
                           fontWeight: FontWeight.w800,
                           fontSize: 19,
                           color: skin.fg1,
@@ -1109,7 +1109,7 @@ class _Kbd extends StatelessWidget {
             child: Text(
               part,
               style: TextStyle(
-                fontFamily: context.superTheme.tokens.monoFont,
+                fontFamily: context.superTextTheme.mono.fontFamily,
                 fontSize: 11.5,
                 fontWeight: FontWeight.w600,
                 color: skin.fg2,
@@ -1184,7 +1184,7 @@ Future<void> showSuperValidationPanel<R>(
                               issues.length == 1 ? '' : 's',
                             ),
                       style: TextStyle(
-                        fontFamily: context.superTheme.tokens.displayFont,
+                        fontFamily: context.superTextTheme.h1.fontFamily,
                         fontWeight: FontWeight.w800,
                         fontSize: 19,
                         color: skin.fg1,
@@ -1298,7 +1298,7 @@ class _ValidationIssueTile extends StatelessWidget {
                   child: Text(
                     'Row ${issue.sourceIndex + 1}',
                     style: TextStyle(
-                      fontFamily: context.superTheme.tokens.monoFont,
+                      fontFamily: context.superTextTheme.mono.fontFamily,
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
                       color: skin.fg2,
@@ -1537,7 +1537,7 @@ class _ColumnManagerPanelState<R> extends State<_ColumnManagerPanel<R>> {
                     Text(
                       l10n.manageColumns,
                       style: TextStyle(
-                        fontFamily: context.superTheme.tokens.displayFont,
+                        fontFamily: context.superTextTheme.h1.fontFamily,
                         fontWeight: FontWeight.w800,
                         fontSize: 17,
                         color: s.fg1,
@@ -1596,7 +1596,7 @@ class _ColumnManagerPanelState<R> extends State<_ColumnManagerPanel<R>> {
               Text(
                 l10n.shownOfColumns(shown, cols.length),
                 style: TextStyle(
-                  fontFamily: context.superTheme.tokens.monoFont,
+                  fontFamily: context.superTextTheme.mono.fontFamily,
                   fontSize: 11.5,
                   color: s.fg3,
                 ),
@@ -1685,7 +1685,7 @@ class _ColumnManagerRow<R> extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  fontFamily: context.superTheme.tokens.bodyFont,
+                  fontFamily: context.superTextTheme.body.fontFamily,
                   fontSize: 13.5,
                   fontWeight: FontWeight.w600,
                   color: visible ? s.fg1 : s.fg4,

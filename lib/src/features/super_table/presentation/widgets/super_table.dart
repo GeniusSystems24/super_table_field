@@ -1200,7 +1200,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
           Text(
             '${i + 1}',
             style: TextStyle(
-              fontFamily: context.superTheme.tokens.monoFont,
+              fontFamily: context.superTextTheme.mono.fontFamily,
               fontSize: 10,
               color: skin.fg4,
             ),
@@ -1437,8 +1437,8 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
               textAlignVertical: TextAlignVertical.center,
               style: TextStyle(
                 fontFamily: col.mono
-                    ? context.superTheme.tokens.monoFont
-                    : context.superTheme.tokens.bodyFont,
+                    ? context.superTextTheme.mono.fontFamily
+                    : context.superTextTheme.body.fontFamily,
                 fontSize: 12,
                 color: skin.fg1,
               ),
@@ -1563,7 +1563,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
-              fontFamily: context.superTheme.tokens.bodyFont,
+              fontFamily: context.superTextTheme.body.fontFamily,
               fontSize: 10,
               fontWeight: FontWeight.w700,
               letterSpacing: 0.5,
@@ -1764,7 +1764,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
               Text(
                 txt,
                 style: TextStyle(
-                  fontFamily: context.superTheme.tokens.monoFont,
+                  fontFamily: context.superTextTheme.mono.fontFamily,
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
                   color: skin.fg2,
@@ -1844,7 +1844,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: TextStyle(
-            fontFamily: context.superTheme.tokens.monoFont,
+            fontFamily: context.superTextTheme.mono.fontFamily,
             fontSize: 11.5,
             fontWeight: FontWeight.w700,
             color: skin.fg1,
@@ -1938,7 +1938,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
         child: Text(
           (r + 1).toString().padLeft(2, '0'),
           style: TextStyle(
-            fontFamily: context.superTheme.tokens.monoFont,
+            fontFamily: context.superTextTheme.mono.fontFamily,
             fontSize: 11,
             fontWeight: rowActive ? FontWeight.w700 : FontWeight.w400,
             color: rowActive ? skin.accent(context) : skin.fg3,
@@ -2368,7 +2368,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
             Text(
               (r + 1).toString().padLeft(2, '0'),
               style: TextStyle(
-                fontFamily: context.superTheme.tokens.monoFont,
+                fontFamily: context.superTextTheme.mono.fontFamily,
                 fontSize: 10,
                 fontWeight: rowActive ? FontWeight.w700 : FontWeight.w400,
                 color: rowActive ? skin.accent(context) : skin.fg3,
@@ -2434,7 +2434,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         style: TextStyle(
-          fontFamily: context.superTheme.tokens.monoFont,
+          fontFamily: context.superTextTheme.mono.fontFamily,
           fontSize: 12.5,
           fontWeight: FontWeight.w700,
           color: skin.fg1,
@@ -2599,7 +2599,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
                 stats.numericCount,
               ),
               style: TextStyle(
-                fontFamily: context.superTheme.tokens.monoFont,
+                fontFamily: context.superTextTheme.mono.fontFamily,
                 fontSize: 11.5,
                 color: skin.accent(context),
               ),
@@ -2870,7 +2870,7 @@ class _BarButtonState extends State<_BarButton> {
                   Text(
                     widget.label!,
                     style: TextStyle(
-                      fontFamily: context.superTheme.tokens.bodyFont,
+                      fontFamily: context.superTextTheme.body.fontFamily,
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
                       color: s.fg2,
@@ -2996,7 +2996,7 @@ class _PageNumBtn extends StatelessWidget {
         child: Text(
           '${n + 1}',
           style: TextStyle(
-            fontFamily: context.superTheme.tokens.monoFont,
+            fontFamily: context.superTextTheme.mono.fontFamily,
             fontSize: 12,
             fontWeight: FontWeight.w600,
             color: active ? Colors.white : skin.fg2,
