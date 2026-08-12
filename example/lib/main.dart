@@ -33,6 +33,7 @@ import 'examples/example_16_fill_and_footers.dart';
 import 'examples/example_17_interaction_events.dart';
 import 'examples/example_18_column_config.dart';
 import 'examples/example_19_showcase.dart';
+import 'examples/example_20_table_styles.dart';
 import 'super_table_demo.dart';
 
 void main() => runApp(const ExampleApp());
@@ -59,9 +60,7 @@ class _ExampleAppState extends State<ExampleApp> {
 
   @override
   Widget build(BuildContext context) {
-    final typography = SuperTextTheme(
-      isArabic: _dir == TextDirection.rtl,
-    );
+    final typography = SuperTextTheme(isArabic: _dir == TextDirection.rtl);
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
@@ -241,6 +240,12 @@ class _Launcher extends StatelessWidget {
       Icons.dashboard_outlined,
       (_) => const ShowcaseExample(),
     ),
+    _Demo(
+      '20 - Table styles',
+      'Optional SuperTableStyle presets - banding - group footers - totals',
+      Icons.table_chart_outlined,
+      (_) => const TableStylesExample(),
+    ),
   ];
 
   @override
@@ -342,12 +347,16 @@ class _DemoCard extends StatelessWidget {
               children: [
                 Text(
                   demo.title,
-                  style: context.superTextTheme.heading.copyWith(color: theme.fg1),
+                  style: context.superTextTheme.heading.copyWith(
+                    color: theme.fg1,
+                  ),
                 ),
                 SizedBox(height: spacing.space1),
                 Text(
                   demo.subtitle,
-                  style: context.superTextTheme.caption.copyWith(color: theme.fg3),
+                  style: context.superTextTheme.caption.copyWith(
+                    color: theme.fg3,
+                  ),
                 ),
               ],
             ),

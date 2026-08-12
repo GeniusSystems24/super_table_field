@@ -19,7 +19,14 @@ class Sale {
   final int units;
   final num revenue;
   final String status;
-  const Sale(this.region, this.rep, this.product, this.units, this.revenue, this.status);
+  const Sale(
+    this.region,
+    this.rep,
+    this.product,
+    this.units,
+    this.revenue,
+    this.status,
+  );
 }
 
 class ReadonlyReportExample extends StatefulWidget {
@@ -33,18 +40,42 @@ class _ReadonlyReportExampleState extends State<ReadonlyReportExample> {
     mode: SuperTableMode.readable,
     selectionMode: SuperSelectionMode.singleRow,
     columns: [
-      SuperEnumerationColumn<String>(key: 'region', label: 'Region', width: 130, values: const ['North', 'South', 'East', 'West']),
+      SuperEnumerationColumn<String>(
+        key: 'region',
+        label: 'Region',
+        width: 130,
+        values: const ['North', 'South', 'East', 'West'],
+      ),
       SuperTextColumn(key: 'rep', label: 'Sales Rep', width: 160),
       SuperTextColumn(key: 'product', label: 'Product', width: 170),
-      SuperNumberColumn<int>(key: 'units', label: 'Units', width: 90, agg: SuperAgg.sum),
-      SuperCurrencyColumn(key: 'revenue', label: 'Revenue', width: 140, agg: SuperAgg.sum),
-      SuperEnumerationColumn<String>(key: 'status', label: 'Status', width: 130, values: const ['Won', 'Open', 'Lost']),
+      SuperNumberColumn<int>(
+        key: 'units',
+        label: 'Units',
+        width: 90,
+        agg: SuperAgg.sum,
+      ),
+      SuperCurrencyColumn(
+        key: 'revenue',
+        label: 'Revenue',
+        width: 140,
+        agg: SuperAgg.sum,
+      ),
+      SuperEnumerationColumn<String>(
+        key: 'status',
+        label: 'Status',
+        width: 130,
+        values: const ['Won', 'Open', 'Lost'],
+      ),
     ],
     rows: [
       for (final s in _seed)
         SuperRow<Sale>.of(s, {
-          'region': s.region, 'rep': s.rep, 'product': s.product,
-          'units': s.units, 'revenue': s.revenue, 'status': s.status,
+          'region': s.region,
+          'rep': s.rep,
+          'product': s.product,
+          'units': s.units,
+          'revenue': s.revenue,
+          'status': s.status,
         }),
     ],
   );
@@ -61,9 +92,14 @@ class _ReadonlyReportExampleState extends State<ReadonlyReportExample> {
 
   // Row styles win over column styles. First matching condition applies.
   Map<SuperRowCondition, SuperRowStyle> get _styles => {
-        (ctx, c, row) => row['status'] == 'Lost': const SuperRowStyle(foreground: Color(0xFF94A0B4)),
-        (ctx, c, row) => (row['revenue'] as num) >= 15000: const SuperRowStyle(background: Color(0x141DB88A), accentBar: Color(0xFF1DB88A)),
-      };
+    (ctx, c, row) => row['status'] == 'Lost': const SuperRowStyle(
+      foreground: Color(0xFF94A0B4),
+    ),
+    (ctx, c, row) => (row['revenue'] as num) >= 15000: const SuperRowStyle(
+      background: Color(0x141DB88A),
+      accentBar: Color(0xFF1DB88A),
+    ),
+  };
 
   @override
   void dispose() {
@@ -76,7 +112,10 @@ class _ReadonlyReportExampleState extends State<ReadonlyReportExample> {
     final t = context.superTheme;
     return Scaffold(
       backgroundColor: t.bg,
-      appBar: AppBar(title: const Text('Read-only report'), backgroundColor: t.surface),
+      appBar: AppBar(
+        title: const Text('Read-only report'),
+        backgroundColor: t.surface,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(24),
         child: SuperTable<Sale>(controller: _c, styles: _styles),

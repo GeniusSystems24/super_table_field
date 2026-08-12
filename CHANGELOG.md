@@ -3,6 +3,35 @@
 All notable changes to **super_table_field** are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/); versioning is [SemVer](https://semver.org/).
 
+## [2.7.0] - 2026-08-12
+
+### Added
+
+- Added optional `SuperTable.style` support through the new `SuperTableStyle`
+  API. Leaving `style` as `null` preserves the existing/default table
+  appearance.
+- Added theme-aware predefined styles:
+  `plainMinimal`, `light`, `medium`, `dark`, `accent`, `bandedRows`,
+  `bandedColumns`, `headerEmphasis`, `gridBordered`, and `subtleBorders`.
+- Added `SuperTableStyleOptions`, `SuperTableAreaStyle`,
+  `SuperTableBorderStyle`, and `SuperTableStylePreset` for custom table
+  styling, banded rows/columns, first/last column emphasis, headers, group rows,
+  group footer/subtotal rows, totals, selected, hovered, focused, and disabled
+  states.
+- Added a dedicated example screen, `20 - Table styles`, comparing the default
+  no-style table with every predefined style using grouped ERP/accounting data,
+  group footers, selected cells, and totals.
+- Added focused widget tests for the opt-out contract, preset render safety,
+  style-option flags, and conditional row-style precedence.
+
+### Changed
+
+- Table rendering now resolves selected style presets from the active
+  `SuperThemeData`, `SuperTableSkin`, ambient typography, and Material color
+  scheme while keeping table style independent from controller/data structure.
+- Conditional `SuperRowStyle` and `CellStyle` overrides continue to take
+  priority over preset body styling.
+
 ## [2.6.0] - 2026-08-10
 
 ### Changed

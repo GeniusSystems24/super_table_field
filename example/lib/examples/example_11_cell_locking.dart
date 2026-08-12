@@ -27,14 +27,25 @@ class _CellLockingExampleState extends State<CellLockingExample> {
     _c = SuperTableController<Map<String, dynamic>>(
       mode: SuperTableMode.editable,
       addRowEnabled: true,
-      emptyRowValue: () => <String, dynamic>{'ref': '', 'memo': '', 'amount': 0.0, 'status': 'Draft'},
+      emptyRowValue: () => <String, dynamic>{
+        'ref': '',
+        'memo': '',
+        'amount': 0.0,
+        'status': 'Draft',
+      },
       // The status column stays editable so you can unlock a row; every other
       // column is locked while the row is Posted.
-      cellEditable: (col, row) => row['status'] == 'Draft' || col.key == 'status',
+      cellEditable: (col, row) =>
+          row['status'] == 'Draft' || col.key == 'status',
       columns: [
         SuperTextColumn(key: 'ref', label: 'Reference', width: 150, mono: true),
         SuperTextColumn(key: 'memo', label: 'Memo', width: 240),
-        SuperCurrencyColumn(key: 'amount', label: 'Amount', width: 140, agg: SuperAgg.sum),
+        SuperCurrencyColumn(
+          key: 'amount',
+          label: 'Amount',
+          width: 140,
+          agg: SuperAgg.sum,
+        ),
         SuperEnumerationColumn<String>(
           key: 'status',
           label: 'Status',
@@ -43,10 +54,30 @@ class _CellLockingExampleState extends State<CellLockingExample> {
         ),
       ],
       rows: [
-        SuperRow.map({'ref': 'JV-0101', 'memo': 'Opening balance', 'amount': 5000.0, 'status': 'Posted'}),
-        SuperRow.map({'ref': 'JV-0102', 'memo': 'Office supplies', 'amount': 240.0, 'status': 'Draft'}),
-        SuperRow.map({'ref': 'JV-0103', 'memo': 'Client retainer', 'amount': 12000.0, 'status': 'Posted'}),
-        SuperRow.map({'ref': 'JV-0104', 'memo': 'Bank fees', 'amount': 35.0, 'status': 'Draft'}),
+        SuperRow.map({
+          'ref': 'JV-0101',
+          'memo': 'Opening balance',
+          'amount': 5000.0,
+          'status': 'Posted',
+        }),
+        SuperRow.map({
+          'ref': 'JV-0102',
+          'memo': 'Office supplies',
+          'amount': 240.0,
+          'status': 'Draft',
+        }),
+        SuperRow.map({
+          'ref': 'JV-0103',
+          'memo': 'Client retainer',
+          'amount': 12000.0,
+          'status': 'Posted',
+        }),
+        SuperRow.map({
+          'ref': 'JV-0104',
+          'memo': 'Bank fees',
+          'amount': 35.0,
+          'status': 'Draft',
+        }),
       ],
       onChange: (_) => setState(() {}),
     );
@@ -68,7 +99,10 @@ class _CellLockingExampleState extends State<CellLockingExample> {
     final t = context.superTheme;
     return Scaffold(
       backgroundColor: t.bg,
-      appBar: AppBar(title: const Text('Cell locking'), backgroundColor: t.surface),
+      appBar: AppBar(
+        title: const Text('Cell locking'),
+        backgroundColor: t.surface,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(

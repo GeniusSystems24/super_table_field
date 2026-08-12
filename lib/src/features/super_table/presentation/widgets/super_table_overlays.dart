@@ -17,7 +17,6 @@
 import 'package:flutter/material.dart';
 import 'package:super_table_field/super_table_field.dart';
 
-
 /// A single popup-menu entry.
 ///
 /// Set [children] to make this entry a **cascading submenu**: hovering/tapping

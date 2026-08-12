@@ -28,7 +28,12 @@ class _RowReorderExampleState extends State<RowReorderExample> {
       mode: SuperTableMode.editable,
       selectionMode: SuperSelectionMode.singleRow,
       addRowEnabled: true,
-      emptyRowValue: () => <String, dynamic>{'line': '', 'desc': '', 'qty': 1, 'price': 0.0},
+      emptyRowValue: () => <String, dynamic>{
+        'line': '',
+        'desc': '',
+        'qty': 1,
+        'price': 0.0,
+      },
       columns: [
         SuperTextColumn(key: 'desc', label: 'Description', width: 280),
         SuperNumberColumn<int>(key: 'qty', label: 'Qty', width: 90, min: 1),
@@ -38,15 +43,28 @@ class _RowReorderExampleState extends State<RowReorderExample> {
           label: 'Line Total',
           width: 150,
           agg: SuperAgg.sum,
-          compute: (row) => ((row['qty'] as num?) ?? 0) * ((row['price'] as num?) ?? 0),
+          compute: (row) =>
+              ((row['qty'] as num?) ?? 0) * ((row['price'] as num?) ?? 0),
           format: (v, row) => '\$${(v as num).toStringAsFixed(2)}',
         ),
       ],
       rows: [
-        SuperRow.map({'desc': 'Site survey & setup', 'qty': 1, 'price': 1200.0}),
-        SuperRow.map({'desc': 'Steel frame fabrication', 'qty': 4, 'price': 860.0}),
+        SuperRow.map({
+          'desc': 'Site survey & setup',
+          'qty': 1,
+          'price': 1200.0,
+        }),
+        SuperRow.map({
+          'desc': 'Steel frame fabrication',
+          'qty': 4,
+          'price': 860.0,
+        }),
         SuperRow.map({'desc': 'Concrete pour (m³)', 'qty': 12, 'price': 145.0}),
-        SuperRow.map({'desc': 'Finishing & inspection', 'qty': 1, 'price': 2400.0}),
+        SuperRow.map({
+          'desc': 'Finishing & inspection',
+          'qty': 1,
+          'price': 2400.0,
+        }),
       ],
       onChange: (_) => setState(() {}),
     );
@@ -64,7 +82,10 @@ class _RowReorderExampleState extends State<RowReorderExample> {
     final t = context.superTheme;
     return Scaffold(
       backgroundColor: t.bg,
-      appBar: AppBar(title: const Text('Row reordering'), backgroundColor: t.surface),
+      appBar: AppBar(
+        title: const Text('Row reordering'),
+        backgroundColor: t.surface,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -78,28 +99,39 @@ class _RowReorderExampleState extends State<RowReorderExample> {
                 style: TextStyle(color: t.fg3),
               ),
             ),
-            Row(children: [
-              OutlinedButton.icon(
-                onPressed: () => _c.moveRowUp(),
-                icon: const Icon(Icons.arrow_upward_rounded, size: 16),
-                label: const Text('Move up'),
-                style: OutlinedButton.styleFrom(foregroundColor: t.fg1, side: BorderSide(color: t.borderStrong)),
-              ),
-              const SizedBox(width: 10),
-              OutlinedButton.icon(
-                onPressed: () => _c.moveRowDown(),
-                icon: const Icon(Icons.arrow_downward_rounded, size: 16),
-                label: const Text('Move down'),
-                style: OutlinedButton.styleFrom(foregroundColor: t.fg1, side: BorderSide(color: t.borderStrong)),
-              ),
-              const SizedBox(width: 10),
-              OutlinedButton.icon(
-                onPressed: _c.canUndo ? _c.undo : null,
-                icon: const Icon(Icons.undo_rounded, size: 16),
-                label: const Text('Undo'),
-                style: OutlinedButton.styleFrom(foregroundColor: t.fg1, side: BorderSide(color: t.borderStrong)),
-              ),
-            ]),
+            Row(
+              children: [
+                OutlinedButton.icon(
+                  onPressed: () => _c.moveRowUp(),
+                  icon: const Icon(Icons.arrow_upward_rounded, size: 16),
+                  label: const Text('Move up'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: t.fg1,
+                    side: BorderSide(color: t.borderStrong),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                OutlinedButton.icon(
+                  onPressed: () => _c.moveRowDown(),
+                  icon: const Icon(Icons.arrow_downward_rounded, size: 16),
+                  label: const Text('Move down'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: t.fg1,
+                    side: BorderSide(color: t.borderStrong),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                OutlinedButton.icon(
+                  onPressed: _c.canUndo ? _c.undo : null,
+                  icon: const Icon(Icons.undo_rounded, size: 16),
+                  label: const Text('Undo'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: t.fg1,
+                    side: BorderSide(color: t.borderStrong),
+                  ),
+                ),
+              ],
+            ),
             const SizedBox(height: 12),
             Flexible(child: SuperTable<Map<String, dynamic>>(controller: _c)),
           ],

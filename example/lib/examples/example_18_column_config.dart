@@ -38,28 +38,32 @@ class _ColumnConfigExampleState extends State<ColumnConfigExample> {
       selectionMode: SuperSelectionMode.singleCell,
       columns: [
         SuperTextColumn(
-            key: 'code',
-            label: 'Account',
-            width: 120,
-            mono: true,
-            pin: SuperPin.left),
+          key: 'code',
+          label: 'Account',
+          width: 120,
+          mono: true,
+          pin: SuperPin.left,
+        ),
         SuperTextColumn(key: 'name', label: 'Account name', width: 230),
         SuperEnumerationColumn<String>(
-            key: 'type',
-            label: 'Type',
-            width: 130,
-            values: const [
-              'Asset',
-              'Liability',
-              'Equity',
-              'Revenue',
-              'Expense'
-            ]),
+          key: 'type',
+          label: 'Type',
+          width: 130,
+          values: const ['Asset', 'Liability', 'Equity', 'Revenue', 'Expense'],
+        ),
         SuperTextColumn(key: 'region', label: 'Cost centre', width: 150),
         SuperCurrencyColumn(
-            key: 'debit', label: 'Debit', width: 130, agg: SuperAgg.sum),
+          key: 'debit',
+          label: 'Debit',
+          width: 130,
+          agg: SuperAgg.sum,
+        ),
         SuperCurrencyColumn(
-            key: 'credit', label: 'Credit', width: 130, agg: SuperAgg.sum),
+          key: 'credit',
+          label: 'Credit',
+          width: 130,
+          agg: SuperAgg.sum,
+        ),
         SuperComputedColumn<num>(
           key: 'balance',
           label: 'Balance',
@@ -78,14 +82,12 @@ class _ColumnConfigExampleState extends State<ColumnConfigExample> {
           values: const ['Open', 'Locked'],
           tones: {
             'Open': const Color(0xFF1DB88A),
-            'Locked': const Color(0xFF8D90A0)
+            'Locked': const Color(0xFF8D90A0),
           },
         ),
         SuperDateColumn(key: 'updated', label: 'Updated', width: 130),
       ],
-      rows: [
-        for (final r in _seed) SuperRow.map(r),
-      ],
+      rows: [for (final r in _seed) SuperRow.map(r)],
     );
     _c.addListener(() => setState(() {}));
   }
@@ -98,15 +100,18 @@ class _ColumnConfigExampleState extends State<ColumnConfigExample> {
 
   void _saveView() {
     _savedView = jsonEncode(_c.viewStateJson());
-    setState(() => _status =
-        'View saved — order, widths, visibility AND pins (${_savedView!.length} chars).');
+    setState(
+      () => _status =
+          'View saved — order, widths, visibility AND pins (${_savedView!.length} chars).',
+    );
   }
 
   void _restoreView() {
     if (_savedView == null) return;
     _c.applyViewJson(jsonDecode(_savedView!) as Map<String, dynamic>);
-    setState(() =>
-        _status = 'View restored — columns are back where you left them.');
+    setState(
+      () => _status = 'View restored — columns are back where you left them.',
+    );
   }
 
   @override
@@ -115,7 +120,9 @@ class _ColumnConfigExampleState extends State<ColumnConfigExample> {
     return Scaffold(
       backgroundColor: t.bg,
       appBar: AppBar(
-          title: const Text('Column config'), backgroundColor: t.surface),
+        title: const Text('Column config'),
+        backgroundColor: t.surface,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -130,25 +137,51 @@ class _ColumnConfigExampleState extends State<ColumnConfigExample> {
                 style: TextStyle(color: t.fg3),
               ),
             ),
-            Wrap(spacing: 10, runSpacing: 10, children: [
-              _btn(t, Icons.view_column_rounded, 'Columns…',
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: [
+                _btn(
+                  t,
+                  Icons.view_column_rounded,
+                  'Columns…',
                   () => showSuperColumnManager(context, _c),
-                  filled: true),
-              _btn(t, Icons.push_pin_rounded, 'Pin balance right',
-                  () => _c.setColumnPin('balance', SuperPin.right)),
-              _btn(t, Icons.visibility_off_rounded, 'Toggle cost centre',
-                  () => _c.toggleColumnVisible('region')),
-              _btn(t, Icons.bookmark_add_outlined, 'Save view', _saveView),
-              _btn(t, Icons.bookmark_outlined, 'Restore view',
-                  _savedView == null ? null : _restoreView),
-              _btn(t, Icons.restart_alt_rounded, 'Reset',
-                  () => _c.resetViewState(clearFilters: false)),
-            ]),
+                  filled: true,
+                ),
+                _btn(
+                  t,
+                  Icons.push_pin_rounded,
+                  'Pin balance right',
+                  () => _c.setColumnPin('balance', SuperPin.right),
+                ),
+                _btn(
+                  t,
+                  Icons.visibility_off_rounded,
+                  'Toggle cost centre',
+                  () => _c.toggleColumnVisible('region'),
+                ),
+                _btn(t, Icons.bookmark_add_outlined, 'Save view', _saveView),
+                _btn(
+                  t,
+                  Icons.bookmark_outlined,
+                  'Restore view',
+                  _savedView == null ? null : _restoreView,
+                ),
+                _btn(
+                  t,
+                  Icons.restart_alt_rounded,
+                  'Reset',
+                  () => _c.resetViewState(clearFilters: false),
+                ),
+              ],
+            ),
             if (_status.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(top: 10),
-                child:
-                    Text(_status, style: TextStyle(color: t.fg2, fontSize: 13)),
+                child: Text(
+                  _status,
+                  style: TextStyle(color: t.fg2, fontSize: 13),
+                ),
               ),
             const SizedBox(height: 14),
             Flexible(child: SuperTable<Map<String, dynamic>>(controller: _c)),
@@ -159,8 +192,12 @@ class _ColumnConfigExampleState extends State<ColumnConfigExample> {
   }
 
   Widget _btn(
-      SuperThemeData t, IconData icon, String label, VoidCallback? onTap,
-      {bool filled = false}) {
+    SuperThemeData t,
+    IconData icon,
+    String label,
+    VoidCallback? onTap, {
+    bool filled = false,
+  }) {
     final cs = Theme.of(context).colorScheme;
     if (filled) {
       return FilledButton.icon(
@@ -168,7 +205,9 @@ class _ColumnConfigExampleState extends State<ColumnConfigExample> {
         icon: Icon(icon, size: 16),
         label: Text(label),
         style: FilledButton.styleFrom(
-            backgroundColor: cs.primary, foregroundColor: Colors.white),
+          backgroundColor: cs.primary,
+          foregroundColor: Colors.white,
+        ),
       );
     }
     return OutlinedButton.icon(
@@ -176,7 +215,9 @@ class _ColumnConfigExampleState extends State<ColumnConfigExample> {
       icon: Icon(icon, size: 16),
       label: Text(label),
       style: OutlinedButton.styleFrom(
-          foregroundColor: t.fg1, side: BorderSide(color: t.borderStrong)),
+        foregroundColor: t.fg1,
+        side: BorderSide(color: t.borderStrong),
+      ),
     );
   }
 
@@ -189,7 +230,7 @@ class _ColumnConfigExampleState extends State<ColumnConfigExample> {
       'debit': 82400.0,
       'credit': 12100.0,
       'status': 'Open',
-      'updated': '2026-07-01'
+      'updated': '2026-07-01',
     },
     {
       'code': '1100',
@@ -199,7 +240,7 @@ class _ColumnConfigExampleState extends State<ColumnConfigExample> {
       'debit': 45120.0,
       'credit': 8000.0,
       'status': 'Open',
-      'updated': '2026-07-03'
+      'updated': '2026-07-03',
     },
     {
       'code': '2000',
@@ -209,7 +250,7 @@ class _ColumnConfigExampleState extends State<ColumnConfigExample> {
       'debit': 6400.0,
       'credit': 39800.0,
       'status': 'Locked',
-      'updated': '2026-06-28'
+      'updated': '2026-06-28',
     },
     {
       'code': '3000',
@@ -219,7 +260,7 @@ class _ColumnConfigExampleState extends State<ColumnConfigExample> {
       'debit': 0.0,
       'credit': 200000.0,
       'status': 'Locked',
-      'updated': '2026-01-01'
+      'updated': '2026-01-01',
     },
     {
       'code': '4000',
@@ -229,7 +270,7 @@ class _ColumnConfigExampleState extends State<ColumnConfigExample> {
       'debit': 1200.0,
       'credit': 118400.0,
       'status': 'Open',
-      'updated': '2026-07-04'
+      'updated': '2026-07-04',
     },
     {
       'code': '5000',
@@ -239,7 +280,7 @@ class _ColumnConfigExampleState extends State<ColumnConfigExample> {
       'debit': 64300.0,
       'credit': 900.0,
       'status': 'Open',
-      'updated': '2026-07-04'
+      'updated': '2026-07-04',
     },
     {
       'code': '6000',
@@ -249,7 +290,7 @@ class _ColumnConfigExampleState extends State<ColumnConfigExample> {
       'debit': 51200.0,
       'credit': 0.0,
       'status': 'Open',
-      'updated': '2026-07-02'
+      'updated': '2026-07-02',
     },
     {
       'code': '6100',
@@ -259,7 +300,7 @@ class _ColumnConfigExampleState extends State<ColumnConfigExample> {
       'debit': 14400.0,
       'credit': 0.0,
       'status': 'Locked',
-      'updated': '2026-06-30'
+      'updated': '2026-06-30',
     },
   ];
 }

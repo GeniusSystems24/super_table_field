@@ -47,12 +47,16 @@ class _InteractionEventsExampleState extends State<InteractionEventsExample> {
           tones: {
             'Paid': const Color(0xFF1DB88A),
             'Pending': const Color(0xFFF97316),
-            'Overdue': const Color(0xFFEF4444)
+            'Overdue': const Color(0xFFEF4444),
           },
         ),
         SuperTextColumn(key: 'region', label: 'Region', width: 130),
         SuperCurrencyColumn(
-            key: 'total', label: 'Total', width: 130, agg: SuperAgg.sum),
+          key: 'total',
+          label: 'Total',
+          width: 130,
+          agg: SuperAgg.sum,
+        ),
         SuperDateColumn(key: 'due', label: 'Due', width: 130),
       ],
       rows: [
@@ -62,7 +66,7 @@ class _InteractionEventsExampleState extends State<InteractionEventsExample> {
           'status': 'Paid',
           'region': 'Riyadh',
           'total': 12480.0,
-          'due': '2026-07-12'
+          'due': '2026-07-12',
         }),
         SuperRow.map({
           'no': 'SO-4402',
@@ -70,7 +74,7 @@ class _InteractionEventsExampleState extends State<InteractionEventsExample> {
           'status': 'Pending',
           'region': 'Dammam',
           'total': 8640.0,
-          'due': '2026-07-18'
+          'due': '2026-07-18',
         }),
         SuperRow.map({
           'no': 'SO-4403',
@@ -78,7 +82,7 @@ class _InteractionEventsExampleState extends State<InteractionEventsExample> {
           'status': 'Overdue',
           'region': 'Jeddah',
           'total': 3125.5,
-          'due': '2026-06-30'
+          'due': '2026-06-30',
         }),
         SuperRow.map({
           'no': 'SO-4404',
@@ -86,7 +90,7 @@ class _InteractionEventsExampleState extends State<InteractionEventsExample> {
           'status': 'Paid',
           'region': 'Abha',
           'total': 21990.0,
-          'due': '2026-07-05'
+          'due': '2026-07-05',
         }),
         SuperRow.map({
           'no': 'SO-4405',
@@ -94,7 +98,7 @@ class _InteractionEventsExampleState extends State<InteractionEventsExample> {
           'status': 'Pending',
           'region': 'Tabuk',
           'total': 5410.0,
-          'due': '2026-07-22'
+          'due': '2026-07-22',
         }),
         SuperRow.map({
           'no': 'SO-4406',
@@ -102,7 +106,7 @@ class _InteractionEventsExampleState extends State<InteractionEventsExample> {
           'status': 'Paid',
           'region': 'Buraydah',
           'total': 9075.0,
-          'due': '2026-07-15'
+          'due': '2026-07-15',
         }),
       ],
     );
@@ -130,7 +134,9 @@ class _InteractionEventsExampleState extends State<InteractionEventsExample> {
     return Scaffold(
       backgroundColor: t.bg,
       appBar: AppBar(
-          title: const Text('Interaction events'), backgroundColor: t.surface),
+        title: const Text('Interaction events'),
+        backgroundColor: t.surface,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -145,54 +151,72 @@ class _InteractionEventsExampleState extends State<InteractionEventsExample> {
                 style: TextStyle(color: t.fg3),
               ),
             ),
-            Row(children: [
-              OutlinedButton.icon(
-                onPressed: () => _c.sortBy(_c.colByKey('total')!, false),
-                icon: const Icon(Icons.sort_rounded, size: 16),
-                label: const Text('Sort by total ↓ (programmatic)'),
-                style: OutlinedButton.styleFrom(
+            Row(
+              children: [
+                OutlinedButton.icon(
+                  onPressed: () => _c.sortBy(_c.colByKey('total')!, false),
+                  icon: const Icon(Icons.sort_rounded, size: 16),
+                  label: const Text('Sort by total ↓ (programmatic)'),
+                  style: OutlinedButton.styleFrom(
                     foregroundColor: t.fg1,
-                    side: BorderSide(color: t.borderStrong)),
-              ),
-              const SizedBox(width: 10),
-              OutlinedButton.icon(
-                onPressed: () => _c.clearSort(),
-                icon: const Icon(Icons.clear_rounded, size: 16),
-                label: const Text('Clear sort'),
-                style: OutlinedButton.styleFrom(
+                    side: BorderSide(color: t.borderStrong),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                OutlinedButton.icon(
+                  onPressed: () => _c.clearSort(),
+                  icon: const Icon(Icons.clear_rounded, size: 16),
+                  label: const Text('Clear sort'),
+                  style: OutlinedButton.styleFrom(
                     foregroundColor: t.fg1,
-                    side: BorderSide(color: t.borderStrong)),
-              ),
-              const Spacer(),
-              Text(_selection,
+                    side: BorderSide(color: t.borderStrong),
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  _selection,
                   style: TextStyle(
-                      fontFamily: context.superTextTheme.mono.fontFamily, fontSize: 12, color: t.fg1)),
-            ]),
+                    fontFamily: context.superTextTheme.mono.fontFamily,
+                    fontSize: 12,
+                    color: t.fg1,
+                  ),
+                ),
+              ],
+            ),
             const SizedBox(height: 14),
             Expanded(
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Expanded(
-                      flex: 3,
-                      child: SuperTable<Map<String, dynamic>>(
-                        controller: _c,
-                        interactions: SuperInteractions<Map<String, dynamic>>(
-                          onRowActivate: (d) => setState(() {
-                            _openOrder = d.row.value;
-                            _push('▸ activated ${d.row.value['no']} (double-click / Enter)');
-                          }),
-                          onCellTap: (d) => _push('tap · ${d.column.label} · ${_fmt(d.value)}'),
-                          onCellSecondaryTap: (d) => _push('right-click · ${d.column.label}'),
-                          onSortChanged: (s) => _push(s.isSorted ? 'sort · ${s.columnLabel} ${s.ascending ? '↑' : '↓'}' : 'sort · cleared'),
-                          onSelectionChanged: (sel) => setState(() {
-                            final stats = sel.stats;
-                            _selection = stats != null && stats.hasAggregate
-                                ? '${sel.cells.length} cells · Σ ${_money(stats.sum)} · avg ${_money(stats.average)}'
-                                : 'Cursor ${sel.cursor.r + 1}×${sel.cursor.c + 1} · ${sel.cells.length} cell${sel.cells.length == 1 ? '' : 's'}';
-                          }),
+                    flex: 3,
+                    child: SuperTable<Map<String, dynamic>>(
+                      controller: _c,
+                      interactions: SuperInteractions<Map<String, dynamic>>(
+                        onRowActivate: (d) => setState(() {
+                          _openOrder = d.row.value;
+                          _push(
+                            '▸ activated ${d.row.value['no']} (double-click / Enter)',
+                          );
+                        }),
+                        onCellTap: (d) =>
+                            _push('tap · ${d.column.label} · ${_fmt(d.value)}'),
+                        onCellSecondaryTap: (d) =>
+                            _push('right-click · ${d.column.label}'),
+                        onSortChanged: (s) => _push(
+                          s.isSorted
+                              ? 'sort · ${s.columnLabel} ${s.ascending ? '↑' : '↓'}'
+                              : 'sort · cleared',
                         ),
-                      )),
+                        onSelectionChanged: (sel) => setState(() {
+                          final stats = sel.stats;
+                          _selection = stats != null && stats.hasAggregate
+                              ? '${sel.cells.length} cells · Σ ${_money(stats.sum)} · avg ${_money(stats.average)}'
+                              : 'Cursor ${sel.cursor.r + 1}×${sel.cursor.c + 1} · ${sel.cells.length} cell${sel.cells.length == 1 ? '' : 's'}';
+                        }),
+                      ),
+                    ),
+                  ),
                   const SizedBox(width: 16),
                   Expanded(flex: 2, child: _sidePanel(t)),
                 ],
@@ -210,16 +234,20 @@ class _InteractionEventsExampleState extends State<InteractionEventsExample> {
       children: [
         if (_openOrder != null) ...[
           _DetailCard(
-              order: _openOrder!,
-              onClose: () => setState(() => _openOrder = null)),
+            order: _openOrder!,
+            onClose: () => setState(() => _openOrder = null),
+          ),
           const SizedBox(height: 14),
         ],
-        Text('EVENT LOG',
-            style: TextStyle(
-                fontSize: 10.5,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 1,
-                color: t.fg4)),
+        Text(
+          'EVENT LOG',
+          style: TextStyle(
+            fontSize: 10.5,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 1,
+            color: t.fg4,
+          ),
+        ),
         const SizedBox(height: 8),
         Expanded(
           child: Container(
@@ -231,18 +259,25 @@ class _InteractionEventsExampleState extends State<InteractionEventsExample> {
             ),
             child: _log.isEmpty
                 ? Center(
-                    child: Text('Interact with the grid…',
-                        style: TextStyle(color: t.fg4, fontSize: 12.5)))
+                    child: Text(
+                      'Interact with the grid…',
+                      style: TextStyle(color: t.fg4, fontSize: 12.5),
+                    ),
+                  )
                 : ListView(
                     children: [
                       for (final e in _log)
                         Padding(
                           padding: const EdgeInsets.symmetric(vertical: 4),
-                          child: Text(e,
-                              style: TextStyle(
-                                  fontFamily: context.superTextTheme.mono.fontFamily,
-                                  fontSize: 12,
-                                  color: t.fg2)),
+                          child: Text(
+                            e,
+                            style: TextStyle(
+                              fontFamily:
+                                  context.superTextTheme.mono.fontFamily,
+                              fontSize: 12,
+                              color: t.fg2,
+                            ),
+                          ),
                         ),
                     ],
                   ),
@@ -262,19 +297,26 @@ class _DetailCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.superTheme;
     Widget row(String k, String v) => Padding(
-          padding: const EdgeInsets.symmetric(vertical: 3),
-          child: Row(children: [
-            SizedBox(
-                width: 84,
-                child: Text(k, style: TextStyle(fontSize: 11.5, color: t.fg4))),
-            Expanded(
-                child: Text(v,
-                    style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: t.fg1))),
-          ]),
-        );
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 84,
+            child: Text(k, style: TextStyle(fontSize: 11.5, color: t.fg4)),
+          ),
+          Expanded(
+            child: Text(
+              v,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: t.fg1,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 14, 12, 16),
       decoration: BoxDecoration(
@@ -285,20 +327,27 @@ class _DetailCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(children: [
-            Icon(Icons.receipt_long_rounded, size: 16, color: t.fg1),
-            const SizedBox(width: 8),
-            Expanded(
-                child: Text('Order ${order['no']}',
-                    style: TextStyle(
-                        fontFamily: context.superTextTheme.h1.fontFamily,
-                        fontWeight: FontWeight.w800,
-                        fontSize: 15,
-                        color: t.fg1))),
-            GestureDetector(
+          Row(
+            children: [
+              Icon(Icons.receipt_long_rounded, size: 16, color: t.fg1),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Order ${order['no']}',
+                  style: TextStyle(
+                    fontFamily: context.superTextTheme.h1.fontFamily,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 15,
+                    color: t.fg1,
+                  ),
+                ),
+              ),
+              GestureDetector(
                 onTap: onClose,
-                child: Icon(Icons.close_rounded, size: 16, color: t.fg3)),
-          ]),
+                child: Icon(Icons.close_rounded, size: 16, color: t.fg3),
+              ),
+            ],
+          ),
           const SizedBox(height: 10),
           row('Customer', '${order['customer']}'),
           row('Status', '${order['status']}'),

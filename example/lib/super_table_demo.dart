@@ -306,7 +306,9 @@ class _SuperTableDemoState extends State<SuperTableDemo> {
                     ),
                     child: Text(
                       _toast!,
-                      style: context.superTextTheme.caption.copyWith(color: theme.fg1),
+                      style: context.superTextTheme.caption.copyWith(
+                        color: theme.fg1,
+                      ),
                     ),
                   ),
                 ),
@@ -383,7 +385,10 @@ class _SuperTableDemoState extends State<SuperTableDemo> {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text('$label  ', style: context.superTextTheme.caption.copyWith(color: t.fg3)),
+        Text(
+          '$label  ',
+          style: context.superTextTheme.caption.copyWith(color: t.fg3),
+        ),
         Container(
           padding: const EdgeInsets.all(2),
           decoration: BoxDecoration(
@@ -475,14 +480,19 @@ class _SuperTableDemoState extends State<SuperTableDemo> {
           Expanded(
             child: TextField(
               onChanged: _c.setSearch,
-              style: context.superTextTheme.caption.copyWith(color: t.fg1, fontSize: 13),
+              style: context.superTextTheme.caption.copyWith(
+                color: t.fg1,
+                fontSize: 13,
+              ),
               cursorColor: cs.primary,
               decoration: InputDecoration(
                 isDense: true,
                 border: InputBorder.none,
                 contentPadding: EdgeInsets.zero,
                 hintText: 'Search rows…',
-                hintStyle: context.superTextTheme.caption.copyWith(color: t.fg4),
+                hintStyle: context.superTextTheme.caption.copyWith(
+                  color: t.fg4,
+                ),
               ),
             ),
           ),

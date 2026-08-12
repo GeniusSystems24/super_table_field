@@ -31,6 +31,7 @@ import 'package:super_table_field/super_table_field.dart';
 - Optional change tracking for added, modified, and deleted rows.
 - CSV, TSV, JSON, clipboard, fill-down, fill-right, undo, and redo operations.
 - Conditional row and cell styling.
+- Optional `SuperTableStyle` presets for calm ERP/accounting table styling.
 - Expandable detail rows.
 - Interaction callbacks for cells, rows, selections, and sorting.
 - English and Arabic localization with LTR and RTL support.
@@ -52,7 +53,7 @@ Add the package to `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  super_table_field: ^2.6.0
+  super_table_field: ^2.7.0
 ```
 
 Then install the dependency:
@@ -1042,6 +1043,87 @@ SuperDensity.compact
 
 The visual system derives its colors, typography, spacing, and component behavior from the active `SuperMaterialThemeData` supplied by `super_core`.
 
+## Table styles
+
+`SuperTableStyle` is optional. When `style` is `null`, no predefined table style is applied and the table keeps its existing/default appearance.
+
+```dart
+SuperTable<Map<String, dynamic>>(
+  controller: controller,
+  style: null,
+);
+```
+
+Apply a predefined style explicitly:
+
+```dart
+SuperTable<Map<String, dynamic>>(
+  controller: controller,
+  style: SuperTableStyle.medium,
+  groupFooters: true,
+  showTotals: true,
+);
+```
+
+Available presets:
+
+```dart
+SuperTableStyle.plainMinimal
+SuperTableStyle.light
+SuperTableStyle.medium
+SuperTableStyle.dark
+SuperTableStyle.accent
+SuperTableStyle.bandedRows
+SuperTableStyle.bandedColumns
+SuperTableStyle.headerEmphasis
+SuperTableStyle.gridBordered
+SuperTableStyle.subtleBorders
+```
+
+Use `SuperTableStyle.presets` when building style pickers or comparison screens.
+
+Style options mirror common office-table switches without changing table structure:
+
+```dart
+final style = SuperTableStyle.accent.copyWith(
+  options: const SuperTableStyleOptions(
+    showHeaderRow: true,
+    showFooterRow: true,
+    showTotalRow: true,
+    showGroupRows: true,
+    bandedRows: true,
+    bandedColumns: false,
+    emphasizeFirstColumn: true,
+    emphasizeLastColumn: true,
+  ),
+);
+```
+
+`showFooterRow` styles the existing group footer/subtotal rows rendered by `SuperTable(groupFooters: true)`. `showTotalRow` styles the existing totals row rendered by `showTotals: true`. These options do not create rows, group data, or enable totals by themselves.
+
+Custom styles can start from a preset and override selected areas:
+
+```dart
+final customLedgerStyle = SuperTableStyle.subtleBorders.copyWith(
+  name: 'Ledger review',
+  headerStyle: const SuperTableAreaStyle(
+    background: Color(0xFFEFF4F8),
+    foreground: Color(0xFF1F2937),
+    fontWeight: FontWeight.w800,
+  ),
+  totalRowStyle: const SuperTableAreaStyle(
+    background: Color(0xFFE7EEF6),
+    fontWeight: FontWeight.w800,
+  ),
+  borderStyle: const SuperTableBorderStyle(
+    dividerColor: Color(0xFFD7DEE8),
+    strongDividerColor: Color(0xFFB9C4D2),
+  ),
+);
+```
+
+Interaction styles for selected, hovered, focused, and disabled cells are resolved by the table renderer. Conditional `SuperRowStyle` and `CellStyle` overrides still take priority over preset body styling.
+
 ## Localization and RTL
 
 Set the application locale normally:
@@ -1106,6 +1188,10 @@ final controller = SuperTableController<Map<String, dynamic>>(
 | `SuperColumn<T>` | Flexible base column |
 | `SuperInteractions<R>` | Host interaction callbacks |
 | `SuperRowExpansion<R>` | Expandable row configuration |
+| `SuperTableStyle` | Optional table-wide style preset or custom style |
+| `SuperTableStyleOptions` | Office-style switches for header, totals, banding, and column emphasis |
+| `SuperTableAreaStyle` | Background, foreground, and weight for one table area |
+| `SuperTableBorderStyle` | Outer border and divider styling |
 | `SuperFilterState` | Search and filter state |
 | `SuperViewState` | Persistable user view configuration |
 | `SuperChangeSet<R>` | Added, modified, and deleted row delta |
@@ -1127,6 +1213,7 @@ final controller = SuperTableController<Map<String, dynamic>>(
 | `FilterOp` | Text, equality, comparison, range, and empty operators |
 | `SuperColorValue` | `hex`, `number`, `color` |
 | `SuperRowExpansionMode` | `single`, `multi` |
+| `SuperTableStylePreset` | `plainMinimal`, `light`, `medium`, `dark`, `accent`, `bandedRows`, `bandedColumns`, `headerEmphasis`, `gridBordered`, `subtleBorders` |
 
 ### Built-in overlays
 

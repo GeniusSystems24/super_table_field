@@ -32,16 +32,50 @@ class _ExportExampleState extends State<ExportExample> {
       mode: SuperTableMode.readable,
       columns: [
         SuperTextColumn(key: 'ref', label: 'Reference', width: 150, mono: true),
-        SuperEnumerationColumn<String>(key: 'type', label: 'Type', width: 120, values: const ['Debit', 'Credit']),
+        SuperEnumerationColumn<String>(
+          key: 'type',
+          label: 'Type',
+          width: 120,
+          values: const ['Debit', 'Credit'],
+        ),
         SuperTextColumn(key: 'memo', label: 'Memo', width: 240),
-        SuperCurrencyColumn(key: 'amount', label: 'Amount', width: 140, agg: SuperAgg.sum),
+        SuperCurrencyColumn(
+          key: 'amount',
+          label: 'Amount',
+          width: 140,
+          agg: SuperAgg.sum,
+        ),
         SuperDateColumn(key: 'date', label: 'Date', width: 140),
       ],
       rows: [
-        SuperRow.map({'ref': 'JV-2024-0042', 'type': 'Debit', 'memo': 'Quarterly reconciliation', 'amount': 5240.00, 'date': '2024-09-30'}),
-        SuperRow.map({'ref': 'JV-2024-0043', 'type': 'Credit', 'memo': 'Vendor settlement, "Acme"', 'amount': 1820.50, 'date': '2024-10-02'}),
-        SuperRow.map({'ref': 'JV-2024-0044', 'type': 'Debit', 'memo': 'Payroll accrual', 'amount': 38000.00, 'date': '2024-10-05'}),
-        SuperRow.map({'ref': 'JV-2024-0045', 'type': 'Credit', 'memo': 'Interest income', 'amount': 412.18, 'date': '2024-10-06'}),
+        SuperRow.map({
+          'ref': 'JV-2024-0042',
+          'type': 'Debit',
+          'memo': 'Quarterly reconciliation',
+          'amount': 5240.00,
+          'date': '2024-09-30',
+        }),
+        SuperRow.map({
+          'ref': 'JV-2024-0043',
+          'type': 'Credit',
+          'memo': 'Vendor settlement, "Acme"',
+          'amount': 1820.50,
+          'date': '2024-10-02',
+        }),
+        SuperRow.map({
+          'ref': 'JV-2024-0044',
+          'type': 'Debit',
+          'memo': 'Payroll accrual',
+          'amount': 38000.00,
+          'date': '2024-10-05',
+        }),
+        SuperRow.map({
+          'ref': 'JV-2024-0045',
+          'type': 'Credit',
+          'memo': 'Interest income',
+          'amount': 412.18,
+          'date': '2024-10-06',
+        }),
       ],
     );
     _c.addListener(() => setState(() {}));
@@ -75,53 +109,69 @@ class _ExportExampleState extends State<ExportExample> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Row(children: [
-              Expanded(
-                child: TextField(
-                  onChanged: (v) {
-                    _c.setSearch(v);
-                    _rebuild();
-                  },
-                  style: TextStyle(color: t.fg1),
-                  decoration: InputDecoration(
-                    isDense: true,
-                    prefixIcon: const Icon(Icons.search_rounded, size: 18),
-                    hintText: 'Search (export reflects the filtered view)…',
-                    hintStyle: TextStyle(color: t.fg4),
-                    enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: t.border)),
-                    focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: t.fg2)),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    onChanged: (v) {
+                      _c.setSearch(v);
+                      _rebuild();
+                    },
+                    style: TextStyle(color: t.fg1),
+                    decoration: InputDecoration(
+                      isDense: true,
+                      prefixIcon: const Icon(Icons.search_rounded, size: 18),
+                      hintText: 'Search (export reflects the filtered view)…',
+                      hintStyle: TextStyle(color: t.fg4),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: t.border),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: t.fg2),
+                      ),
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              SegmentedButton<String>(
-                segments: const [
-                  ButtonSegment(value: 'CSV', label: Text('CSV')),
-                  ButtonSegment(value: 'TSV', label: Text('TSV')),
-                  ButtonSegment(value: 'JSON', label: Text('JSON')),
-                ],
-                selected: {_format},
-                onSelectionChanged: (s) {
-                  _format = s.first;
-                  _rebuild();
-                },
-              ),
-            ]),
+                const SizedBox(width: 12),
+                SegmentedButton<String>(
+                  segments: const [
+                    ButtonSegment(value: 'CSV', label: Text('CSV')),
+                    ButtonSegment(value: 'TSV', label: Text('TSV')),
+                    ButtonSegment(value: 'JSON', label: Text('JSON')),
+                  ],
+                  selected: {_format},
+                  onSelectionChanged: (s) {
+                    _format = s.first;
+                    _rebuild();
+                  },
+                ),
+              ],
+            ),
             const SizedBox(height: 16),
-            Flexible(flex: 3, child: SuperTable<Map<String, dynamic>>(controller: _c)),
+            Flexible(
+              flex: 3,
+              child: SuperTable<Map<String, dynamic>>(controller: _c),
+            ),
             const SizedBox(height: 16),
-            Row(children: [
-              Text('$_format output', style: TextStyle(fontWeight: FontWeight.w700, color: t.fg1)),
-              const Spacer(),
-              FilledButton.icon(
-                onPressed: () {
-                  _c.copyCsvToClipboard();
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('CSV copied to clipboard')));
-                },
-                icon: const Icon(Icons.copy_rounded, size: 16),
-                label: const Text('Copy CSV'),
-              ),
-            ]),
+            Row(
+              children: [
+                Text(
+                  '$_format output',
+                  style: TextStyle(fontWeight: FontWeight.w700, color: t.fg1),
+                ),
+                const Spacer(),
+                FilledButton.icon(
+                  onPressed: () {
+                    _c.copyCsvToClipboard();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('CSV copied to clipboard')),
+                    );
+                  },
+                  icon: const Icon(Icons.copy_rounded, size: 16),
+                  label: const Text('Copy CSV'),
+                ),
+              ],
+            ),
             const SizedBox(height: 8),
             Flexible(
               flex: 2,

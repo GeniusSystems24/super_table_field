@@ -54,6 +54,381 @@ class SuperRowMenuContext<R> {
   });
 }
 
+class _ResolvedSuperTableStyle {
+  final SuperTableStyleOptions options;
+  final SuperTableBorderStyle borderStyle;
+  final SuperTableAreaStyle? headerStyle;
+  final SuperTableAreaStyle? rowStyle;
+  final SuperTableAreaStyle? alternateRowStyle;
+  final SuperTableAreaStyle? bandedColumnStyle;
+  final SuperTableAreaStyle? groupRowStyle;
+  final SuperTableAreaStyle? footerRowStyle;
+  final SuperTableAreaStyle? totalRowStyle;
+  final SuperTableAreaStyle? firstColumnStyle;
+  final SuperTableAreaStyle? lastColumnStyle;
+  final SuperTableAreaStyle? selectedRowStyle;
+  final SuperTableAreaStyle? selectedCellStyle;
+  final SuperTableAreaStyle? hoveredRowStyle;
+  final SuperTableAreaStyle? hoveredCellStyle;
+  final SuperTableAreaStyle? focusedCellStyle;
+  final SuperTableAreaStyle? disabledStyle;
+
+  const _ResolvedSuperTableStyle({
+    required this.options,
+    required this.borderStyle,
+    this.headerStyle,
+    this.rowStyle,
+    this.alternateRowStyle,
+    this.bandedColumnStyle,
+    this.groupRowStyle,
+    this.footerRowStyle,
+    this.totalRowStyle,
+    this.firstColumnStyle,
+    this.lastColumnStyle,
+    this.selectedRowStyle,
+    this.selectedCellStyle,
+    this.hoveredRowStyle,
+    this.hoveredCellStyle,
+    this.focusedCellStyle,
+    this.disabledStyle,
+  });
+
+  factory _ResolvedSuperTableStyle.resolve(
+    BuildContext context,
+    SuperTableSkin skin,
+    SuperTableStyle source,
+  ) {
+    final primary = Theme.of(context).colorScheme.primary;
+    Color mix(Color color, Color surface, double alpha) =>
+        Color.alphaBlend(color.withValues(alpha: alpha), surface);
+    Color neutral(double alpha) => Color.alphaBlend(
+      (skin.isDark ? Colors.white : Colors.black).withValues(alpha: alpha),
+      skin.surface,
+    );
+    Color primaryFill(double alpha) => mix(primary, skin.surface, alpha);
+    Color primaryBg(double alpha) => mix(primary, skin.bg, alpha);
+
+    late final SuperTableBorderStyle borders;
+    late final SuperTableAreaStyle header;
+    late final SuperTableAreaStyle row;
+    late final SuperTableAreaStyle alternateRow;
+    late final SuperTableAreaStyle bandedColumn;
+    late final SuperTableAreaStyle group;
+    late final SuperTableAreaStyle footer;
+    late final SuperTableAreaStyle total;
+    late final SuperTableAreaStyle firstColumn;
+    late final SuperTableAreaStyle lastColumn;
+
+    switch (source.preset) {
+      case SuperTableStylePreset.plainMinimal:
+        borders = SuperTableBorderStyle(
+          outerColor: skin.border,
+          dividerColor: skin.border,
+          strongDividerColor: skin.borderStrong,
+        );
+        header = SuperTableAreaStyle(
+          background: skin.bg,
+          foreground: skin.fg3,
+          fontWeight: FontWeight.w700,
+        );
+        row = const SuperTableAreaStyle();
+        alternateRow = SuperTableAreaStyle(background: neutral(0.025));
+        bandedColumn = SuperTableAreaStyle(background: neutral(0.018));
+        group = SuperTableAreaStyle(
+          background: neutral(0.055),
+          foreground: skin.fg1,
+          fontWeight: FontWeight.w700,
+        );
+        footer = SuperTableAreaStyle(
+          background: neutral(0.045),
+          foreground: skin.fg2,
+          fontWeight: FontWeight.w700,
+        );
+        total = SuperTableAreaStyle(
+          background: neutral(0.06),
+          foreground: skin.fg1,
+          fontWeight: FontWeight.w700,
+        );
+        firstColumn = const SuperTableAreaStyle(fontWeight: FontWeight.w600);
+        lastColumn = const SuperTableAreaStyle(fontWeight: FontWeight.w600);
+      case SuperTableStylePreset.light:
+      case SuperTableStylePreset.bandedRows:
+        borders = SuperTableBorderStyle(
+          outerColor: skin.borderStrong,
+          dividerColor: skin.border,
+          strongDividerColor: skin.borderStrong,
+        );
+        header = SuperTableAreaStyle(
+          background: neutral(0.055),
+          foreground: skin.fg2,
+          fontWeight: FontWeight.w700,
+        );
+        row = SuperTableAreaStyle(background: skin.surface);
+        alternateRow = SuperTableAreaStyle(background: neutral(0.035));
+        bandedColumn = SuperTableAreaStyle(background: neutral(0.026));
+        group = SuperTableAreaStyle(
+          background: neutral(0.075),
+          foreground: skin.fg1,
+          fontWeight: FontWeight.w700,
+        );
+        footer = SuperTableAreaStyle(
+          background: neutral(0.06),
+          foreground: skin.fg2,
+          fontWeight: FontWeight.w700,
+        );
+        total = SuperTableAreaStyle(
+          background: neutral(0.09),
+          foreground: skin.fg1,
+          fontWeight: FontWeight.w800,
+        );
+        firstColumn = SuperTableAreaStyle(
+          foreground: skin.fg1,
+          fontWeight: FontWeight.w700,
+        );
+        lastColumn = const SuperTableAreaStyle(fontWeight: FontWeight.w700);
+      case SuperTableStylePreset.medium:
+      case SuperTableStylePreset.gridBordered:
+        final strong = source.preset == SuperTableStylePreset.gridBordered;
+        borders = SuperTableBorderStyle(
+          outerColor: strong ? skin.borderStrong : skin.border,
+          dividerColor: strong ? skin.borderStrong : skin.border,
+          strongDividerColor: skin.borderStrong,
+          width: strong ? 1.0 : null,
+          strongWidth: strong ? 1.4 : null,
+        );
+        header = SuperTableAreaStyle(
+          background: primaryFill(0.105),
+          foreground: skin.fg1,
+          fontWeight: FontWeight.w800,
+        );
+        row = SuperTableAreaStyle(background: skin.surface);
+        alternateRow = SuperTableAreaStyle(background: primaryFill(0.035));
+        bandedColumn = SuperTableAreaStyle(background: primaryFill(0.028));
+        group = SuperTableAreaStyle(
+          background: primaryFill(0.115),
+          foreground: skin.fg1,
+          fontWeight: FontWeight.w800,
+        );
+        footer = SuperTableAreaStyle(
+          background: primaryFill(0.075),
+          foreground: skin.fg1,
+          fontWeight: FontWeight.w700,
+        );
+        total = SuperTableAreaStyle(
+          background: primaryFill(0.13),
+          foreground: skin.fg1,
+          fontWeight: FontWeight.w800,
+        );
+        firstColumn = SuperTableAreaStyle(
+          foreground: skin.fg1,
+          fontWeight: FontWeight.w800,
+        );
+        lastColumn = SuperTableAreaStyle(
+          foreground: skin.fg1,
+          fontWeight: FontWeight.w700,
+        );
+      case SuperTableStylePreset.dark:
+        borders = SuperTableBorderStyle(
+          outerColor: skin.borderStrong,
+          dividerColor: skin.borderStrong,
+          strongDividerColor: skin.borderStrong,
+        );
+        header = SuperTableAreaStyle(
+          background: neutral(skin.isDark ? 0.18 : 0.12),
+          foreground: skin.fg1,
+          fontWeight: FontWeight.w800,
+        );
+        row = SuperTableAreaStyle(background: skin.surface);
+        alternateRow = SuperTableAreaStyle(background: neutral(0.05));
+        bandedColumn = SuperTableAreaStyle(background: neutral(0.04));
+        group = SuperTableAreaStyle(
+          background: neutral(skin.isDark ? 0.16 : 0.105),
+          foreground: skin.fg1,
+          fontWeight: FontWeight.w800,
+        );
+        footer = SuperTableAreaStyle(
+          background: neutral(skin.isDark ? 0.13 : 0.085),
+          foreground: skin.fg1,
+          fontWeight: FontWeight.w700,
+        );
+        total = SuperTableAreaStyle(
+          background: neutral(skin.isDark ? 0.19 : 0.13),
+          foreground: skin.fg1,
+          fontWeight: FontWeight.w800,
+        );
+        firstColumn = SuperTableAreaStyle(
+          foreground: skin.fg1,
+          fontWeight: FontWeight.w800,
+        );
+        lastColumn = SuperTableAreaStyle(
+          foreground: skin.fg1,
+          fontWeight: FontWeight.w800,
+        );
+      case SuperTableStylePreset.accent:
+        borders = SuperTableBorderStyle(
+          outerColor: primary.withValues(alpha: 0.42),
+          dividerColor: skin.border,
+          strongDividerColor: primary.withValues(alpha: 0.48),
+        );
+        header = SuperTableAreaStyle(
+          background: primaryFill(0.13),
+          foreground: skin.fg1,
+          fontWeight: FontWeight.w800,
+        );
+        row = SuperTableAreaStyle(background: skin.surface);
+        alternateRow = SuperTableAreaStyle(background: primaryFill(0.038));
+        bandedColumn = SuperTableAreaStyle(background: primaryFill(0.03));
+        group = SuperTableAreaStyle(
+          background: primaryFill(0.15),
+          foreground: skin.fg1,
+          fontWeight: FontWeight.w800,
+          accentBar: primary,
+        );
+        footer = SuperTableAreaStyle(
+          background: primaryFill(0.085),
+          foreground: skin.fg1,
+          fontWeight: FontWeight.w700,
+        );
+        total = SuperTableAreaStyle(
+          background: primaryFill(0.16),
+          foreground: skin.fg1,
+          fontWeight: FontWeight.w800,
+        );
+        firstColumn = SuperTableAreaStyle(
+          foreground: primary,
+          fontWeight: FontWeight.w800,
+        );
+        lastColumn = const SuperTableAreaStyle(fontWeight: FontWeight.w700);
+      case SuperTableStylePreset.bandedColumns:
+        borders = SuperTableBorderStyle(
+          outerColor: skin.borderStrong,
+          dividerColor: skin.border,
+          strongDividerColor: skin.borderStrong,
+        );
+        header = SuperTableAreaStyle(
+          background: neutral(0.06),
+          foreground: skin.fg2,
+          fontWeight: FontWeight.w700,
+        );
+        row = SuperTableAreaStyle(background: skin.surface);
+        alternateRow = SuperTableAreaStyle(background: neutral(0.025));
+        bandedColumn = SuperTableAreaStyle(background: primaryFill(0.04));
+        group = SuperTableAreaStyle(
+          background: neutral(0.075),
+          foreground: skin.fg1,
+          fontWeight: FontWeight.w700,
+        );
+        footer = SuperTableAreaStyle(
+          background: neutral(0.06),
+          foreground: skin.fg2,
+          fontWeight: FontWeight.w700,
+        );
+        total = SuperTableAreaStyle(
+          background: neutral(0.09),
+          foreground: skin.fg1,
+          fontWeight: FontWeight.w800,
+        );
+        firstColumn = const SuperTableAreaStyle(fontWeight: FontWeight.w700);
+        lastColumn = const SuperTableAreaStyle(fontWeight: FontWeight.w700);
+      case SuperTableStylePreset.headerEmphasis:
+        borders = SuperTableBorderStyle(
+          outerColor: skin.borderStrong,
+          dividerColor: skin.border,
+          strongDividerColor: primary.withValues(alpha: 0.55),
+          strongWidth: 1.6,
+        );
+        header = SuperTableAreaStyle(
+          background: primaryBg(0.15),
+          foreground: skin.fg1,
+          fontWeight: FontWeight.w800,
+        );
+        row = SuperTableAreaStyle(background: skin.surface);
+        alternateRow = SuperTableAreaStyle(background: neutral(0.025));
+        bandedColumn = SuperTableAreaStyle(background: neutral(0.02));
+        group = SuperTableAreaStyle(
+          background: primaryFill(0.08),
+          foreground: skin.fg1,
+          fontWeight: FontWeight.w700,
+        );
+        footer = SuperTableAreaStyle(
+          background: neutral(0.055),
+          foreground: skin.fg2,
+          fontWeight: FontWeight.w700,
+        );
+        total = SuperTableAreaStyle(
+          background: primaryFill(0.09),
+          foreground: skin.fg1,
+          fontWeight: FontWeight.w800,
+        );
+        firstColumn = const SuperTableAreaStyle(fontWeight: FontWeight.w700);
+        lastColumn = const SuperTableAreaStyle(fontWeight: FontWeight.w700);
+      case SuperTableStylePreset.subtleBorders:
+        borders = SuperTableBorderStyle(
+          outerColor: skin.border,
+          dividerColor: skin.border.withValues(alpha: 0.72),
+          strongDividerColor: skin.borderStrong.withValues(alpha: 0.76),
+          width: 0.7,
+          strongWidth: 1.0,
+        );
+        header = SuperTableAreaStyle(
+          background: skin.bg,
+          foreground: skin.fg3,
+          fontWeight: FontWeight.w700,
+        );
+        row = SuperTableAreaStyle(background: skin.surface);
+        alternateRow = SuperTableAreaStyle(background: neutral(0.02));
+        bandedColumn = SuperTableAreaStyle(background: neutral(0.016));
+        group = SuperTableAreaStyle(
+          background: neutral(0.045),
+          foreground: skin.fg1,
+          fontWeight: FontWeight.w700,
+        );
+        footer = SuperTableAreaStyle(
+          background: neutral(0.035),
+          foreground: skin.fg2,
+          fontWeight: FontWeight.w700,
+        );
+        total = SuperTableAreaStyle(
+          background: neutral(0.05),
+          foreground: skin.fg1,
+          fontWeight: FontWeight.w700,
+        );
+        firstColumn = const SuperTableAreaStyle(fontWeight: FontWeight.w600);
+        lastColumn = const SuperTableAreaStyle(fontWeight: FontWeight.w600);
+    }
+
+    final hoverRow = SuperTableAreaStyle(background: primaryFill(0.045));
+    final hoverCell = SuperTableAreaStyle(background: primaryFill(0.065));
+    final selectedRow = SuperTableAreaStyle(background: primaryBg(0.08));
+    final selectedCell = SuperTableAreaStyle(background: primaryFill(0.095));
+    final focusedCell = SuperTableAreaStyle(background: primaryFill(0.15));
+    final disabled = SuperTableAreaStyle(
+      background: neutral(0.04),
+      foreground: skin.fg3,
+    );
+
+    return _ResolvedSuperTableStyle(
+      options: source.options,
+      borderStyle: borders.merge(source.borderStyle),
+      headerStyle: header.merge(source.headerStyle),
+      rowStyle: row.merge(source.rowStyle),
+      alternateRowStyle: alternateRow.merge(source.alternateRowStyle),
+      bandedColumnStyle: bandedColumn.merge(source.bandedColumnStyle),
+      groupRowStyle: group.merge(source.groupRowStyle),
+      footerRowStyle: footer.merge(source.footerRowStyle),
+      totalRowStyle: total.merge(source.totalRowStyle),
+      firstColumnStyle: firstColumn.merge(source.firstColumnStyle),
+      lastColumnStyle: lastColumn.merge(source.lastColumnStyle),
+      selectedRowStyle: selectedRow.merge(source.selectedRowStyle),
+      selectedCellStyle: selectedCell.merge(source.selectedCellStyle),
+      hoveredRowStyle: hoverRow.merge(source.hoveredRowStyle),
+      hoveredCellStyle: hoverCell.merge(source.hoveredCellStyle),
+      focusedCellStyle: focusedCell.merge(source.focusedCellStyle),
+      disabledStyle: disabled.merge(source.disabledStyle),
+    );
+  }
+}
+
 class SuperTable<R> extends StatefulWidget {
   final SuperTableController<R> controller;
   final SuperDensity density;
@@ -77,6 +452,10 @@ class SuperTable<R> extends StatefulWidget {
 
   final VoidCallback? onAddColumn;
   final bool columnFilters;
+
+  /// Optional table-wide visual style. Null preserves the current/default table
+  /// appearance without applying any predefined [SuperTableStyle].
+  final SuperTableStyle? style;
 
   /// Enable the advanced (cross-column) filter button in the row-number header.
   /// Readable mode only.
@@ -134,6 +513,7 @@ class SuperTable<R> extends StatefulWidget {
     this.showRedoUndoButtons = true,
     this.onAddColumn,
     this.columnFilters = true,
+    this.style,
     this.advancedFilter = true,
     this.styles,
     this.rowMenuBuilder,
@@ -158,6 +538,9 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
   final Map<String, TextEditingController> _filterCtrls = {};
   CellPos? _lastSel;
   bool _wasEditing = false;
+  _ResolvedSuperTableStyle? _tableStyle;
+  int? _hoveredRow;
+  CellPos? _hoveredCell;
 
   // ── interaction-event diffing (2.2.0) ──
   Offset _lastPointer = Offset.zero;
@@ -170,6 +553,85 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
   final Set<int> _expandedRowIds = {};
 
   SuperTableController<R> get c => widget.controller;
+
+  BorderSide _dividerSide(SuperTableSkin skin) => BorderSide(
+    color: _tableStyle?.borderStyle.dividerColor ?? skin.border,
+    width: _tableStyle?.borderStyle.width ?? 1,
+  );
+
+  BorderSide _strongDividerSide(SuperTableSkin skin, {double? width}) =>
+      BorderSide(
+        color: _tableStyle?.borderStyle.strongDividerColor ?? skin.borderStrong,
+        width: width ?? _tableStyle?.borderStyle.strongWidth ?? 1,
+      );
+
+  BorderSide _outerSide(SuperTableSkin skin) => BorderSide(
+    color: _tableStyle?.borderStyle.outerColor ?? skin.borderStrong,
+    width: _tableStyle?.borderStyle.strongWidth ?? 1,
+  );
+
+  SuperTableAreaStyle? get _headerArea {
+    final s = _tableStyle;
+    if (s == null || !s.options.showHeaderRow) return null;
+    return s.headerStyle;
+  }
+
+  SuperTableAreaStyle? get _groupArea {
+    final s = _tableStyle;
+    if (s == null || !s.options.showGroupRows) return null;
+    return s.groupRowStyle;
+  }
+
+  SuperTableAreaStyle? get _footerArea {
+    final s = _tableStyle;
+    if (s == null || !s.options.showFooterRow) return null;
+    return s.footerRowStyle;
+  }
+
+  SuperTableAreaStyle? get _totalArea {
+    final s = _tableStyle;
+    if (s == null || !s.options.showTotalRow) return null;
+    return s.totalRowStyle;
+  }
+
+  SuperTableAreaStyle? _bodyArea(
+    int rowIndex,
+    int columnIndex,
+    int columnCount,
+  ) {
+    final s = _tableStyle;
+    if (s == null) return null;
+    var area = s.rowStyle;
+    if (s.options.bandedRows && rowIndex.isOdd) {
+      area = (area ?? const SuperTableAreaStyle()).merge(s.alternateRowStyle);
+    }
+    if (s.options.bandedColumns && columnIndex.isOdd) {
+      area = (area ?? const SuperTableAreaStyle()).merge(s.bandedColumnStyle);
+    }
+    if (s.options.emphasizeFirstColumn && columnIndex == 0) {
+      area = (area ?? const SuperTableAreaStyle()).merge(s.firstColumnStyle);
+    }
+    if (s.options.emphasizeLastColumn && columnIndex == columnCount - 1) {
+      area = (area ?? const SuperTableAreaStyle()).merge(s.lastColumnStyle);
+    }
+    final pos = CellPos(rowIndex, columnIndex);
+    if (_hoveredCell == pos) {
+      area = (area ?? const SuperTableAreaStyle()).merge(s.hoveredCellStyle);
+    } else if (_hoveredRow == rowIndex) {
+      area = (area ?? const SuperTableAreaStyle()).merge(s.hoveredRowStyle);
+    }
+    return area;
+  }
+
+  void _setHoveredRow(int? rowIndex) {
+    if (_hoveredRow == rowIndex) return;
+    setState(() => _hoveredRow = rowIndex);
+  }
+
+  void _setHoveredCell(CellPos? pos) {
+    if (_hoveredCell == pos) return;
+    setState(() => _hoveredCell = pos);
+  }
 
   @override
   void initState() {
@@ -199,6 +661,10 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
     if (old.controller != c) {
       old.controller.removeListener(_onModel);
       c.addListener(_onModel);
+    }
+    if (widget.style == null && old.style != null) {
+      _hoveredRow = null;
+      _hoveredCell = null;
     }
   }
 
@@ -860,6 +1326,9 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
     final extraSkeleton = c.loadingMore && !widget.loading
         ? widget.skeletonRows
         : 0;
+    _tableStyle = widget.style == null
+        ? null
+        : _ResolvedSuperTableStyle.resolve(context, skin, widget.style!);
 
     return Focus(
       focusNode: _focus,
@@ -878,7 +1347,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
               child: Container(
                 decoration: BoxDecoration(
                   color: skin.surface,
-                  border: Border.all(color: skin.borderStrong),
+                  border: Border.fromBorderSide(_outerSide(skin)),
                   borderRadius: BorderRadius.circular(
                     context.superTheme.spacing.radiusCard,
                   ),
@@ -1018,13 +1487,14 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
 
   Widget _gutterItem(SuperTableSkin skin, RenderItem<R> item) {
     if (item.isGroup || item.isGroupFooter) {
+      final area = item.isGroup ? _groupArea : _footerArea;
       return Container(
         height: _rowH,
         decoration: BoxDecoration(
-          color: skin.surface2,
+          color: area?.background ?? skin.surface2,
           border: BorderDirectional(
-            end: BorderSide(color: skin.borderStrong),
-            bottom: BorderSide(color: skin.borderStrong),
+            end: _strongDividerSide(skin),
+            bottom: _strongDividerSide(skin),
           ),
         ),
       );
@@ -1051,9 +1521,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
           height: expanded ? exp.heightFor(row) : 0.0,
           decoration: BoxDecoration(
             color: skin.surface2,
-            border: BorderDirectional(
-              end: BorderSide(color: skin.borderStrong),
-            ),
+            border: BorderDirectional(end: _strongDividerSide(skin)),
           ),
         ),
       ],
@@ -1065,8 +1533,8 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
     decoration: BoxDecoration(
       color: skin.bg,
       border: BorderDirectional(
-        end: BorderSide(color: skin.border),
-        bottom: BorderSide(color: skin.border),
+        end: _dividerSide(skin),
+        bottom: _dividerSide(skin),
       ),
     ),
     child: const Center(child: _Shimmer(width: 14, height: 9)),
@@ -1076,10 +1544,10 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
     height: _rowH,
     alignment: Alignment.center,
     decoration: BoxDecoration(
-      color: skin.surface2,
+      color: _totalArea?.background ?? skin.surface2,
       border: BorderDirectional(
-        end: BorderSide(color: skin.border),
-        top: BorderSide(color: skin.borderStrong, width: 2),
+        end: _dividerSide(skin),
+        top: _strongDividerSide(skin, width: 2),
       ),
     ),
     child: Icon(Icons.grid_on_rounded, size: 13, color: skin.fg4),
@@ -1229,11 +1697,12 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
 
   // ── header ──
   Widget _buildHeader(SuperTableSkin skin, List<SuperColumn> cols) {
+    final area = _headerArea;
     return Container(
       height: _headH,
       decoration: BoxDecoration(
-        color: skin.bg,
-        border: Border(bottom: BorderSide(color: skin.borderStrong)),
+        color: area?.background ?? skin.bg,
+        border: Border(bottom: _strongDividerSide(skin)),
       ),
       child: Row(
         children: [
@@ -1246,15 +1715,16 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
 
   Widget _gutterHead(SuperTableSkin skin) {
     final active = c.advancedActive;
+    final area = _headerArea;
     return Container(
       width: _gutterW,
       height: _headH,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: skin.bg,
+        color: area?.background ?? skin.bg,
         border: BorderDirectional(
-          end: BorderSide(color: skin.border),
-          bottom: BorderSide(color: skin.borderStrong),
+          end: _dividerSide(skin),
+          bottom: _strongDividerSide(skin),
         ),
       ),
       child: _showAdvanced
@@ -1280,7 +1750,10 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
                       decoration: BoxDecoration(
                         color: skin.danger(context),
                         shape: BoxShape.circle,
-                        border: Border.all(color: skin.bg, width: 1),
+                        border: Border.all(
+                          color: area?.background ?? skin.bg,
+                          width: 1,
+                        ),
                       ),
                     ),
                   ),
@@ -1295,7 +1768,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
       width: _actW,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        border: BorderDirectional(start: BorderSide(color: skin.border)),
+        border: BorderDirectional(start: _dividerSide(skin)),
       ),
       child: widget.onAddColumn != null
           ? _IconHoverButton(
@@ -1331,7 +1804,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
       height: _kFilterRowH,
       decoration: BoxDecoration(
         color: skin.surface2,
-        border: Border(bottom: BorderSide(color: skin.border)),
+        border: Border(bottom: _dividerSide(skin)),
       ),
       child: Row(
         children: [
@@ -1352,8 +1825,8 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
       decoration: BoxDecoration(
         color: skin.surface2,
         border: BorderDirectional(
-          end: BorderSide(color: skin.border),
-          bottom: BorderSide(color: skin.border),
+          end: _dividerSide(skin),
+          bottom: _dividerSide(skin),
         ),
       ),
       child: c.advancedActive
@@ -1372,7 +1845,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
   Widget _filterAction(SuperTableSkin skin) => Container(
     width: _actW,
     decoration: BoxDecoration(
-      border: BorderDirectional(start: BorderSide(color: skin.border)),
+      border: BorderDirectional(start: _dividerSide(skin)),
     ),
   );
 
@@ -1414,7 +1887,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
       width: w,
       height: _kFilterRowH,
       decoration: BoxDecoration(
-        border: BorderDirectional(end: BorderSide(color: skin.border)),
+        border: BorderDirectional(end: _dividerSide(skin)),
       ),
       child: field,
     );
@@ -1540,6 +2013,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
     final active = c.sort.key == col.key;
     final isPinned = c.pinOf(col) != SuperPin.none;
     final inGroup = c.groupKeys.contains(col.key);
+    final area = _headerArea;
 
     final isEnd = col.align == SuperAlign.end;
     // Column data types are never surfaced: the header shows only the label and
@@ -1565,9 +2039,11 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
             style: TextStyle(
               fontFamily: context.superTextTheme.body.fontFamily,
               fontSize: 10,
-              fontWeight: FontWeight.w700,
+              fontWeight: area?.fontWeight ?? FontWeight.w700,
               letterSpacing: 0.5,
-              color: active || inGroup ? skin.fg1 : skin.fg3,
+              color: active || inGroup
+                  ? skin.fg1
+                  : area?.foreground ?? skin.fg3,
             ),
           ),
         ),
@@ -1597,10 +2073,10 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
       height: _headH,
       padding: const EdgeInsets.symmetric(horizontal: 11),
       decoration: BoxDecoration(
-        color: skin.bg,
+        color: area?.background ?? skin.bg,
         border: BorderDirectional(
           start: BorderSide.none,
-          end: BorderSide(color: skin.border),
+          end: _dividerSide(skin),
         ),
       ),
       child: Column(
@@ -1669,6 +2145,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
     RenderItem<R> g,
   ) {
     final collapsed = c.isCollapsed(g.path);
+    final area = _groupArea;
     return GestureDetector(
       onTap: () => c.toggleCollapse(g.path),
       child: Container(
@@ -1678,8 +2155,8 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
           end: 16,
         ),
         decoration: BoxDecoration(
-          color: skin.surface2,
-          border: Border(bottom: BorderSide(color: skin.borderStrong)),
+          color: area?.background ?? skin.surface2,
+          border: Border(bottom: _strongDividerSide(skin)),
         ),
         child: Row(
           children: [
@@ -1693,9 +2170,9 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
               g.groupCol!.label.toUpperCase(),
               style: TextStyle(
                 fontSize: 9.5,
-                fontWeight: FontWeight.w700,
+                fontWeight: area?.fontWeight ?? FontWeight.w700,
                 letterSpacing: 0.7,
-                color: skin.fg4,
+                color: area?.foreground ?? skin.fg4,
               ),
             ),
             const SizedBox(width: 6),
@@ -1708,8 +2185,8 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: skin.fg1,
+                  fontWeight: area?.fontWeight ?? FontWeight.w700,
+                  color: area?.foreground ?? skin.fg1,
                 ),
               ),
             ),
@@ -1733,6 +2210,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
     List<SuperRow<R>> rows,
   ) {
     final out = <Widget>[];
+    final area = _groupArea;
     for (final col in cols) {
       if (col.agg == SuperAgg.none || col.agg == SuperAgg.count) continue;
       final v = SuperColumnLogic.aggregate(col, rows);
@@ -1758,7 +2236,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
                   fontSize: 9.5,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 0.4,
-                  color: skin.fg4,
+                  color: area?.foreground ?? skin.fg4,
                 ),
               ),
               Text(
@@ -1766,8 +2244,8 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
                 style: TextStyle(
                   fontFamily: context.superTextTheme.mono.fontFamily,
                   fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  color: skin.fg2,
+                  fontWeight: area?.fontWeight ?? FontWeight.w600,
+                  color: area?.foreground ?? skin.fg2,
                 ),
               ),
             ],
@@ -1786,11 +2264,12 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
     List<SuperColumn> cols,
     RenderItem<R> g,
   ) {
+    final area = _footerArea;
     return Container(
       height: _rowH,
       decoration: BoxDecoration(
-        color: skin.surface2,
-        border: Border(bottom: BorderSide(color: skin.borderStrong)),
+        color: area?.background ?? skin.surface2,
+        border: Border(bottom: _strongDividerSide(skin)),
       ),
       child: Row(
         children: [
@@ -1808,6 +2287,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
     RenderItem<R> g,
     int ci,
   ) {
+    final area = _footerArea;
     Widget? child;
     if (ci == 0) {
       final label = g.groupValue == null || g.groupValue!.isEmpty
@@ -1819,9 +2299,9 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
         overflow: TextOverflow.ellipsis,
         style: TextStyle(
           fontSize: 11,
-          fontWeight: FontWeight.w700,
+          fontWeight: area?.fontWeight ?? FontWeight.w700,
           letterSpacing: 0.2,
-          color: skin.fg3,
+          color: area?.foreground ?? skin.fg3,
         ),
       );
     }
@@ -1846,8 +2326,8 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
           style: TextStyle(
             fontFamily: context.superTextTheme.mono.fontFamily,
             fontSize: 11.5,
-            fontWeight: FontWeight.w700,
-            color: skin.fg1,
+            fontWeight: area?.fontWeight ?? FontWeight.w700,
+            color: area?.foreground ?? skin.fg1,
           ),
         );
       }
@@ -1860,7 +2340,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
           : AlignmentDirectional.centerStart,
       padding: const EdgeInsets.symmetric(horizontal: 11),
       decoration: BoxDecoration(
-        border: BorderDirectional(end: BorderSide(color: skin.border)),
+        border: BorderDirectional(end: _dividerSide(skin)),
       ),
       child: child,
     );
@@ -1877,7 +2357,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
     final rowStyle = _rowStyle(item.row!);
     final exp = widget.expansion;
 
-    final rowWidget = GestureDetector(
+    Widget rowWidget = GestureDetector(
       onSecondaryTapDown: (d) => _openRowMenu(r, d.globalPosition),
       child: Container(
         height: _rowH,
@@ -1887,12 +2367,23 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
             if (rowStyle?.accentBar != null)
               Container(width: 3, color: rowStyle!.accentBar),
             for (var ci = 0; ci < cols.length; ci++)
-              _bodyCell(skin, cols[ci], item, r, ci, rowStyle),
+              _bodyCell(skin, cols[ci], item, r, ci, cols.length, rowStyle),
             if (_actionable) _actionCell(skin, r, rowActive),
           ],
         ),
       ),
     );
+
+    if (_tableStyle != null) {
+      rowWidget = MouseRegion(
+        onEnter: (_) => _setHoveredRow(r),
+        onExit: (_) {
+          if (_hoveredRow == r) _setHoveredRow(null);
+          if (_hoveredCell?.r == r) _setHoveredCell(null);
+        },
+        child: rowWidget,
+      );
+    }
 
     // No expansion feature, or currently in editable mode — return the bare row.
     if (exp == null || c.mode != SuperTableMode.readable) return rowWidget;
@@ -1929,10 +2420,13 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
         height: _rowH,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: rowActive ? skin.accentWashOnBg(context, 0.12) : skin.bg,
+          color: rowActive
+              ? _tableStyle?.selectedRowStyle?.background ??
+                    skin.accentWashOnBg(context, 0.12)
+              : skin.bg,
           border: BorderDirectional(
-            end: BorderSide(color: skin.borderStrong),
-            bottom: BorderSide(color: skin.border),
+            end: _strongDividerSide(skin),
+            bottom: _dividerSide(skin),
           ),
         ),
         child: Text(
@@ -1953,10 +2447,13 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
       width: _actW,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: rowActive ? skin.accentWash(context, 0.05) : skin.surface,
+        color: rowActive
+            ? _tableStyle?.selectedRowStyle?.background ??
+                  skin.accentWash(context, 0.05)
+            : skin.surface,
         border: BorderDirectional(
-          start: BorderSide(color: skin.border),
-          bottom: BorderSide(color: skin.border),
+          start: _dividerSide(skin),
+          bottom: _dividerSide(skin),
         ),
       ),
       child: _deleteCol
@@ -1982,6 +2479,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
     RenderItem<R> item,
     int r,
     int ci,
+    int columnCount,
     SuperRowStyle? rowStyle,
   ) {
     final w = c.widthOf(col);
@@ -2002,10 +2500,20 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
     final rowActive =
         (c.rowMode ? c.selRows.contains(r) : c.sel.r == r) && c.focused;
     final cellStyle = _cellStyle(col, item.row!);
+    final tableArea = _bodyArea(r, ci, columnCount);
+    final disabledArea = dim ? _tableStyle?.disabledStyle : null;
 
     // Row styles take priority over cell styles for fg/weight.
-    final fg = rowStyle?.foreground ?? cellStyle?.foreground;
-    final weight = rowStyle?.fontWeight ?? cellStyle?.fontWeight;
+    final fg =
+        rowStyle?.foreground ??
+        cellStyle?.foreground ??
+        disabledArea?.foreground ??
+        tableArea?.foreground;
+    final weight =
+        rowStyle?.fontWeight ??
+        cellStyle?.fontWeight ??
+        disabledArea?.fontWeight ??
+        tableArea?.fontWeight;
 
     final alignV = cellStyle?.align;
     final align = switch (alignV ?? _colAlign(col)) {
@@ -2018,17 +2526,25 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
     if (isEditing) {
       bg = skin.surface;
     } else if (active) {
-      bg = skin.accentWash(context, 0.14);
+      bg =
+          _tableStyle?.focusedCellStyle?.background ??
+          skin.accentWash(context, 0.14);
     } else if (selected) {
-      bg = skin.accentWash(context, 0.09);
+      bg =
+          _tableStyle?.selectedCellStyle?.background ??
+          skin.accentWash(context, 0.09);
     } else if (cellStyle?.background != null && rowStyle?.background == null) {
       bg = cellStyle!.background!;
     } else if (rowActive) {
-      bg = skin.accentWash(context, 0.05);
+      bg =
+          _tableStyle?.selectedRowStyle?.background ??
+          skin.accentWash(context, 0.05);
     } else if (rowStyle?.background != null) {
       bg = Colors.transparent; // row paints its own background
     } else if (dim) {
-      bg = skin.dimFill;
+      bg = disabledArea?.background ?? skin.dimFill;
+    } else if (tableArea?.background != null) {
+      bg = tableArea!.background!;
     } else {
       bg = Colors.transparent;
     }
@@ -2069,10 +2585,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
             ),
       decoration: BoxDecoration(
         color: bg,
-        border: Border(
-          right: BorderSide(color: skin.border),
-          bottom: BorderSide(color: skin.border),
-        ),
+        border: Border(right: _dividerSide(skin), bottom: _dividerSide(skin)),
       ),
       child: content,
     );
@@ -2206,6 +2719,14 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
         _openRowMenu(r, d.globalPosition);
       },
       child: MouseRegion(
+        onEnter: _tableStyle == null
+            ? null
+            : (_) => _setHoveredCell(CellPos(r, ci)),
+        onExit: _tableStyle == null
+            ? null
+            : (_) {
+                if (_hoveredCell == CellPos(r, ci)) _setHoveredCell(null);
+              },
         cursor: editableCell
             ? SystemMouseCursors.cell
             : SystemMouseCursors.basic,
@@ -2296,7 +2817,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
         child: DecoratedBox(
           decoration: BoxDecoration(
             color: skin.surface2,
-            border: Border(bottom: BorderSide(color: skin.border)),
+            border: Border(bottom: _dividerSide(skin)),
           ),
           child: SizedBox(
             width: double.infinity,
@@ -2338,10 +2859,13 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
         height: _rowH,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: rowActive ? skin.accentWashOnBg(context, 0.12) : skin.bg,
+          color: rowActive
+              ? _tableStyle?.selectedRowStyle?.background ??
+                    skin.accentWashOnBg(context, 0.12)
+              : skin.bg,
           border: BorderDirectional(
-            end: BorderSide(color: skin.borderStrong),
-            bottom: BorderSide(color: skin.border),
+            end: _strongDividerSide(skin),
+            bottom: _dividerSide(skin),
           ),
         ),
         child: Row(
@@ -2395,11 +2919,12 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
   }
 
   Widget _buildTotals(SuperTableSkin skin, List<SuperColumn> cols) {
+    final area = _totalArea;
     return Container(
       height: _rowH,
       decoration: BoxDecoration(
-        color: skin.surface2,
-        border: Border(top: BorderSide(color: skin.borderStrong, width: 2)),
+        color: area?.background ?? skin.surface2,
+        border: Border(top: _strongDividerSide(skin, width: 2)),
       ),
       child: Row(
         children: [
@@ -2411,6 +2936,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
   }
 
   Widget _totalCell(SuperTableSkin skin, SuperColumn col, int i) {
+    final area = _totalArea;
     final w = c.widthOf(col);
     final v = col.agg == SuperAgg.none
         ? null
@@ -2432,8 +2958,8 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
         style: TextStyle(
           fontFamily: context.superTextTheme.mono.fontFamily,
           fontSize: 12.5,
-          fontWeight: FontWeight.w700,
-          color: skin.fg1,
+          fontWeight: area?.fontWeight ?? FontWeight.w700,
+          color: area?.foreground ?? skin.fg1,
         ),
       );
     } else if (i == 0) {
@@ -2441,9 +2967,9 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
         context.superTableTranslations.totals,
         style: TextStyle(
           fontSize: 10,
-          fontWeight: FontWeight.w700,
+          fontWeight: area?.fontWeight ?? FontWeight.w700,
           letterSpacing: 0.6,
-          color: skin.fg3,
+          color: area?.foreground ?? skin.fg3,
         ),
       );
     } else {
@@ -2456,9 +2982,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
       alignment: col.align == SuperAlign.end
           ? AlignmentDirectional.centerEnd
           : AlignmentDirectional.centerStart,
-      decoration: BoxDecoration(
-        border: Border(right: BorderSide(color: skin.border)),
-      ),
+      decoration: BoxDecoration(border: Border(right: _dividerSide(skin))),
       child: child,
     );
   }
@@ -2626,9 +3150,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
   Widget _skeletonRow(SuperTableSkin skin, List<SuperColumn> cols) {
     return Container(
       height: _rowH,
-      decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: skin.border)),
-      ),
+      decoration: BoxDecoration(border: Border(bottom: _dividerSide(skin))),
       child: Row(
         children: [
           for (final col in cols)
@@ -2639,7 +3161,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
                   : AlignmentDirectional.centerStart,
               padding: const EdgeInsets.symmetric(horizontal: 11),
               decoration: BoxDecoration(
-                border: Border(right: BorderSide(color: skin.border)),
+                border: Border(right: _dividerSide(skin)),
               ),
               child: _Shimmer(
                 width: (c.widthOf(col) * 0.5).clamp(24.0, 160.0),

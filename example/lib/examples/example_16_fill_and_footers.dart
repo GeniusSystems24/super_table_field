@@ -50,15 +50,56 @@ class _FillAndFootersExampleState extends State<FillAndFootersExample> {
         ),
         SuperTextColumn(key: 'item', label: 'Item', width: 220),
         SuperTextColumn(key: 'bin', label: 'Bin', width: 100, mono: true),
-        SuperNumberColumn<int>(key: 'qty', label: 'Qty', width: 100, min: 0, agg: SuperAgg.sum),
-        SuperCurrencyColumn(key: 'value', label: 'Stock value', width: 150, agg: SuperAgg.sum),
+        SuperNumberColumn<int>(
+          key: 'qty',
+          label: 'Qty',
+          width: 100,
+          min: 0,
+          agg: SuperAgg.sum,
+        ),
+        SuperCurrencyColumn(
+          key: 'value',
+          label: 'Stock value',
+          width: 150,
+          agg: SuperAgg.sum,
+        ),
       ],
       rows: [
-        SuperRow.map({'warehouse': 'Main', 'item': 'Hydraulic filter', 'bin': 'A-01', 'qty': 42, 'value': 777.0}),
-        SuperRow.map({'warehouse': 'Main', 'item': 'Air filter element', 'bin': 'A-02', 'qty': 17, 'value': 165.75}),
-        SuperRow.map({'warehouse': 'North', 'item': 'Roller bearing 35mm', 'bin': 'N-11', 'qty': 8, 'value': 512.0}),
-        SuperRow.map({'warehouse': 'North', 'item': 'Drive belt XL', 'bin': 'N-12', 'qty': 25, 'value': 300.0}),
-        SuperRow.map({'warehouse': 'Overflow', 'item': 'Gasket kit', 'bin': 'O-03', 'qty': 3, 'value': 66.3}),
+        SuperRow.map({
+          'warehouse': 'Main',
+          'item': 'Hydraulic filter',
+          'bin': 'A-01',
+          'qty': 42,
+          'value': 777.0,
+        }),
+        SuperRow.map({
+          'warehouse': 'Main',
+          'item': 'Air filter element',
+          'bin': 'A-02',
+          'qty': 17,
+          'value': 165.75,
+        }),
+        SuperRow.map({
+          'warehouse': 'North',
+          'item': 'Roller bearing 35mm',
+          'bin': 'N-11',
+          'qty': 8,
+          'value': 512.0,
+        }),
+        SuperRow.map({
+          'warehouse': 'North',
+          'item': 'Drive belt XL',
+          'bin': 'N-12',
+          'qty': 25,
+          'value': 300.0,
+        }),
+        SuperRow.map({
+          'warehouse': 'Overflow',
+          'item': 'Gasket kit',
+          'bin': 'O-03',
+          'qty': 3,
+          'value': 66.3,
+        }),
       ],
     );
     _c.addListener(() => setState(() {}));
@@ -77,7 +118,10 @@ class _FillAndFootersExampleState extends State<FillAndFootersExample> {
     final t = context.superTheme;
     return Scaffold(
       backgroundColor: t.bg,
-      appBar: AppBar(title: const Text('Fill down/right · group footers'), backgroundColor: t.surface),
+      appBar: AppBar(
+        title: const Text('Fill down/right · group footers'),
+        backgroundColor: t.surface,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -88,52 +132,71 @@ class _FillAndFootersExampleState extends State<FillAndFootersExample> {
               child: Text(
                 _editable
                     ? 'Editable: select a range spanning rows, press ⌘/Ctrl+D to fill down '
-                      '(⌘/Ctrl+R fills right). Edit a cell, then right-click the row → Revert '
-                      'cell / Revert row. Switch to readable for group footers.'
+                          '(⌘/Ctrl+R fills right). Edit a cell, then right-click the row → Revert '
+                          'cell / Revert row. Switch to readable for group footers.'
                     : 'Readable: grouped by Warehouse with groupFooters on — each group closes '
-                      'with a Σ subtotal row. Collapse groups from their headers.',
+                          'with a Σ subtotal row. Collapse groups from their headers.',
                 style: TextStyle(color: t.fg3),
               ),
             ),
-            Row(children: [
-              OutlinedButton.icon(
-                onPressed: () {
-                  if (_editable) {
-                    _c.setMode(SuperTableMode.readable);
-                    _c.setGroupKeys(['warehouse']);
-                  } else {
-                    _c.clearGroups();
-                    _c.setMode(SuperTableMode.editable);
-                  }
-                },
-                icon: Icon(_editable ? Icons.visibility_outlined : Icons.edit_outlined, size: 16),
-                label: Text(_editable ? 'Readable + grouped' : 'Back to editable'),
-                style: OutlinedButton.styleFrom(foregroundColor: t.fg1, side: BorderSide(color: t.borderStrong)),
-              ),
-              if (_editable) ...[
-                const SizedBox(width: 10),
+            Row(
+              children: [
                 OutlinedButton.icon(
-                  onPressed: _c.fillDown,
-                  icon: const Icon(Icons.south_rounded, size: 16),
-                  label: const Text('Fill down'),
-                  style: OutlinedButton.styleFrom(foregroundColor: t.fg1, side: BorderSide(color: t.borderStrong)),
+                  onPressed: () {
+                    if (_editable) {
+                      _c.setMode(SuperTableMode.readable);
+                      _c.setGroupKeys(['warehouse']);
+                    } else {
+                      _c.clearGroups();
+                      _c.setMode(SuperTableMode.editable);
+                    }
+                  },
+                  icon: Icon(
+                    _editable ? Icons.visibility_outlined : Icons.edit_outlined,
+                    size: 16,
+                  ),
+                  label: Text(
+                    _editable ? 'Readable + grouped' : 'Back to editable',
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: t.fg1,
+                    side: BorderSide(color: t.borderStrong),
+                  ),
                 ),
-                const SizedBox(width: 10),
-                OutlinedButton.icon(
-                  onPressed: _c.fillRight,
-                  icon: const Icon(Icons.east_rounded, size: 16),
-                  label: const Text('Fill right'),
-                  style: OutlinedButton.styleFrom(foregroundColor: t.fg1, side: BorderSide(color: t.borderStrong)),
-                ),
-                const SizedBox(width: 10),
-                OutlinedButton.icon(
-                  onPressed: _c.canUndo ? _c.undo : null,
-                  icon: const Icon(Icons.undo_rounded, size: 16),
-                  label: const Text('Undo'),
-                  style: OutlinedButton.styleFrom(foregroundColor: t.fg1, side: BorderSide(color: t.borderStrong)),
-                ),
+                if (_editable) ...[
+                  const SizedBox(width: 10),
+                  OutlinedButton.icon(
+                    onPressed: _c.fillDown,
+                    icon: const Icon(Icons.south_rounded, size: 16),
+                    label: const Text('Fill down'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: t.fg1,
+                      side: BorderSide(color: t.borderStrong),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  OutlinedButton.icon(
+                    onPressed: _c.fillRight,
+                    icon: const Icon(Icons.east_rounded, size: 16),
+                    label: const Text('Fill right'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: t.fg1,
+                      side: BorderSide(color: t.borderStrong),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  OutlinedButton.icon(
+                    onPressed: _c.canUndo ? _c.undo : null,
+                    icon: const Icon(Icons.undo_rounded, size: 16),
+                    label: const Text('Undo'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: t.fg1,
+                      side: BorderSide(color: t.borderStrong),
+                    ),
+                  ),
+                ],
               ],
-            ]),
+            ),
             const SizedBox(height: 12),
             Flexible(
               child: SuperTable<Map<String, dynamic>>(

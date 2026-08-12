@@ -42,7 +42,7 @@ come for free.
 
 ```yaml
 dependencies:
-  super_table_field: ^2.6.0
+  super_table_field: ^2.7.0
 ```
 
 ```dart
@@ -164,6 +164,40 @@ SuperNumberColumn<num>(
 Row styles (via `SuperTable(styles: {condition: SuperRowStyle()})`) take priority
 over column cell styles (`SuperXColumn(styles: {condition: CellStyle()})`). First
 matching condition wins.
+
+### Table styles (2.7.0)
+
+`SuperTableStyle` is optional and must stay opt-in:
+
+```dart
+SuperTable<Map<String, dynamic>>(
+  controller: controller,
+  style: SuperTableStyle.medium,
+);
+```
+
+`style: null` means no predefined style is applied and the table keeps its
+normal/default appearance. Do not introduce a mandatory default style.
+
+Available presets:
+
+```dart
+SuperTableStyle.plainMinimal
+SuperTableStyle.light
+SuperTableStyle.medium
+SuperTableStyle.dark
+SuperTableStyle.accent
+SuperTableStyle.bandedRows
+SuperTableStyle.bandedColumns
+SuperTableStyle.headerEmphasis
+SuperTableStyle.gridBordered
+SuperTableStyle.subtleBorders
+```
+
+Use `SuperTableStyleOptions` for header/footer/total/group styling switches,
+banded rows, banded columns, and first/last column emphasis. These switches are
+presentation-only; keep structure controlled by `showTotals`, `showFooter`,
+`groupFooters`, and controller grouping APIs.
 
 ## The combo ⇄ AutoSuggestionsBox integration
 

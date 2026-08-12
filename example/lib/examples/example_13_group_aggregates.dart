@@ -214,10 +214,7 @@ class _GroupAggregatesExampleState extends State<GroupAggregatesExample> {
               color: cs.primary.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(
-              Icons.visibility_off_outlined,
-              color: cs.primary,
-            ),
+            child: Icon(Icons.visibility_off_outlined, color: cs.primary),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -247,9 +244,17 @@ class _GroupAggregatesExampleState extends State<GroupAggregatesExample> {
       children: [
         _metric(t, 'Visible rows', '$rowCount', Icons.table_rows_outlined),
         _metric(
-            t, 'Visible regions', '${regions.length}', Icons.public_outlined),
+          t,
+          'Visible regions',
+          '${regions.length}',
+          Icons.public_outlined,
+        ),
         _metric(
-            t, 'Total qty', _count(totals['qty']), Icons.inventory_2_outlined),
+          t,
+          'Total qty',
+          _count(totals['qty']),
+          Icons.inventory_2_outlined,
+        ),
         _metric(t, 'Stock value', _money(totals['value']), Icons.paid_outlined),
       ],
     );
@@ -306,11 +311,9 @@ class _GroupAggregatesExampleState extends State<GroupAggregatesExample> {
   }
 
   Widget _regionChips(SuperThemeData t) {
-    final regions = _c
-        .aggregateBy('region', 'value', filtered: false)
-        .keys
-        .toList()
-      ..sort();
+    final regions =
+        _c.aggregateBy('region', 'value', filtered: false).keys.toList()
+          ..sort();
 
     return Wrap(
       spacing: 8,
@@ -335,9 +338,7 @@ class _GroupAggregatesExampleState extends State<GroupAggregatesExample> {
         decoration: BoxDecoration(
           color: active ? cs.primary : t.surface,
           borderRadius: BorderRadius.circular(999),
-          border: Border.all(
-            color: active ? cs.primary : t.borderStrong,
-          ),
+          border: Border.all(color: active ? cs.primary : t.borderStrong),
         ),
         child: Text(
           label,
@@ -449,8 +450,10 @@ class _GroupAggregatesExampleState extends State<GroupAggregatesExample> {
           if (tree.isEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 16),
-              child: Text('No rows match the current filter.',
-                  style: TextStyle(color: t.fg4)),
+              child: Text(
+                'No rows match the current filter.',
+                style: TextStyle(color: t.fg4),
+              ),
             )
           else
             for (final region in tree) ...[
@@ -502,8 +505,11 @@ class _GroupAggregatesExampleState extends State<GroupAggregatesExample> {
     final weight = bold ? FontWeight.w700 : FontWeight.w400;
 
     return Padding(
-      padding:
-          EdgeInsetsDirectional.only(start: indent ? 18 : 0, top: 5, bottom: 5),
+      padding: EdgeInsetsDirectional.only(
+        start: indent ? 18 : 0,
+        top: 5,
+        bottom: 5,
+      ),
       child: Row(
         children: [
           Expanded(

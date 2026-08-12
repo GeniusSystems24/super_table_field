@@ -49,9 +49,20 @@ class _AggregationsExampleState extends State<AggregationsExample> {
           width: 150,
           values: const ['Raw Material', 'Finished Good', 'Consumable'],
         ),
-        SuperNumberColumn<int>(key: 'qty', label: 'Qty', width: 100, agg: SuperAgg.sum),
+        SuperNumberColumn<int>(
+          key: 'qty',
+          label: 'Qty',
+          width: 100,
+          agg: SuperAgg.sum,
+        ),
         // min unit cost across the group / table.
-        SuperCurrencyColumn(key: 'cost', label: 'Unit Cost', width: 140, agg: SuperAgg.min, aggLabel: 'MIN COST'),
+        SuperCurrencyColumn(
+          key: 'cost',
+          label: 'Unit Cost',
+          width: 140,
+          agg: SuperAgg.min,
+          aggLabel: 'MIN COST',
+        ),
         // max unit cost — a computed mirror of `cost` so it can carry its own agg.
         SuperComputedColumn<num>(
           key: 'cost_hi',
@@ -75,12 +86,42 @@ class _AggregationsExampleState extends State<AggregationsExample> {
         ),
       ],
       rows: [
-        SuperRow.map({'sku': 'RM-STEEL-01', 'category': 'Raw Material', 'qty': 400, 'cost': 3.40}),
-        SuperRow.map({'sku': 'RM-STEEL-02', 'category': 'Raw Material', 'qty': 120, 'cost': 4.10}),
-        SuperRow.map({'sku': 'FG-BRKT-10', 'category': 'Finished Good', 'qty': 60, 'cost': 12.80}),
-        SuperRow.map({'sku': 'FG-BRKT-20', 'category': 'Finished Good', 'qty': 35, 'cost': 15.50}),
-        SuperRow.map({'sku': 'CN-GLOVE-09', 'category': 'Consumable', 'qty': 800, 'cost': 0.45}),
-        SuperRow.map({'sku': 'CN-TAPE-04', 'category': 'Consumable', 'qty': 220, 'cost': 1.10}),
+        SuperRow.map({
+          'sku': 'RM-STEEL-01',
+          'category': 'Raw Material',
+          'qty': 400,
+          'cost': 3.40,
+        }),
+        SuperRow.map({
+          'sku': 'RM-STEEL-02',
+          'category': 'Raw Material',
+          'qty': 120,
+          'cost': 4.10,
+        }),
+        SuperRow.map({
+          'sku': 'FG-BRKT-10',
+          'category': 'Finished Good',
+          'qty': 60,
+          'cost': 12.80,
+        }),
+        SuperRow.map({
+          'sku': 'FG-BRKT-20',
+          'category': 'Finished Good',
+          'qty': 35,
+          'cost': 15.50,
+        }),
+        SuperRow.map({
+          'sku': 'CN-GLOVE-09',
+          'category': 'Consumable',
+          'qty': 800,
+          'cost': 0.45,
+        }),
+        SuperRow.map({
+          'sku': 'CN-TAPE-04',
+          'category': 'Consumable',
+          'qty': 220,
+          'cost': 1.10,
+        }),
       ],
     );
   }
@@ -96,7 +137,10 @@ class _AggregationsExampleState extends State<AggregationsExample> {
     final t = context.superTheme;
     return Scaffold(
       backgroundColor: t.bg,
-      appBar: AppBar(title: const Text('Aggregations'), backgroundColor: t.surface),
+      appBar: AppBar(
+        title: const Text('Aggregations'),
+        backgroundColor: t.surface,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -110,14 +154,19 @@ class _AggregationsExampleState extends State<AggregationsExample> {
                 style: TextStyle(color: t.fg3),
               ),
             ),
-            Row(children: [
-              OutlinedButton.icon(
-                onPressed: () => _c.toggleGroup('category'),
-                icon: const Icon(Icons.workspaces_outline, size: 16),
-                label: const Text('Toggle group by Category'),
-                style: OutlinedButton.styleFrom(foregroundColor: t.fg1, side: BorderSide(color: t.borderStrong)),
-              ),
-            ]),
+            Row(
+              children: [
+                OutlinedButton.icon(
+                  onPressed: () => _c.toggleGroup('category'),
+                  icon: const Icon(Icons.workspaces_outline, size: 16),
+                  label: const Text('Toggle group by Category'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: t.fg1,
+                    side: BorderSide(color: t.borderStrong),
+                  ),
+                ),
+              ],
+            ),
             const SizedBox(height: 12),
             Flexible(child: SuperTable<Map<String, dynamic>>(controller: _c)),
           ],
