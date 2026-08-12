@@ -26,20 +26,27 @@ class _AsyncComboExampleState extends State<AsyncComboExample> {
     'WH-Dammam': ['D-100', 'D-101', 'D-205'],
   };
 
-  Future<List<AutoSuggestion<String>>> _fetchBins(String warehouse, String query) async {
-    await Future<void>.delayed(const Duration(milliseconds: 500)); // simulate latency
+  Future<List<String>> _fetchBins(String warehouse, String query) async {
+    await Future<void>.delayed(
+      const Duration(milliseconds: 500),
+    ); // simulate latency
     final all = _bins[warehouse] ?? const [];
     final q = query.trim().toLowerCase();
     return [
       for (final b in all)
-        if (q.isEmpty || b.toLowerCase().contains(q)) AutoSuggestion<String>(value: b, label: b),
+        if (q.isEmpty || b.toLowerCase().contains(q)) b,
     ];
   }
 
-  late final SuperTableController<Map<String, dynamic>> _c = SuperTableController<Map<String, dynamic>>(
+  late final SuperTableController<Map<String, dynamic>>
+  _c = SuperTableController<Map<String, dynamic>>(
     mode: SuperTableMode.editable,
     addRowEnabled: true,
-    emptyRowValue: () => <String, dynamic>{'sku': '', 'warehouse': 'WH-Riyadh', 'bin': ''},
+    emptyRowValue: () => <String, dynamic>{
+      'sku': '',
+      'warehouse': 'WH-Riyadh',
+      'bin': '',
+    },
     columns: [
       SuperTextColumn(key: 'sku', label: 'SKU', width: 130, mono: true),
       SuperComboColumn<String>(
@@ -71,7 +78,11 @@ class _AsyncComboExampleState extends State<AsyncComboExample> {
       ),
     ],
     rows: [
-      SuperRow.map({'sku': 'ITM-001', 'warehouse': 'WH-Riyadh', 'bin': 'R-A01'}),
+      SuperRow.map({
+        'sku': 'ITM-001',
+        'warehouse': 'WH-Riyadh',
+        'bin': 'R-A01',
+      }),
       SuperRow.map({'sku': 'ITM-002', 'warehouse': 'WH-Jeddah', 'bin': 'J-14'}),
     ],
   );
@@ -87,7 +98,10 @@ class _AsyncComboExampleState extends State<AsyncComboExample> {
     final t = context.superTheme;
     return Scaffold(
       backgroundColor: t.bg,
-      appBar: AppBar(title: const Text('Async combo (fingerPrint rebuild)'), backgroundColor: t.surface),
+      appBar: AppBar(
+        title: const Text('Async combo (fingerPrint rebuild)'),
+        backgroundColor: t.surface,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -95,7 +109,10 @@ class _AsyncComboExampleState extends State<AsyncComboExample> {
           children: [
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
-              child: Text('Double-click a Bin cell to search "remotely". Change the Warehouse and the Bin list rescopes.', style: TextStyle(color: t.fg3)),
+              child: Text(
+                'Double-click a Bin cell to search "remotely". Change the Warehouse and the Bin list rescopes.',
+                style: TextStyle(color: t.fg3),
+              ),
             ),
             Flexible(child: SuperTable<Map<String, dynamic>>(controller: _c)),
           ],

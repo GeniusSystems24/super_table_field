@@ -188,12 +188,18 @@ class SuperComboColumn<T> extends SuperColumn<T> {
   // static values (optional shorthand source)
   final List<T> values;
   final String Function(T value) display;
+  final AutoSuggestionBuilder<T>? suggestionBuilder;
 
   // ── normal AutoSuggestionsBox options (one for all cells) ──
   final bool advancedSearch;
   final Widget Function(BuildContext, AutoSuggestionsBoxController<T>)?
   advancedSearchBuilder;
-  final Widget Function(BuildContext, AutoSuggestion<T>, bool highlighted)?
+  final Widget Function(
+    BuildContext context,
+    T item,
+    AutoSuggestion<T> suggestion,
+    bool highlighted,
+  )?
   itemBuilder;
   final Widget Function(BuildContext, String query)? loadingBuilder;
   final Widget Function(BuildContext, String query)? emptyBuilder;
@@ -203,7 +209,7 @@ class SuperComboColumn<T> extends SuperColumn<T> {
   final bool highlightMatch;
   final int maxVisibleRows;
   final bool clearButton;
-  final ValueChanged<AutoSuggestion<T>>? onSelected;
+  final ValueChanged<T>? onSelected;
   final bool allowFreeText;
 
   // ── rebuildable options (per row, re-created on fingerPrint change) ──
@@ -230,6 +236,7 @@ class SuperComboColumn<T> extends SuperColumn<T> {
     super.formatter,
     this.values = const [],
     String Function(T value)? display,
+    this.suggestionBuilder,
     super.width = 150,
     super.align,
     super.pin,
@@ -267,6 +274,52 @@ class SuperComboColumn<T> extends SuperColumn<T> {
          opts: _displays(values, display),
          optValues: values,
        );
+
+  /// Whether this column has a custom suggestion row builder.
+  bool get hasItemBuilder => itemBuilder != null;
+
+  /// Builds the suggestion metadata for a raw combo [value].
+  AutoSuggestion<T> buildSuggestion(
+    List<Object?> items,
+    int index,
+    Object? value,
+  ) {
+    final typedValue = value as T;
+    final builder = suggestionBuilder;
+    if (builder != null) {
+      return builder(
+        List<T>.generate(items.length, (i) => items[i] as T, growable: false),
+        index,
+        typedValue,
+      );
+    }
+    final label = display(typedValue);
+    return AutoSuggestion<T>(
+      value: typedValue,
+      label: label,
+      keywords: [label, if (value != null) '$value'],
+    );
+  }
+
+  /// Builds a custom suggestion row from raw editor values.
+  Widget buildItem(
+    BuildContext context,
+    Object? item,
+    AutoSuggestion<dynamic> suggestion,
+    bool highlighted,
+  ) {
+    return itemBuilder!(
+      context,
+      item as T,
+      suggestion as AutoSuggestion<T>,
+      highlighted,
+    );
+  }
+
+  /// Invokes [onSelected] from the raw-value editor boundary.
+  void notifySelected(Object? value) {
+    onSelected?.call(value as T);
+  }
 }
 
 // ── progress ──────────────────────────────────────────────────────────────────

@@ -43,7 +43,7 @@ import 'package:super_table_field/super_table_field.dart';
 | Dart SDK | `3.8.0` |
 | Flutter SDK | `3.32.0` |
 | `super_core` | `3.3.0` |
-| `super_auto_suggestion_box` | `0.13.0` |
+| `super_auto_suggestion_box` | `1.0.0` |
 | `super_form_field` | `1.8.1` |
 
 ## Installation
@@ -902,6 +902,25 @@ SuperComboColumn<String>(
   values: const ['Piece', 'Box', 'Carton'],
   allowFreeText: false,
   clearButton: true,
+);
+```
+
+`SuperComboColumn` follows `super_auto_suggestion_box` 1.0.0: suggestion data,
+selection callbacks, and row-scoped sources use raw `T` values. Metadata is
+derived from optional `suggestionBuilder`, then the column's `display` callback.
+Custom rows can read the built `AutoSuggestion<T>` from `itemBuilder`.
+
+```dart
+SuperComboColumn<String>(
+  key: 'account',
+  label: 'Account',
+  values: const ['1010 · Cash', '4000 · Revenue'],
+  suggestionBuilder: (items, index, account) => AutoSuggestion<String>(
+    value: account,
+    label: account.split(' · ').last,
+    description: account.split(' · ').first,
+    keywords: [account],
+  ),
 );
 ```
 

@@ -2308,9 +2308,8 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
     );
   }
 
-  /// Gutter cell variant used when expansion is enabled. Shows a rotating
-  /// chevron alongside the row number. The chevron's [GestureDetector] consumes
-  /// the tap so it does NOT also trigger the parent's row-select handler.
+  /// Gutter cell variant used when expansion is enabled. Tapping anywhere in
+  /// the row-number cell selects the row and toggles its expansion state.
   Widget _rowGutterWithExpand(
     SuperTableSkin skin,
     int r,
@@ -2332,6 +2331,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
           meta: _meta(HardwareKeyboard.instance.logicalKeysPressed),
         );
         _fireRowTap(r);
+        _toggleExpansion(row, exp);
       },
       child: Container(
         width: _gutterW,
@@ -2348,20 +2348,16 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Chevron tap is consumed here; does NOT propagate to row-select.
-            GestureDetector(
-              onTap: () => _toggleExpansion(row, exp),
-              child: Padding(
-                padding: const EdgeInsetsDirectional.only(end: 1),
-                child: AnimatedRotation(
-                  turns: expanded ? 0.5 : 0.0,
-                  duration: exp.animationDuration,
-                  curve: exp.animationCurve,
-                  child: Icon(
-                    Icons.expand_more_rounded,
-                    size: 13,
-                    color: expanded ? skin.accent(context) : skin.fg4,
-                  ),
+            Padding(
+              padding: const EdgeInsetsDirectional.only(end: 1),
+              child: AnimatedRotation(
+                turns: expanded ? 0.5 : 0.0,
+                duration: exp.animationDuration,
+                curve: exp.animationCurve,
+                child: Icon(
+                  Icons.expand_more_rounded,
+                  size: 13,
+                  color: expanded ? skin.accent(context) : skin.fg4,
                 ),
               ),
             ),
@@ -2488,7 +2484,9 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
         ),
       );
     }
-    if (c.pagination == SuperPagination.pages && !c.grouped && c.pageCount > 1) {
+    if (c.pagination == SuperPagination.pages &&
+        !c.grouped &&
+        c.pageCount > 1) {
       out.add(_buildPager(skin));
     }
     out.add(_buildStatusHint(skin));

@@ -8,8 +8,14 @@ All notable changes to **super_table_field** are documented here. Format follows
 ### Changed
 
 - Migrated the package to `super_core >=3.3.0 <4.0.0`.
-- Updated `super_auto_suggestion_box` to `>=0.13.0 <1.0.0` and
+- Updated `super_auto_suggestion_box` to `>=1.0.0 <2.0.0` and
   `super_form_field` to `>=1.8.1 <2.0.0`.
+- Migrated combo columns to the `super_auto_suggestion_box` 1.0.0 raw-value API:
+  static sources, row-scoped sources, `itemBuilder`, and `onSelected` now use
+  raw `T` values while the table editor derives suggestion metadata internally.
+- Added optional `SuperComboColumn.suggestionBuilder` for custom suggestion
+  labels, descriptions, keywords, icons, trailing metadata, and grouping while
+  keeping combo sources raw-value based.
 - Updated all `SuperMaterialThemeData.light` / `.dark` examples to provide the
   now-required `SuperTextTheme` values for `textTheme` and `primaryTextTheme`.
 - Migrated table body, display, and monospace font-family reads from
@@ -28,6 +34,9 @@ All notable changes to **super_table_field** are documented here. Format follows
   `primaryTextTheme` values of type `SuperTextTheme`.
 - Do not derive body/display/mono text families from `SuperThemeData.tokens`;
   configure them on `SuperTextTheme`.
+- Combo source builders should now return raw values, for example
+  `SuggestionSources.list<String>(units)` or `Future<List<String>>` from async
+  sources. `SuperComboColumn.onSelected` receives the raw selected value.
 
 ## [2.5.1] - 2026-07-29
 

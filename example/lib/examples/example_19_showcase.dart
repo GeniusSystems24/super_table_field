@@ -168,9 +168,7 @@ class _ShowcaseExampleState extends State<ShowcaseExample> {
       hintText: 'Pick unit',
       sourceController: (context, controller, row, cell) {
         final units = _unitsFor(row['category']);
-        return SuggestionSources.list<String>([
-          for (final unit in units) AutoSuggestion(value: unit, label: unit),
-        ]);
+        return SuggestionSources.list<String>(units);
       },
     ),
     SuperCurrencyColumn(
@@ -437,9 +435,9 @@ class _ShowcaseExampleState extends State<ShowcaseExample> {
                 showRedoUndoButtons: _showUndoButton,
                 groupFooters: true,
                 skeletonRows: 5,
-                maxHeight: _c.pagination == SuperPagination.infinite
-                    ? 420
-                    : null,
+                // maxHeight: _c.pagination == SuperPagination.infinite
+                //     ? 420
+                //     : null,
                 interactions: SuperInteractions<_Row>(
                   onRowActivate: (details) {
                     final row = details.row.value;

@@ -1,8 +1,8 @@
 # Migration to super_table_field 2.6.0
 
 Version 2.6.0 aligns the package with the explicit typography API introduced in
-`super_core 3.3.0`, together with the matching `super_auto_suggestion_box 0.13.0`
-and `super_form_field 1.8.1+` packages.
+`super_core 3.3.0`, together with the raw-value suggestion API in
+`super_auto_suggestion_box 1.0.0` and `super_form_field 1.8.1+`.
 
 ## Requirements
 
@@ -15,12 +15,36 @@ dependencies:
   super_table_field: ^2.6.0
   # Add these directly only when your app imports them independently.
   super_core: ">=3.3.0 <4.0.0"
-  super_auto_suggestion_box: ">=0.13.0 <1.0.0"
+  super_auto_suggestion_box: ">=1.0.0 <2.0.0"
   super_form_field: ">=1.8.1 <2.0.0"
 ```
 
 The `super_table_field` barrel continues to re-export `super_core` and
 `super_auto_suggestion_box`.
+
+## Combo column migration
+
+`super_auto_suggestion_box` 1.0.0 uses raw `T` values at the public API
+boundary. `SuperComboColumn<T>` follows that contract:
+
+```dart
+SuperComboColumn<String>(
+  key: 'unit',
+  label: 'Unit',
+  values: const ['Piece', 'Box', 'Carton'],
+  onSelected: (unit) {
+    // unit is the raw String value.
+  },
+  sourceController: (context, controller, row, cell) {
+    return SuggestionSources.list<String>(['Piece', 'Box', 'Carton']);
+  },
+);
+```
+
+Do not wrap `values`, `SuggestionSources.*` items, async fetch results, or
+`onSelected` values in `AutoSuggestion<T>`. The table editor now builds
+suggestion metadata from `SuperComboColumn.suggestionBuilder` when provided,
+otherwise from each column's `display` callback.
 
 ## Theme setup
 

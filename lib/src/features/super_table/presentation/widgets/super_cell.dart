@@ -406,10 +406,7 @@ class _SuperComboEditorState extends State<_SuperComboEditor> {
       final ovals = widget.col.optValues;
       source = SuggestionSources.list<dynamic>([
         for (var i = 0; i < opts.length; i++)
-          AutoSuggestion<dynamic>(
-            value: ovals != null && i < ovals.length ? ovals[i] : opts[i],
-            label: opts[i],
-          ),
+          ovals != null && i < ovals.length ? ovals[i] : opts[i],
       ]);
     }
 
@@ -440,7 +437,10 @@ class _SuperComboEditorState extends State<_SuperComboEditor> {
 
   @override
   void dispose() {
-    if (_ownsBox) _box.dispose();
+    if (_ownsBox) {
+      widget.controller.disposeCombo(widget.row, widget.col.key);
+      _box.dispose();
+    }
     _focus.dispose();
     _text.dispose();
     super.dispose();
@@ -470,51 +470,87 @@ class _SuperComboEditorState extends State<_SuperComboEditor> {
     final col = _combo;
     final opts = widget.col.opts ?? const <String>[];
     final l10n = context.superTableTranslations;
+    // AutoSuggestionsBox uses fieldHeight as a fixed field height. Leave one
+    // physical pixel for the table cell border inside the tight row constraint.
+    final fieldHeight = widget.height > 1 ? widget.height - 1 : widget.height;
     return Theme(
       data: Theme.of(context).copyWith(extensions: [_boxTheme(skin)]),
-      child: AutoSuggestionsBox(
-        controller: _box,
-        focusNode: _focus,
-        bare: true,
-        autofocus: true,
-        openOnFocus: true,
-        scrollOnFocus: false,
-        clearButton: col?.clearButton ?? false,
-        fieldHeight: widget.height,
-        maxVisibleRows: col?.maxVisibleRows ?? 7,
-        highlightMatches: col?.highlightMatch ?? true,
-        advancedSearch: col?.advancedSearch ?? false,
-        advancedSearchBuilder: col?.advancedSearchBuilder,
-        itemBuilder: col?.itemBuilder,
-        loadingBuilder: col?.loadingBuilder,
-        emptyBuilder: col?.emptyBuilder,
-        leading: col?.leading,
-        hintText:
-            col?.hintText ??
-            (opts.isEmpty ? l10n.typeValueHint : l10n.typeOrPickHint),
-        textStyle: TextStyle(
-          fontFamily: widget.col.mono
-              ? context.superTextTheme.mono.fontFamily
-              : context.superTextTheme.body.fontFamily,
-          fontSize: 13,
-          height: 1.2,
-          color: skin.fg1,
+      child: SizedBox(
+        height: widget.height,
+        child: Align(
+          alignment: Alignment.topCenter,
+          child: AutoSuggestionsBox(
+            controller: _box,
+            focusNode: _focus,
+            bare: true,
+            autofocus: true,
+            openOnFocus: true,
+            scrollOnFocus: false,
+            clearButton: col?.clearButton ?? false,
+            fieldHeight: fieldHeight,
+            maxVisibleRows: col?.maxVisibleRows ?? 7,
+            highlightMatches: col?.highlightMatch ?? true,
+            advancedSearch: col?.advancedSearch ?? false,
+            advancedSearchBuilder: col?.advancedSearchBuilder,
+            suggestionBuilder: _suggestionFor,
+            itemBuilder: col == null || !col.hasItemBuilder
+                ? null
+                : _itemBuilder,
+            loadingBuilder: col?.loadingBuilder,
+            emptyBuilder: col?.emptyBuilder,
+            leading: col?.leading,
+            hintText:
+                col?.hintText ??
+                (opts.isEmpty ? l10n.typeValueHint : l10n.typeOrPickHint),
+            textStyle: TextStyle(
+              fontFamily: widget.col.mono
+                  ? context.superTextTheme.mono.fontFamily
+                  : context.superTextTheme.body.fontFamily,
+              fontSize: 13,
+              height: 1.2,
+              color: skin.fg1,
+            ),
+            onChanged: widget.onChanged,
+            onSelected: (value) {
+              col?.notifySelected(value);
+              widget.onChanged('$value');
+              widget.onCommit(override: value, dr: 0, dc: 0);
+            },
+            onSubmitted: (raw) {
+              col?.onSubmitted?.call(raw);
+              widget.onCommit(override: raw, dr: 0, dc: 0);
+            },
+            onEscape: widget.onCancel,
+            onTabNext: () =>
+                widget.onCommit(override: _box.query, dr: 0, dc: 1),
+            onTabPrev: () =>
+                widget.onCommit(override: _box.query, dr: 0, dc: -1),
+          ),
         ),
-        onChanged: widget.onChanged,
-        onSelected: (s) {
-          col?.onSelected?.call(s);
-          widget.onChanged('${s.value}');
-          widget.onCommit(override: s.value, dr: 0, dc: 0);
-        },
-        onSubmitted: (raw) {
-          col?.onSubmitted?.call(raw);
-          widget.onCommit(override: raw, dr: 0, dc: 0);
-        },
-        onEscape: widget.onCancel,
-        onTabNext: () => widget.onCommit(override: _box.query, dr: 0, dc: 1),
-        onTabPrev: () => widget.onCommit(override: _box.query, dr: 0, dc: -1),
       ),
     );
+  }
+
+  AutoSuggestion<dynamic> _suggestionFor(
+    List<dynamic> items,
+    int index,
+    dynamic value,
+  ) {
+    final col = _combo;
+    if (col != null) {
+      return col.buildSuggestion(items, index, value);
+    }
+    final label = SuperColumnLogic.displayOf(widget.col, value);
+    return AutoSuggestion<dynamic>(value: value, label: label);
+  }
+
+  Widget _itemBuilder(
+    BuildContext context,
+    dynamic item,
+    AutoSuggestion<dynamic> suggestion,
+    bool highlighted,
+  ) {
+    return _combo!.buildItem(context, item, suggestion, highlighted);
   }
 }
 

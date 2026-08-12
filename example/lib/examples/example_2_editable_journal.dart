@@ -27,15 +27,41 @@ class _EditableJournalExampleState extends State<EditableJournalExample> {
     _c = SuperTableController<Map<String, dynamic>>(
       mode: SuperTableMode.editable,
       addRowEnabled: true,
-      emptyRowValue: () => <String, dynamic>{'account': '', 'memo': '', 'debit': 0, 'credit': 0},
+      emptyRowValue: () => <String, dynamic>{
+        'account': '',
+        'memo': '',
+        'debit': 0,
+        'credit': 0,
+      },
       columns: [
-        SuperEnumerationColumn<String>(
+        SuperComboColumn<String>(
           key: 'account',
           label: 'Account',
           width: 200,
           required: true,
-          values: const ['1010 · Cash', '1200 · Receivable', '2000 · Payable', '4000 · Revenue', '5000 · Expense'],
-          validator: (ctx, c, row, cell, v) => (v.isEmpty) ? 'Pick an account' : null,
+          allowFreeText: false,
+          clearButton: true,
+          hintText: 'Search account',
+          values: const [
+            '1010 · Cash',
+            '1200 · Receivable',
+            '2000 · Payable',
+            '4000 · Revenue',
+            '5000 · Expense',
+          ],
+          suggestionBuilder: (items, index, account) {
+            final parts = account.split(' · ');
+            final code = parts.first;
+            final name = parts.length > 1 ? parts.last : account;
+            return AutoSuggestion<String>(
+              value: account,
+              label: name,
+              description: code,
+              keywords: [account, code, name],
+            );
+          },
+          validator: (ctx, c, row, cell, v) =>
+              (v.isEmpty) ? 'Pick an account' : null,
         ),
         SuperTextColumn(key: 'memo', label: 'Memo', width: 220),
         SuperNumberColumn<num>(
@@ -61,8 +87,18 @@ class _EditableJournalExampleState extends State<EditableJournalExample> {
         ),
       ],
       rows: [
-        SuperRow.map({'account': '1010 · Cash', 'memo': 'Opening balance', 'debit': 5000, 'credit': 0}),
-        SuperRow.map({'account': '4000 · Revenue', 'memo': 'Opening balance', 'debit': 0, 'credit': 5000}),
+        SuperRow.map({
+          'account': '1010 · Cash',
+          'memo': 'Opening balance',
+          'debit': 5000,
+          'credit': 0,
+        }),
+        SuperRow.map({
+          'account': '4000 · Revenue',
+          'memo': 'Opening balance',
+          'debit': 0,
+          'credit': 5000,
+        }),
       ],
       onChange: (_) => setState(() {}),
     );
@@ -90,7 +126,10 @@ class _EditableJournalExampleState extends State<EditableJournalExample> {
     final balanced = tot.debit == tot.credit;
     return Scaffold(
       backgroundColor: t.bg,
-      appBar: AppBar(title: const Text('Editable journal entry'), backgroundColor: t.surface),
+      appBar: AppBar(
+        title: const Text('Editable journal entry'),
+        backgroundColor: t.surface,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -101,23 +140,40 @@ class _EditableJournalExampleState extends State<EditableJournalExample> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: balanced ? const Color(0x141DB88A) : const Color(0x14EF4444),
+                color: balanced
+                    ? const Color(0x141DB88A)
+                    : const Color(0x14EF4444),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: balanced ? const Color(0xFF1DB88A) : const Color(0xFFEF4444)),
-              ),
-              child: Row(children: [
-                Icon(balanced ? Icons.check_circle_outline : Icons.error_outline, size: 18, color: balanced ? const Color(0xFF1DB88A) : const Color(0xFFEF4444)),
-                const SizedBox(width: 10),
-                Text(balanced ? 'Balanced' : 'Out of balance', style: TextStyle(fontWeight: FontWeight.w700, color: t.fg1)),
-                const Spacer(),
-                Text(
-                  'Debit \$${tot.debit}   ·   Credit \$${tot.credit}',
-                  style: TextStyle(
-                    fontFamily: context.superTextTheme.mono.fontFamily,
-                    color: t.fg2,
-                  ),
+                border: Border.all(
+                  color: balanced
+                      ? const Color(0xFF1DB88A)
+                      : const Color(0xFFEF4444),
                 ),
-              ]),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    balanced ? Icons.check_circle_outline : Icons.error_outline,
+                    size: 18,
+                    color: balanced
+                        ? const Color(0xFF1DB88A)
+                        : const Color(0xFFEF4444),
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    balanced ? 'Balanced' : 'Out of balance',
+                    style: TextStyle(fontWeight: FontWeight.w700, color: t.fg1),
+                  ),
+                  const Spacer(),
+                  Text(
+                    'Debit \$${tot.debit}   ·   Credit \$${tot.credit}',
+                    style: TextStyle(
+                      fontFamily: context.superTextTheme.mono.fontFamily,
+                      color: t.fg2,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
