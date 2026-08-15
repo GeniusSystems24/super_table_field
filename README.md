@@ -21,7 +21,7 @@ import 'package:super_table_field/super_table_field.dart';
 - Generic rows through `SuperRow<R>` with support for map-backed and typed domain models.
 - Readable and editable modes that can be changed at runtime.
 - Thirteen column types, including text, number, currency, enum, combo, date, checkbox, computed, and read-only columns.
-- Inline editors based on `super_form_field`; combo cells use `AutoSuggestionsBox`.
+- Inline editors based on `super_form_field`; combo cells use `SuperAutoSuggestionsBox`.
 - Single-cell, multi-cell, single-row, and multi-row selection modes.
 - Search, per-column filters, and advanced cross-column filters.
 - Multi-level grouping, group aggregates, group footers, and grand totals.
@@ -44,8 +44,8 @@ import 'package:super_table_field/super_table_field.dart';
 | Dart SDK | `3.8.0` |
 | Flutter SDK | `3.32.0` |
 | `super_core` | `3.3.0` |
-| `super_auto_suggestion_box` | `1.0.0` |
-| `super_form_field` | `1.8.1` |
+| `super_auto_suggestion_box` | `1.1.0` |
+| `super_form_field` | `1.8.2` |
 
 ## Installation
 
@@ -53,7 +53,7 @@ Add the package to `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  super_table_field: ^2.7.0
+  super_table_field: ^2.7.2
 ```
 
 Then install the dependency:
@@ -906,20 +906,24 @@ SuperComboColumn<String>(
 );
 ```
 
-`SuperComboColumn` follows `super_auto_suggestion_box` 1.0.0: suggestion data,
+`SuperComboColumn` follows `super_auto_suggestion_box` 1.1.0: suggestion data,
 selection callbacks, and row-scoped sources use raw `T` values. Metadata is
 derived from optional `suggestionBuilder`, then the column's `display` callback.
-Custom rows can read the built `AutoSuggestion<T>` from `itemBuilder`.
+Custom rows can read the built `SuperAutoSuggestionsItem<T>` from `itemBuilder`.
+In `super_auto_suggestion_box 1.1.0`, the source is bound to
+`SuperAutoSuggestionsBox` rather than `SuperAutoSuggestionsController`; the
+table handles that binding internally for both static `values` and
+`sourceController` sources.
 
 ```dart
 SuperComboColumn<String>(
   key: 'account',
   label: 'Account',
   values: const ['1010 · Cash', '4000 · Revenue'],
-  suggestionBuilder: (items, index, account) => AutoSuggestion<String>(
+  suggestionBuilder: (items, index, account) => SuperAutoSuggestionsItem<String>(
     value: account,
-    label: account.split(' · ').last,
-    description: account.split(' · ').first,
+    titleText: account.split(' · ').last,
+    descriptionText: account.split(' · ').first,
     keywords: [account],
   ),
 );

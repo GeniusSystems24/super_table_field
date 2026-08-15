@@ -3,6 +3,21 @@
 All notable changes to **super_table_field** are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/); versioning is [SemVer](https://semver.org/).
 
+## [2.7.2] - 2026-08-16
+
+### Changed
+
+- Updated `super_auto_suggestion_box` to `>=1.1.0 <2.0.0`.
+- Migrated combo integration to the 1.1.0 `Super`-prefixed APIs:
+  `SuperAutoSuggestionsBox`, `SuperAutoSuggestionsController`,
+  `SuperAutoSuggestionsSource`, and `SuperAutoSuggestionsItem`.
+- Moved combo `source` binding to `SuperAutoSuggestionsBox` while keeping
+  controller state separate, matching the 1.1.0 source/controller contract.
+- Updated custom suggestion metadata fields from `label` / `description` to
+  `titleText` / `descriptionText`.
+- Updated README, migration guidance, skill instructions, tests, and example
+  screens for the 1.1.0 API.
+
 ## [2.7.1] - 2026-08-15
 
 ### Fixed

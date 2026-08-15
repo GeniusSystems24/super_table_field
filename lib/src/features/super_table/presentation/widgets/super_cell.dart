@@ -6,7 +6,7 @@
 // (with optional conditional-style overrides handed in by the grid); editors
 // drive the controller's draft + commit.
 //
-// `combo` cells are edited through the design-system-native AutoSuggestionsBox.
+// `combo` cells are edited through the design-system-native SuperAutoSuggestionsBox.
 // In 0.4.0 the box's source + controller can be supplied per-cell by the
 // column's `sourceController` / `cellController` builders and are rebuilt
 // whenever the row's `fingerPrint` changes (cached on the SuperTableController).
@@ -317,7 +317,7 @@ Color? _parseHex(String s) {
 }
 
 // ============================================================
-// Combo cell editor — embeds the AutoSuggestionsBox, with per-cell source +
+// Combo cell editor — embeds SuperAutoSuggestionsBox, with per-cell source +
 // controller (rebuildable on fingerPrint change), cached on the table
 // controller's combo registries.
 // ============================================================
@@ -352,7 +352,8 @@ class _SuperComboEditorState extends State<_SuperComboEditor> {
     text: widget.value,
   );
   late final FocusNode _focus = FocusNode(debugLabel: 'SuperCombo');
-  late AutoSuggestionsBoxController _box;
+  late SuperAutoSuggestionsController<dynamic> _box;
+  late SuperAutoSuggestionsSource<dynamic> _source;
   bool _ownsBox = false;
 
   SuperComboColumn? get _combo =>
@@ -383,9 +384,11 @@ class _SuperComboEditorState extends State<_SuperComboEditor> {
     final col = _combo;
     final reuse = !c.comboNeedsRebuild(widget.row, widget.col.key);
     if (reuse) {
-      final cached = c.comboControllerFor(widget.row, widget.col.key);
-      if (cached != null) {
-        _box = cached;
+      final cachedController = c.comboControllerFor(widget.row, widget.col.key);
+      final cachedSource = c.comboSourceFor(widget.row, widget.col.key);
+      if (cachedController != null && cachedSource != null) {
+        _box = cachedController;
+        _source = cachedSource;
         _ownsBox = false;
         return;
       }
@@ -393,7 +396,7 @@ class _SuperComboEditorState extends State<_SuperComboEditor> {
 
     // Build a source: explicit sourceController ▸ static values ▸ empty.
     // Typed as <dynamic> so any SuperComboColumn<T> source slots in.
-    AutoSuggestionsSource source;
+    SuperAutoSuggestionsSource<dynamic> source;
     if (col != null && col.hasSourceController) {
       source = col.buildSource(
         context,
@@ -420,17 +423,17 @@ class _SuperComboEditorState extends State<_SuperComboEditor> {
       );
       _ownsBox = false;
     } else {
-      _box = AutoSuggestionsBoxController<dynamic>(
-        source: source,
+      _box = SuperAutoSuggestionsController<dynamic>(
         textController: _text,
         allowFreeText: col?.allowFreeText ?? true,
       );
       _ownsBox = true;
     }
+    _source = source;
     c.registerCombo(
       widget.row,
       widget.col.key,
-      source: source,
+      source: _source,
       controller: _box,
     );
   }
@@ -470,7 +473,7 @@ class _SuperComboEditorState extends State<_SuperComboEditor> {
     final col = _combo;
     final opts = widget.col.opts ?? const <String>[];
     final l10n = context.superTableTranslations;
-    // AutoSuggestionsBox uses fieldHeight as a fixed field height. Leave one
+    // SuperAutoSuggestionsBox uses fieldHeight as a fixed field height. Leave one
     // physical pixel for the table cell border inside the tight row constraint.
     final fieldHeight = widget.height > 1 ? widget.height - 1 : widget.height;
     return Theme(
@@ -479,8 +482,9 @@ class _SuperComboEditorState extends State<_SuperComboEditor> {
         height: widget.height,
         child: Align(
           alignment: Alignment.topCenter,
-          child: AutoSuggestionsBox(
+          child: SuperAutoSuggestionsBox<dynamic>(
             controller: _box,
+            source: _source,
             focusNode: _focus,
             bare: true,
             autofocus: true,
@@ -533,7 +537,7 @@ class _SuperComboEditorState extends State<_SuperComboEditor> {
     );
   }
 
-  AutoSuggestion<dynamic> _suggestionFor(
+  SuperAutoSuggestionsItem<dynamic> _suggestionFor(
     List<dynamic> items,
     int index,
     dynamic value,
@@ -543,13 +547,16 @@ class _SuperComboEditorState extends State<_SuperComboEditor> {
       return col.buildSuggestion(items, index, value);
     }
     final label = SuperColumnLogic.displayOf(widget.col, value);
-    return AutoSuggestion<dynamic>(value: value, label: label);
+    return SuperAutoSuggestionsItem<dynamic>(
+      value: value,
+      titleText: label,
+    );
   }
 
   Widget _itemBuilder(
     BuildContext context,
     dynamic item,
-    AutoSuggestion<dynamic> suggestion,
+    SuperAutoSuggestionsItem<dynamic> suggestion,
     bool highlighted,
   ) {
     return _combo!.buildItem(context, item, suggestion, highlighted);

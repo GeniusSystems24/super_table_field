@@ -1,4 +1,65 @@
-# Migration to super_table_field 2.6.0
+# Migration to super_table_field 2.7.2
+
+Version 2.7.2 updates combo integration to `super_auto_suggestion_box 1.1.0` and
+uses the non-deprecated `Super`-prefixed suggestion APIs.
+
+## Requirements
+
+```yaml
+dependencies:
+  super_table_field: ^2.7.2
+  # Add directly only when importing it independently.
+  super_auto_suggestion_box: ">=1.1.0 <2.0.0"
+```
+
+## Suggestion API migration
+
+`SuperComboColumn<T>` continues to expose raw `T` values for sources and
+selection. Custom suggestion metadata now uses `SuperAutoSuggestionsItem<T>`:
+
+```dart
+SuperComboColumn<String>(
+  key: 'account',
+  label: 'Account',
+  values: const ['1010 · Cash', '2000 · Payable'],
+  suggestionBuilder: (items, index, account) {
+    final parts = account.split(' · ');
+    return SuperAutoSuggestionsItem<String>(
+      value: account,
+      titleText: parts.last,
+      descriptionText: parts.first,
+      keywords: parts,
+    );
+  },
+);
+```
+
+When using the suggestion box directly, configure `source` and
+`suggestionBuilder` on `SuperAutoSuggestionsBox`; the controller owns state only:
+
+```dart
+final controller = SuperAutoSuggestionsController<String>(
+  allowFreeText: true,
+);
+
+SuperAutoSuggestionsBox<String>(
+  controller: controller,
+  source: SuggestionSources.list<String>(const ['Piece', 'Box', 'Carton']),
+  suggestionBuilder: (items, index, value) => SuperAutoSuggestionsItem(
+    value: value,
+    titleText: value,
+  ),
+);
+```
+
+For row-scoped table combos, `sourceController` returns a
+`SuperAutoSuggestionsSource<T>` and `cellController` returns a
+`SuperAutoSuggestionsController<T>`. The table passes the resolved source to the
+widget, matching the 1.1.0 contract.
+
+---
+
+# Previous migration: super_table_field 2.6.0
 
 Version 2.6.0 aligns the package with the explicit typography API introduced in
 `super_core 3.3.0`, together with the raw-value suggestion API in

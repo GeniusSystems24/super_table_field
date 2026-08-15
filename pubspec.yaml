@@ -5,11 +5,11 @@ description: >
   tracking, filtering, aggregations, selection stats, conditional styling,
   grouping, totals, pagination, CSV/TSV/JSON export, row reordering, cell
   locking, interaction events, runtime column config (reorder/pin/show-hide),
-  clipboard, undo/redo, and AutoSuggestionsBox integration. Supports
+  clipboard, undo/redo, and SuperAutoSuggestionsBox integration. Supports
   light/dark themes and LTR/RTL via SuperMaterialThemeData.
 
 # package version
-version: 2.7.1
+version: 2.7.2
 
 # package homepage, repository, and issue tracker
 homepage: https://geniussystems24.github.io/super_table_field
@@ -35,7 +35,7 @@ dependencies:
   intl: ^0.20.0
   # Shared GeniusLink design-system foundation and migrated typeahead.
   super_core: ">=3.3.0 <4.0.0"
-  super_auto_suggestion_box: ">=1.0.0 <2.0.0"
+  super_auto_suggestion_box: ">=1.1.0 <2.0.0"
   super_form_field: ">=1.8.2 <2.0.0"
 
 dev_dependencies:

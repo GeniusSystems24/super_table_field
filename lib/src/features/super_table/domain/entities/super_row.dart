@@ -11,7 +11,7 @@
 //
 // [fingerPrint] is a *rebuild token*: when it changes, any per-row resources a
 // cell editor built — most importantly a `SuperComboColumn`'s
-// `AutoSuggestionsSource` / `AutoSuggestionsBoxController` — are torn down and
+// `SuperAutoSuggestionsSource` / `SuperAutoSuggestionsController` — are torn down and
 // rebuilt. Bump it from an `onChange` (or call [randomFingerPrint]) when a
 // change to one cell should invalidate another cell's suggestion source.
 //

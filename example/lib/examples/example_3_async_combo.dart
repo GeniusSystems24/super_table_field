@@ -4,7 +4,7 @@
 // EXAMPLE 3 — An async combo backed by a "remote" source.
 //
 // Demonstrates: SuperComboColumn with a per-cell `sourceController` that returns
-// an ASYNC AutoSuggestionsSource (here, a fake network call), and a `fingerPrint`
+// an ASYNC SuperAutoSuggestionsSource (here, a fake network call), and a `fingerPrint`
 // rebuild: changing the "Warehouse" cell bumps the row's fingerPrint so the
 // "Bin" combo rebuilds its source scoped to the chosen warehouse.
 // ============================================================

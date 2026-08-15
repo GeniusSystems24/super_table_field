@@ -28,7 +28,7 @@
 // pin/visibility/order persisted through `SuperViewState`).
 //
 // In EDITABLE mode, `SuperColumnType.combo` cells are edited through the
-// design-system-native `AutoSuggestionsBox` (see `super_cell.dart`): type to
+// design-system-native `SuperAutoSuggestionsBox` (see `super_cell.dart`): type to
 // filter, ↑/↓ to move, Enter/click to pick, or type a free value and commit.
 // ============================================================
 

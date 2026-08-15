@@ -5,8 +5,7 @@
 // theme with explicit SuperTextTheme typography, exposes Light/Dark + LTR/RTL
 // toggle, and lists the shipped demos:
 //   • SuperTable — the unified grid. Switch to Editable and double-click the
-//     "Unit" cell: it is a `combo` column edited through the AutoSuggestionsBox.
-//   • Auto Suggestion Box — the typeahead on its own.
+//     "Unit" cell: it is a `combo` column edited through the SuperAutoSuggestionsBox.
 // ============================================================
 
 import 'package:flutter/material.dart';
@@ -122,7 +121,7 @@ class _Launcher extends StatelessWidget {
   static final List<_Demo> _demos = [
     _Demo(
       'Super Table',
-      'Editable/readable grid · typed columns · combo ⇒ AutoSuggestionsBox',
+      'Editable/readable grid · typed columns · combo ⇒ SuperAutoSuggestionsBox',
       Icons.grid_on_outlined,
       (_) => const SuperTableDemo(),
     ),

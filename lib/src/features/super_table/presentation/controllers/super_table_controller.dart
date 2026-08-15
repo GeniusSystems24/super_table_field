@@ -16,7 +16,7 @@
 //                              membership AND per-cell values, so cell edits
 //                              revert correctly (fixed in 2.1.0)
 //   • mode                   — readable ⇄ editable, switchable at runtime
-//   • combo registries       — the per-cell AutoSuggestions source + controller,
+//   • combo registries       — the per-cell SuperAutoSuggestions source + controller,
 //                              rebuilt when a row's fingerPrint changes
 //
 // Rows are [SuperRow]`<R>`: a host-owned `value` of type `R` + an editable
@@ -30,7 +30,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart' show BuildContext, FocusNode;
 
 import 'package:super_auto_suggestion_box/super_auto_suggestion_box.dart'
-    show AutoSuggestionsBoxController, AutoSuggestionsSource;
+    show SuperAutoSuggestionsController, SuperAutoSuggestionsSource;
 import '../../domain/entities/super_column.dart';
 import '../../domain/entities/super_change.dart';
 import '../../domain/entities/super_filter.dart';
@@ -232,8 +232,8 @@ class SuperTableController<R> extends ChangeNotifier {
   final List<({int index, SuperRow<R> row})> _deletedRows = [];
 
   // ── combo per-cell registries (rebuilt on fingerPrint change) ──
-  final Map<String, AutoSuggestionsBoxController> _comboCtrls = {};
-  final Map<String, AutoSuggestionsSource> _comboSources = {};
+  final Map<String, SuperAutoSuggestionsController<dynamic>> _comboCtrls = {};
+  final Map<String, SuperAutoSuggestionsSource<dynamic>> _comboSources = {};
   final Map<String, Object?> _comboFingerPrints = {};
 
   // ── reads ──
@@ -2564,15 +2564,15 @@ class SuperTableController<R> extends ChangeNotifier {
   // ── combo per-cell registries ─────────────────────────────────
   String _comboKey(SuperRow row, String colKey) => '${row.id}:$colKey';
 
-  /// The cached AutoSuggestions source for a cell (built by the View; rebuilt
+  /// The cached SuperAutoSuggestions source for a cell (built by the View; rebuilt
   /// when the row's fingerPrint changes). Null until first edit-focus.
-  AutoSuggestionsSource? comboSourceFor(SuperRow row, String colKey) =>
+  SuperAutoSuggestionsSource<dynamic>? comboSourceFor(SuperRow row, String colKey) =>
       _comboSources[_comboKey(row, colKey)];
 
-  /// The cached AutoSuggestionsBoxController for a cell. Null until first
+  /// The cached SuperAutoSuggestionsController for a cell. Null until first
   /// edit-focus. Use this to drive the cell's box from outside (open/close,
   /// inspect the selection, etc.).
-  AutoSuggestionsBoxController? comboControllerFor(
+  SuperAutoSuggestionsController<dynamic>? comboControllerFor(
     SuperRow row,
     String colKey,
   ) => _comboCtrls[_comboKey(row, colKey)];
@@ -2580,16 +2580,19 @@ class SuperTableController<R> extends ChangeNotifier {
   /// Whether a cell's combo resources are stale w.r.t. the row's fingerPrint
   /// (or have never been built). The View calls this to decide whether to
   /// rebuild them from the column's `sourceController` / `cellController`.
-  bool comboNeedsRebuild(SuperRow row, String colKey) =>
-      _comboFingerPrints[_comboKey(row, colKey)] != row.fingerPrint ||
-      !_comboCtrls.containsKey(_comboKey(row, colKey));
+  bool comboNeedsRebuild(SuperRow row, String colKey) {
+    final key = _comboKey(row, colKey);
+    return _comboFingerPrints[key] != row.fingerPrint ||
+        !_comboCtrls.containsKey(key) ||
+        !_comboSources.containsKey(key);
+  }
 
   /// Register the freshly-built combo resources for a cell (called by the View).
   void registerCombo(
     SuperRow row,
     String colKey, {
-    AutoSuggestionsSource? source,
-    AutoSuggestionsBoxController? controller,
+    SuperAutoSuggestionsSource<dynamic>? source,
+    SuperAutoSuggestionsController<dynamic>? controller,
   }) {
     final k = _comboKey(row, colKey);
     if (source != null) _comboSources[k] = source;

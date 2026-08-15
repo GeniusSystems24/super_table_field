@@ -39,7 +39,7 @@ enum SuperColumnType {
   number('number'),
   currency('currency'),
   enumeration('enum'), // strict dropdown
-  combo('combo'), //      free text + suggestions (AutoSuggestionsBox)
+  combo('combo'), //      free text + suggestions (SuperAutoSuggestionsBox)
   progress('progress'),
   color('color'),
   date('date'), //        masked YYYY-MM-DD + calendar

@@ -53,10 +53,10 @@ class _EditableJournalExampleState extends State<EditableJournalExample> {
             final parts = account.split(' · ');
             final code = parts.first;
             final name = parts.length > 1 ? parts.last : account;
-            return AutoSuggestion<String>(
+            return SuperAutoSuggestionsItem<String>(
               value: account,
-              label: name,
-              description: code,
+              titleText: name,
+              descriptionText: code,
               keywords: [account, code, name],
             );
           },

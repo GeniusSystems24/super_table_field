@@ -177,9 +177,9 @@ class SuperEnumerationColumn<T> extends SuperColumn<T> {
        );
 }
 
-// ── combo (AutoSuggestionsBox-backed) ─────────────────────────────────────────
+// ── combo (SuperAutoSuggestionsBox-backed) ─────────────────────────────────────────
 /// A pick-or-type column edited (in editable mode) through the real
-/// [AutoSuggestionsBox]. Carries the full set of box options — both the static
+/// [SuperAutoSuggestionsBox]. Carries the full set of box options — both the static
 /// ones and two **rebuildable** builders ([sourceController] / [cellController])
 /// that are re-invoked whenever the cell takes edit-focus AND the row's
 /// [SuperRow.fingerPrint] changed (or on first build), so suggestions can depend
@@ -189,33 +189,33 @@ class SuperComboColumn<T> extends SuperColumn<T> {
   final List<T> values;
   final String Function(T value) display;
   final AutoSuggestionBuilder<T>? suggestionBuilder;
-  final AutoSuggestion<dynamic> Function(
+  final SuperAutoSuggestionsItem<dynamic> Function(
     List<dynamic> items,
     int index,
     dynamic value,
   )
   _suggestionBuilderAny;
 
-  // ── normal AutoSuggestionsBox options (one for all cells) ──
+  // ── normal SuperAutoSuggestionsBox options (one for all cells) ──
   final bool advancedSearch;
-  final Widget Function(BuildContext, AutoSuggestionsBoxController<T>)?
+  final Widget Function(BuildContext, SuperAutoSuggestionsController<T>)?
   advancedSearchBuilder;
   final Widget Function(
     BuildContext context,
-    AutoSuggestionsBoxController<dynamic> controller,
+    SuperAutoSuggestionsController<dynamic> controller,
   )?
   _advancedSearchBuilderAny;
   final Widget Function(
     BuildContext context,
     T item,
-    AutoSuggestion<T> suggestion,
+    SuperAutoSuggestionsItem<T> suggestion,
     bool highlighted,
   )?
   itemBuilder;
   final Widget Function(
     BuildContext context,
     dynamic item,
-    AutoSuggestion<dynamic> suggestion,
+    SuperAutoSuggestionsItem<dynamic> suggestion,
     bool highlighted,
   )?
   _itemBuilderAny;
@@ -232,28 +232,28 @@ class SuperComboColumn<T> extends SuperColumn<T> {
   final bool allowFreeText;
 
   // ── rebuildable options (per row, re-created on fingerPrint change) ──
-  final AutoSuggestionsSource<T> Function(
+  final SuperAutoSuggestionsSource<T> Function(
     BuildContext context,
     SuperTableController<dynamic> controller,
     SuperRow row,
     SuperCell cell,
   )?
   sourceController;
-  final AutoSuggestionsSource<dynamic> Function(
+  final SuperAutoSuggestionsSource<dynamic> Function(
     BuildContext context,
     SuperTableController<dynamic> controller,
     SuperRow row,
     SuperCell cell,
   )?
   _sourceControllerAny;
-  final AutoSuggestionsBoxController<T> Function(
+  final SuperAutoSuggestionsController<T> Function(
     BuildContext context,
     SuperTableController<dynamic> controller,
     SuperRow row,
     SuperCell cell,
   )?
   cellController;
-  final AutoSuggestionsBoxController<dynamic> Function(
+  final SuperAutoSuggestionsController<dynamic> Function(
     BuildContext context,
     SuperTableController<dynamic> controller,
     SuperRow row,
@@ -314,9 +314,9 @@ class SuperComboColumn<T> extends SuperColumn<T> {
            return builder(typedItems, index, typedValue);
          }
          final label = (display ?? ((T v) => '$v'))(typedValue);
-         return AutoSuggestion<T>(
+         return SuperAutoSuggestionsItem<T>(
            value: typedValue,
-           label: label,
+           titleText: label,
            keywords: [label, if (value != null) '$value'],
          );
        }),
@@ -324,14 +324,14 @@ class SuperComboColumn<T> extends SuperColumn<T> {
            ? null
            : ((context, controller) => advancedSearchBuilder(
                context,
-               controller as AutoSuggestionsBoxController<T>,
+               controller as SuperAutoSuggestionsController<T>,
              )),
        _itemBuilderAny = itemBuilder == null
            ? null
            : ((context, item, suggestion, highlighted) => itemBuilder(
                context,
                item as T,
-               suggestion as AutoSuggestion<T>,
+               suggestion as SuperAutoSuggestionsItem<T>,
                highlighted,
              )),
        _onSelectedAny = onSelected == null
@@ -364,7 +364,7 @@ class SuperComboColumn<T> extends SuperColumn<T> {
   bool get hasAdvancedSearchBuilder => _advancedSearchBuilderAny != null;
 
   /// Builds the suggestion metadata for a raw combo [value].
-  AutoSuggestion<dynamic> buildSuggestion(
+  SuperAutoSuggestionsItem<dynamic> buildSuggestion(
     List<dynamic> items,
     int index,
     dynamic value,
@@ -374,7 +374,7 @@ class SuperComboColumn<T> extends SuperColumn<T> {
   Widget buildItem(
     BuildContext context,
     Object? item,
-    AutoSuggestion<dynamic> suggestion,
+    SuperAutoSuggestionsItem<dynamic> suggestion,
     bool highlighted,
   ) {
     return _itemBuilderAny!(context, item, suggestion, highlighted);
@@ -383,13 +383,13 @@ class SuperComboColumn<T> extends SuperColumn<T> {
   /// Builds the advanced search widget from the raw editor boundary.
   Widget buildAdvancedSearch(
     BuildContext context,
-    AutoSuggestionsBoxController<dynamic> controller,
+    SuperAutoSuggestionsController<dynamic> controller,
   ) {
     return _advancedSearchBuilderAny!(context, controller);
   }
 
   /// Builds the row-scoped suggestions source from the raw editor boundary.
-  AutoSuggestionsSource<dynamic> buildSource(
+  SuperAutoSuggestionsSource<dynamic> buildSource(
     BuildContext context,
     SuperTableController<dynamic> controller,
     SuperRow row,
@@ -399,7 +399,7 @@ class SuperComboColumn<T> extends SuperColumn<T> {
   }
 
   /// Builds the row-scoped box controller from the raw editor boundary.
-  AutoSuggestionsBoxController<dynamic> buildController(
+  SuperAutoSuggestionsController<dynamic> buildController(
     BuildContext context,
     SuperTableController<dynamic> controller,
     SuperRow row,

@@ -18,7 +18,7 @@ void main() {
     );
 
     expect(suggestion.value, '1010 · Cash');
-    expect(suggestion.label, 'Cash');
+    expect(suggestion.titleText, 'Cash');
   });
 
   test('raw combo bridge uses custom suggestionBuilder', () {
@@ -28,10 +28,10 @@ void main() {
       values: const ['1010 · Cash'],
       suggestionBuilder: (items, index, account) {
         final parts = account.split(' · ');
-        return AutoSuggestion<String>(
+        return SuperAutoSuggestionsItem<String>(
           value: account,
-          label: parts.last,
-          description: parts.first,
+          titleText: parts.last,
+          descriptionText: parts.first,
         );
       },
     );
@@ -44,7 +44,7 @@ void main() {
     );
 
     expect(suggestion.value, '1010 · Cash');
-    expect(suggestion.label, 'Cash');
-    expect(suggestion.description, '1010');
+    expect(suggestion.titleText, 'Cash');
+    expect(suggestion.descriptionText, '1010');
   });
 }

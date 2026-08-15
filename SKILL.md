@@ -12,19 +12,19 @@ description: >
   validation summary with unique columns, saved view state (order/widths/sort/
   pins/filters as JSON), interaction events (cell/row tap, activate, selection/
   sort), runtime column config (reorder/pin/show-hide + a column manager),
-  undo/redo) and AutoSuggestionsBox (a filtering combobox).
+  undo/redo) and SuperAutoSuggestionsBox (a filtering combobox).
   Apply when a Flutter app needs a themed (light/dark, LTR/RTL, English/Arabic)
   table, a typeahead field, or an editable table whose `combo` columns are
-  edited through the AutoSuggestionsBox.
+  edited through the SuperAutoSuggestionsBox.
 ---
 
 # Super Table Field — Agent Skill
 
 `super_table_field` provides the `SuperTable` data grid and wires it to the
-`AutoSuggestionsBox` typeahead from its companion package
+`SuperAutoSuggestionsBox` typeahead from its companion package
 `super_auto_suggestion_box` (which this package depends on and re-exports). In
 editable mode, the table's `combo` columns are edited through the real
-`AutoSuggestionsBox`. This skill tells you how to wire them correctly.
+`SuperAutoSuggestionsBox`. This skill tells you how to wire them correctly.
 
 ## When to use
 
@@ -42,7 +42,7 @@ come for free.
 
 ```yaml
 dependencies:
-  super_table_field: ^2.7.0
+  super_table_field: ^2.7.2
 ```
 
 ```dart
@@ -199,16 +199,20 @@ banded rows, banded columns, and first/last column emphasis. These switches are
 presentation-only; keep structure controlled by `showTotals`, `showFooter`,
 `groupFooters`, and controller grouping APIs.
 
-## The combo ⇄ AutoSuggestionsBox integration
+## The combo ⇄ SuperAutoSuggestionsBox integration
 
 This is the package's reason to exist: when `mode` is `editable` and the user
-edits a `SuperComboColumn` cell, an `AutoSuggestionsBox` opens inline. By default
+edits a `SuperComboColumn` cell, a `SuperAutoSuggestionsBox` opens inline. By default
 it is seeded from the column's `values`; you may also supply the full set of box
 options (`itemBuilder`, `hintText`, `advancedSearch`, …) and two **rebuildable**
 builders — `sourceController` / `cellController` — which are re-invoked when the
 cell takes edit-focus **and** the row's `fingerPrint` changed (so suggestions can
 depend on the rest of the row). Reach a cell's live box via
 `controller.comboControllerFor(row, key)` / `comboSourceFor(row, key)`.
+With `super_auto_suggestion_box 1.1.0`, `source` is a widget concern: keep
+row-dependent data in `sourceController` and return only controller state from
+`cellController`. The table passes the resolved source to
+`SuperAutoSuggestionsBox` and keeps `suggestionBuilder` on the widget boundary.
 
 Keyboard model inside the editor:
 
@@ -476,22 +480,24 @@ cascading **overlayCard** submenu (nests to any depth). Return `[]` to suppress.
 during horizontal scroll and **clicking a row number selects the whole row**
 (`Shift`/`⌘`-click extend or toggle).
 
-## AutoSuggestionsBox (standalone)
+## SuperAutoSuggestionsBox (standalone)
 
 ```dart
-final box = AutoSuggestionsBoxController<String>(
-  source: SuggestionSources.list<String>([
-    AutoSuggestion(value: 'each', label: 'each'),
-    AutoSuggestion(value: 'box',  label: 'box'),
-  ]),
-  allowFreeText: true,   // false = pick-only
-  multiSelect: false,
+final source = SuggestionSources.list<String>(['each', 'box']);
+final box = SuperAutoSuggestionsController<String>(
+  allowFreeText: true, // false = pick-only
 );
 
-AutoSuggestionsBox<String>(
+SuperAutoSuggestionsBox<String>(
   controller: box,
+  source: source,
+  suggestionBuilder: (items, index, value) => SuperAutoSuggestionsItem(
+    value: value,
+    titleText: value,
+  ),
+  multiSelect: false,
   hintText: 'Type or pick…',
-  onSelected: (s) => /* s.value, s.label */,
+  onSelected: (value) => /* raw String value */,
   onSubmitted: (raw) => /* free-text Enter */,
 );
 ```
@@ -521,7 +527,7 @@ Embedding tip: set `bare: true`, pass a `fieldHeight`, and provide `onEscape` /
 Clean Architecture per feature under `lib/src/features/<feature>/`:
 `data/` (datasources, models) · `domain/` (entities, usecases — pure Dart) ·
 `presentation/` (`controllers/` = Model/state as `ChangeNotifier`, `widgets/` +
-`pages/` = View). The shared tokens/widgets (`core`) and the `AutoSuggestionsBox`
+`pages/` = View). The shared tokens/widgets (`core`) and the `SuperAutoSuggestionsBox`
 live in the `super_auto_suggestion_box` dependency, re-exported through this
 package's barrel. Add new column behavior in
 `domain/usecases/super_column_logic.dart` and render in
