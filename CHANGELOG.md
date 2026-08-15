@@ -3,6 +3,13 @@
 All notable changes to **super_table_field** are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/); versioning is [SemVer](https://semver.org/).
 
+## [2.7.1] - 2026-08-15
+
+### Fixed
+
+- Editable text, numeric, and date cells now safely handle nullable focus nodes
+  while requesting focus after an editor opens.
+
 ## [2.7.0] - 2026-08-12
 
 ### Added

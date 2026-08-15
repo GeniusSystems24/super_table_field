@@ -634,7 +634,7 @@ class _SuperCellEditorState extends State<SuperCellEditor> {
         if (!mounted) return;
         final c = _textField;
         if (c == null) return;
-        c.focusNode.requestFocus();
+        c.focusNode?.requestFocus();
         c.text.selection = TextSelection(
           baseOffset: 0,
           extentOffset: c.text.text.length,
@@ -645,7 +645,7 @@ class _SuperCellEditorState extends State<SuperCellEditor> {
         if (!mounted) return;
         final c = _numericField;
         if (c == null) return;
-        c.focusNode.requestFocus();
+        c.focusNode?.requestFocus();
         c.text.selection = TextSelection(
           baseOffset: 0,
           extentOffset: c.text.text.length,
@@ -654,7 +654,7 @@ class _SuperCellEditorState extends State<SuperCellEditor> {
     } else if (t == SuperColumnType.date) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
-        _dateField?.focusNode.requestFocus();
+        _dateField?.focusNode?.requestFocus();
       });
     } else if (t == SuperColumnType.checkbox) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
