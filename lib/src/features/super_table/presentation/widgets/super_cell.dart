@@ -394,8 +394,8 @@ class _SuperComboEditorState extends State<_SuperComboEditor> {
     // Build a source: explicit sourceController ▸ static values ▸ empty.
     // Typed as <dynamic> so any SuperComboColumn<T> source slots in.
     AutoSuggestionsSource source;
-    if (col?.sourceController != null) {
-      source = col!.sourceController!(
+    if (col != null && col.hasSourceController) {
+      source = col.buildSource(
         context,
         c,
         widget.row,
@@ -411,8 +411,8 @@ class _SuperComboEditorState extends State<_SuperComboEditor> {
     }
 
     // Build a controller: explicit cellController ▸ default sharing our text.
-    if (col?.cellController != null) {
-      _box = col!.cellController!(
+    if (col != null && col.hasCellController) {
+      _box = col.buildController(
         context,
         c,
         widget.row,
@@ -491,7 +491,9 @@ class _SuperComboEditorState extends State<_SuperComboEditor> {
             maxVisibleRows: col?.maxVisibleRows ?? 7,
             highlightMatches: col?.highlightMatch ?? true,
             advancedSearch: col?.advancedSearch ?? false,
-            advancedSearchBuilder: col?.advancedSearchBuilder,
+            advancedSearchBuilder: col == null || !col.hasAdvancedSearchBuilder
+                ? null
+                : col.buildAdvancedSearch,
             suggestionBuilder: _suggestionFor,
             itemBuilder: col == null || !col.hasItemBuilder
                 ? null

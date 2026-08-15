@@ -189,6 +189,12 @@ class SuperComboColumn<T> extends SuperColumn<T> {
   final List<T> values;
   final String Function(T value) display;
   final AutoSuggestionBuilder<T>? suggestionBuilder;
+  final AutoSuggestion<dynamic> Function(
+    List<dynamic> items,
+    int index,
+    dynamic value,
+  )
+  _suggestionBuilderAny;
 
   // ── normal AutoSuggestionsBox options (one for all cells) ──
   final bool advancedSearch;
@@ -196,11 +202,23 @@ class SuperComboColumn<T> extends SuperColumn<T> {
   advancedSearchBuilder;
   final Widget Function(
     BuildContext context,
+    AutoSuggestionsBoxController<dynamic> controller,
+  )?
+  _advancedSearchBuilderAny;
+  final Widget Function(
+    BuildContext context,
     T item,
     AutoSuggestion<T> suggestion,
     bool highlighted,
   )?
   itemBuilder;
+  final Widget Function(
+    BuildContext context,
+    dynamic item,
+    AutoSuggestion<dynamic> suggestion,
+    bool highlighted,
+  )?
+  _itemBuilderAny;
   final Widget Function(BuildContext, String query)? loadingBuilder;
   final Widget Function(BuildContext, String query)? emptyBuilder;
   final String? hintText;
@@ -210,6 +228,7 @@ class SuperComboColumn<T> extends SuperColumn<T> {
   final int maxVisibleRows;
   final bool clearButton;
   final ValueChanged<T>? onSelected;
+  final void Function(dynamic value)? _onSelectedAny;
   final bool allowFreeText;
 
   // ── rebuildable options (per row, re-created on fingerPrint change) ──
@@ -220,6 +239,13 @@ class SuperComboColumn<T> extends SuperColumn<T> {
     SuperCell cell,
   )?
   sourceController;
+  final AutoSuggestionsSource<dynamic> Function(
+    BuildContext context,
+    SuperTableController<dynamic> controller,
+    SuperRow row,
+    SuperCell cell,
+  )?
+  _sourceControllerAny;
   final AutoSuggestionsBoxController<T> Function(
     BuildContext context,
     SuperTableController<dynamic> controller,
@@ -227,6 +253,13 @@ class SuperComboColumn<T> extends SuperColumn<T> {
     SuperCell cell,
   )?
   cellController;
+  final AutoSuggestionsBoxController<dynamic> Function(
+    BuildContext context,
+    SuperTableController<dynamic> controller,
+    SuperRow row,
+    SuperCell cell,
+  )?
+  _cellControllerAny;
 
   SuperComboColumn({
     required super.key,
@@ -269,6 +302,49 @@ class SuperComboColumn<T> extends SuperColumn<T> {
     super.read,
     super.write,
   }) : display = display ?? ((T v) => '$v'),
+       _suggestionBuilderAny = ((items, index, value) {
+         final typedValue = value as T;
+         final typedItems = List<T>.generate(
+           items.length,
+           (i) => items[i] as T,
+           growable: false,
+         );
+         final builder = suggestionBuilder;
+         if (builder != null) {
+           return builder(typedItems, index, typedValue);
+         }
+         final label = (display ?? ((T v) => '$v'))(typedValue);
+         return AutoSuggestion<T>(
+           value: typedValue,
+           label: label,
+           keywords: [label, if (value != null) '$value'],
+         );
+       }),
+       _advancedSearchBuilderAny = advancedSearchBuilder == null
+           ? null
+           : ((context, controller) => advancedSearchBuilder(
+               context,
+               controller as AutoSuggestionsBoxController<T>,
+             )),
+       _itemBuilderAny = itemBuilder == null
+           ? null
+           : ((context, item, suggestion, highlighted) => itemBuilder(
+               context,
+               item as T,
+               suggestion as AutoSuggestion<T>,
+               highlighted,
+             )),
+       _onSelectedAny = onSelected == null
+           ? null
+           : ((value) => onSelected(value as T)),
+       _sourceControllerAny = sourceController == null
+           ? null
+           : ((context, controller, row, cell) =>
+                 sourceController(context, controller, row, cell)),
+       _cellControllerAny = cellController == null
+           ? null
+           : ((context, controller, row, cell) =>
+                 cellController(context, controller, row, cell)),
        super(
          type: SuperColumnType.combo,
          opts: _displays(values, display),
@@ -276,30 +352,23 @@ class SuperComboColumn<T> extends SuperColumn<T> {
        );
 
   /// Whether this column has a custom suggestion row builder.
-  bool get hasItemBuilder => itemBuilder != null;
+  bool get hasItemBuilder => _itemBuilderAny != null;
+
+  /// Whether this column has a row-scoped suggestions source builder.
+  bool get hasSourceController => _sourceControllerAny != null;
+
+  /// Whether this column has a row-scoped box controller builder.
+  bool get hasCellController => _cellControllerAny != null;
+
+  /// Whether this column has a custom advanced search builder.
+  bool get hasAdvancedSearchBuilder => _advancedSearchBuilderAny != null;
 
   /// Builds the suggestion metadata for a raw combo [value].
-  AutoSuggestion<T> buildSuggestion(
-    List<Object?> items,
+  AutoSuggestion<dynamic> buildSuggestion(
+    List<dynamic> items,
     int index,
-    Object? value,
-  ) {
-    final typedValue = value as T;
-    final builder = suggestionBuilder;
-    if (builder != null) {
-      return builder(
-        List<T>.generate(items.length, (i) => items[i] as T, growable: false),
-        index,
-        typedValue,
-      );
-    }
-    final label = display(typedValue);
-    return AutoSuggestion<T>(
-      value: typedValue,
-      label: label,
-      keywords: [label, if (value != null) '$value'],
-    );
-  }
+    dynamic value,
+  ) => _suggestionBuilderAny(items, index, value);
 
   /// Builds a custom suggestion row from raw editor values.
   Widget buildItem(
@@ -308,17 +377,40 @@ class SuperComboColumn<T> extends SuperColumn<T> {
     AutoSuggestion<dynamic> suggestion,
     bool highlighted,
   ) {
-    return itemBuilder!(
-      context,
-      item as T,
-      suggestion as AutoSuggestion<T>,
-      highlighted,
-    );
+    return _itemBuilderAny!(context, item, suggestion, highlighted);
+  }
+
+  /// Builds the advanced search widget from the raw editor boundary.
+  Widget buildAdvancedSearch(
+    BuildContext context,
+    AutoSuggestionsBoxController<dynamic> controller,
+  ) {
+    return _advancedSearchBuilderAny!(context, controller);
+  }
+
+  /// Builds the row-scoped suggestions source from the raw editor boundary.
+  AutoSuggestionsSource<dynamic> buildSource(
+    BuildContext context,
+    SuperTableController<dynamic> controller,
+    SuperRow row,
+    SuperCell cell,
+  ) {
+    return _sourceControllerAny!(context, controller, row, cell);
+  }
+
+  /// Builds the row-scoped box controller from the raw editor boundary.
+  AutoSuggestionsBoxController<dynamic> buildController(
+    BuildContext context,
+    SuperTableController<dynamic> controller,
+    SuperRow row,
+    SuperCell cell,
+  ) {
+    return _cellControllerAny!(context, controller, row, cell);
   }
 
   /// Invokes [onSelected] from the raw-value editor boundary.
   void notifySelected(Object? value) {
-    onSelected?.call(value as T);
+    _onSelectedAny?.call(value);
   }
 }
 
