@@ -9,9 +9,11 @@ analyzer:
     invalid_annotation_target: ignore
     strict_raw_type: ignore
     unnecessary_getters_setters: ignore
-
+    # منع أي استيراد مباشر لملفات src/ من خارج المكتبة
+    implementation_imports: error
 linter:
   rules:
+    - implementation_imports
     - prefer_const_constructors
     - prefer_const_declarations
     - prefer_final_locals
