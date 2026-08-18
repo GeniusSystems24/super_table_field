@@ -1312,6 +1312,123 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
     );
   }
 
+  static const double _kMinResolvedColumnW = 60.0;
+
+  /// Resolve every visible column for the current horizontal viewport.
+  ///
+  /// Manual controller width overrides are always fixed, regardless of the
+  /// column's declared [SuperColumn.widthFit].
+  Map<String, double> _resolveColumnWidths(
+    List<SuperColumn> cols,
+    double availableWidth,
+  ) {
+    final resolved = <String, double>{};
+    final auto = <SuperColumn>[];
+    final fit = <SuperColumn>[];
+
+    for (final col in cols) {
+      final base = c.baseWidthOf(col);
+
+      // A manual resize is an explicit fixed override until resetWidth().
+      if (c.hasWidthOverride(col.key)) {
+        resolved[col.key] = base;
+        continue;
+      }
+
+      switch (col.widthFit) {
+        case SuperColumnWidthFit.none:
+          resolved[col.key] = base;
+        case SuperColumnWidthFit.auto:
+          auto.add(col);
+        case SuperColumnWidthFit.maxCell:
+          resolved[col.key] = _maxCellWidth(col);
+        case SuperColumnWidthFit.fit:
+          resolved[col.key] = base;
+          fit.add(col);
+      }
+    }
+
+    // Reserve fixed, max-cell, and fit base widths first. Auto columns then
+    // share the remaining viewport equally. They have the same minimum as a
+    // manually resized column; when the viewport is narrower, horizontal
+    // scrolling is intentionally preserved rather than crushing the cells.
+    if (auto.isNotEmpty) {
+      final reserved = resolved.values.fold<double>(
+        0,
+        (sum, width) => sum + width,
+      );
+      final remaining = availableWidth > reserved
+          ? availableWidth - reserved
+          : 0.0;
+      final share = remaining / auto.length;
+      final autoWidth = share < _kMinResolvedColumnW
+          ? _kMinResolvedColumnW
+          : share;
+      for (final col in auto) {
+        resolved[col.key] = autoWidth;
+      }
+    }
+
+    // `fit` only consumes genuinely empty space left after every other mode has
+    // resolved. Multiple fit columns share that surplus equally.
+    if (fit.isNotEmpty) {
+      final used = resolved.values.fold<double>(0, (sum, width) => sum + width);
+      if (availableWidth > used) {
+        final extraPerColumn = (availableWidth - used) / fit.length;
+        for (final col in fit) {
+          resolved[col.key] = resolved[col.key]! + extraPerColumn;
+        }
+      }
+    }
+
+    return resolved;
+  }
+
+  /// Width of the widest rendered row value for [col], including normal cell
+  /// horizontal padding. The display conversion matches the table's normal
+  /// sorting/filter/export text path through [SuperColumnLogic.toText].
+  double _maxCellWidth(SuperColumn col) {
+    if (c.rows.isEmpty) return c.baseWidthOf(col);
+
+    final textStyle = TextStyle(
+      fontFamily: col.mono
+          ? context.superTextTheme.mono.fontFamily
+          : context.superTextTheme.body.fontFamily,
+      fontSize: 12,
+    );
+    final painter = TextPainter(
+      textDirection: Directionality.of(context),
+      maxLines: 1,
+    );
+
+    var widest = 0.0;
+
+    void measure(String text) {
+      if (text.isEmpty) return;
+      painter.text = TextSpan(text: text, style: textStyle);
+      painter.layout();
+      if (painter.width > widest) widest = painter.width;
+    }
+
+    for (final row in c.rows) {
+      measure(SuperColumnLogic.toText(col, col.rawValue(row), row));
+
+      // Bilingual text columns render a second value from arKey. It participates
+      // in max-cell width because it is visible cell content as well.
+      final arKey = col.arKey;
+      if (arKey != null) {
+        final arValue = row.cells[arKey]?.value;
+        if (arValue != null) measure('$arValue');
+      }
+    }
+
+    painter.dispose();
+
+    // Normal body cells use 11 px start + 11 px end padding.
+    final measured = widest + 22.0 + 30.0;
+    return measured < _kMinResolvedColumnW ? _kMinResolvedColumnW : measured;
+  }
+
   @override
   Widget build(BuildContext context) {
     // Expose the live context so the controller can invoke onChange/validator.
@@ -1320,8 +1437,6 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
         widget.groupFooters && c.mode == SuperTableMode.readable;
     final skin = SuperTableSkin.of(context);
     final cols = c.cols;
-    final colsW = cols.fold<double>(0, (a, col) => a + c.widthOf(col));
-    final bodyW = (colsW + _actW) < 280 ? 280.0 : (colsW + _actW);
 
     final showFilter =
         widget.columnFilters && c.mode == SuperTableMode.readable;
@@ -1381,55 +1496,83 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
                         showTotals: showTotalsRow,
                       ),
                     Expanded(
-                      child: Scrollbar(
-                        controller: _hScroll,
-                        notificationPredicate: (n) =>
-                            n.metrics.axis == Axis.horizontal,
-                        child: SingleChildScrollView(
-                          controller: _hScroll,
-                          scrollDirection: Axis.horizontal,
-                          child: SizedBox(
-                            width: bodyW,
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                _buildHeader(skin, cols),
-                                if (showFilter) _buildFilterRow(skin, cols),
-                                Flexible(
-                                  child: widget.loading
-                                      ? _buildSkeleton(skin, cols)
-                                      : (c.nRows == 0 &&
-                                            c.renderList.isEmpty &&
-                                            extraSkeleton == 0)
-                                      ? _buildEmpty(skin)
-                                      : Scrollbar(
-                                          controller: _vScroll,
-                                          child: ListView.builder(
-                                            controller: _vScroll,
-                                            primary: false,
-                                            // itemExtent must be null when expansion is active.
-                                            itemExtent: widget.expansion == null
-                                                ? _rowH
-                                                : null,
-                                            itemCount:
-                                                c.renderList.length +
-                                                extraSkeleton,
-                                            itemBuilder: (ctx, i) =>
-                                                i < c.renderList.length
-                                                ? _buildRenderItem(
-                                                    skin,
-                                                    cols,
-                                                    c.renderList[i],
-                                                  )
-                                                : _skeletonRow(skin, cols),
-                                          ),
-                                        ),
-                                ),
-                                if (showTotalsRow) _buildTotals(skin, cols),
-                              ],
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          final viewportWidth = constraints.maxWidth.isFinite
+                              ? constraints.maxWidth
+                              : cols.fold<double>(
+                                      0,
+                                      (sum, col) => sum + c.baseWidthOf(col),
+                                    ) +
+                                    _actW;
+                          final availableColumnWidth = (viewportWidth - _actW)
+                              .clamp(0.0, double.infinity);
+                          c.setLayoutWidths(
+                            _resolveColumnWidths(
+                              cols,
+                              availableColumnWidth.toDouble(),
                             ),
-                          ),
-                        ),
+                          );
+                          final colsW = cols.fold<double>(
+                            0,
+                            (sum, col) => sum + c.widthOf(col),
+                          );
+                          final bodyW = (colsW + _actW) < 280
+                              ? 280.0
+                              : (colsW + _actW);
+
+                          return Scrollbar(
+                            controller: _hScroll,
+                            notificationPredicate: (n) =>
+                                n.metrics.axis == Axis.horizontal,
+                            child: SingleChildScrollView(
+                              controller: _hScroll,
+                              scrollDirection: Axis.horizontal,
+                              child: SizedBox(
+                                width: bodyW,
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    _buildHeader(skin, cols),
+                                    if (showFilter) _buildFilterRow(skin, cols),
+                                    Flexible(
+                                      child: widget.loading
+                                          ? _buildSkeleton(skin, cols)
+                                          : (c.nRows == 0 &&
+                                                c.renderList.isEmpty &&
+                                                extraSkeleton == 0)
+                                          ? _buildEmpty(skin)
+                                          : Scrollbar(
+                                              controller: _vScroll,
+                                              child: ListView.builder(
+                                                controller: _vScroll,
+                                                primary: false,
+                                                // itemExtent must be null when expansion is active.
+                                                itemExtent:
+                                                    widget.expansion == null
+                                                    ? _rowH
+                                                    : null,
+                                                itemCount:
+                                                    c.renderList.length +
+                                                    extraSkeleton,
+                                                itemBuilder: (ctx, i) =>
+                                                    i < c.renderList.length
+                                                    ? _buildRenderItem(
+                                                        skin,
+                                                        cols,
+                                                        c.renderList[i],
+                                                      )
+                                                    : _skeletonRow(skin, cols),
+                                              ),
+                                            ),
+                                    ),
+                                    if (showTotalsRow) _buildTotals(skin, cols),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        },
                       ),
                     ),
                   ],

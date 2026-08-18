@@ -66,6 +66,21 @@ enum SuperColumnType {
 /// Horizontal alignment of a column's content.
 enum SuperAlign { start, center, end }
 
+/// How a column resolves its runtime width inside the table viewport.
+///
+/// [none] keeps the declared fixed [SuperColumn.width].
+///
+/// [auto] participates in an equal-width pool: all auto columns receive the
+/// same share of the viewport space that remains after fixed/intrinsic/base
+/// widths are reserved.
+///
+/// [maxCell] measures the widest rendered row value and sizes the column to that
+/// content (plus normal cell padding). Empty tables fall back to [SuperColumn.width].
+///
+/// [fit] keeps [SuperColumn.width] as its base, then shares any genuinely empty
+/// viewport space equally with the other fit columns.
+enum SuperColumnWidthFit { none, auto, maxCell, fit }
+
 /// Whether a column is frozen to a logical text-direction edge.
 ///
 /// [start] is the leading edge of the current [TextDirection]:
@@ -146,6 +161,7 @@ class SuperColumn<T> {
   final String label;
   final SuperColumnType type;
   final double width;
+  final SuperColumnWidthFit widthFit;
   final SuperAlign align;
   final SuperPin pin;
   final SuperAgg agg;
@@ -253,6 +269,7 @@ class SuperColumn<T> {
     required this.label,
     this.type = SuperColumnType.custom,
     this.width = 140,
+    this.widthFit = SuperColumnWidthFit.none,
     this.align = SuperAlign.start,
     this.pin = SuperPin.none,
     this.agg = SuperAgg.none,
@@ -345,6 +362,7 @@ class SuperColumn<T> {
   SuperColumn<T> copyWith({
     SuperColumnType? type,
     double? width,
+    SuperColumnWidthFit? widthFit,
     SuperAlign? align,
     SuperPin? pin,
     SuperAgg? agg,
@@ -355,6 +373,7 @@ class SuperColumn<T> {
     label: label,
     type: type ?? this.type,
     width: width ?? this.width,
+    widthFit: widthFit ?? this.widthFit,
     align: align ?? this.align,
     pin: pin ?? this.pin,
     agg: agg ?? this.agg,

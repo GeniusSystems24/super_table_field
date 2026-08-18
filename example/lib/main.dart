@@ -33,6 +33,7 @@ import 'examples/example_17_interaction_events.dart';
 import 'examples/example_18_column_config.dart';
 import 'examples/example_19_showcase.dart';
 import 'examples/example_20_table_styles.dart';
+import 'examples/example_21_column_width_fit.dart';
 import 'super_table_demo.dart';
 
 void main() => runApp(const ExampleApp());
@@ -244,6 +245,12 @@ class _Launcher extends StatelessWidget {
       'Optional SuperTableStyle presets - banding - group footers - totals',
       Icons.table_chart_outlined,
       (_) => const TableStylesExample(),
+    ),
+    _Demo(
+      '21 · Column width fit',
+      'none · auto · maxCell · fit · responsive viewport sizing',
+      Icons.width_normal_outlined,
+      (_) => const ColumnWidthFitExample(),
     ),
   ];
 

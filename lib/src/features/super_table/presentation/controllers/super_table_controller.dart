@@ -184,6 +184,13 @@ class SuperTableController<R> extends ChangeNotifier {
   final Map<String, bool> _collapsed = {};
   final Map<String, double> _widths = {};
 
+  /// Transient widths resolved by the mounted table for the current viewport.
+  ///
+  /// These are presentation-only and are intentionally not persisted in
+  /// [SuperViewState]. Runtime `_widths` overrides remain the persisted/manual
+  /// source of truth.
+  final Map<String, double> _layoutWidths = {};
+
   /// Runtime pin overrides (2.2.0): columnKey → pin. Absent = use the column's
   /// declared [SuperColumn.pin]. Drives [pinOf] and the column-resolution pipe.
   final Map<String, SuperPin> _pinOverrides = {};
@@ -1074,6 +1081,7 @@ class SuperTableController<R> extends ChangeNotifier {
 
   void updateColumns(List<SuperColumn> columns) {
     _rawColumns = columns;
+    _layoutWidths.clear();
     final keys = _midBase.map((c) => c.key).toList();
     final kept = _order.where(keys.contains).toList();
     final added = keys.where((k) => !kept.contains(k)).toList();
@@ -1340,7 +1348,26 @@ class SuperTableController<R> extends ChangeNotifier {
       .cast<SuperColumn?>()
       .firstWhere((c) => c!.key == k, orElse: () => null);
 
-  double widthOf(SuperColumn c) => _widths[c.key] ?? c.width;
+  /// Whether [key] has a user/runtime width override.
+  bool hasWidthOverride(String key) => _widths.containsKey(key);
+
+  /// Width before responsive/intrinsic layout is applied.
+  double baseWidthOf(SuperColumn c) => _widths[c.key] ?? c.width;
+
+  /// Effective rendered width for the currently mounted viewport.
+  double widthOf(SuperColumn c) => _layoutWidths[c.key] ?? baseWidthOf(c);
+
+  /// Replace the transient resolved widths for the mounted viewport.
+  ///
+  /// No notification is emitted: the view calls this synchronously while its
+  /// LayoutBuilder resolves the current constraints, then renders immediately
+  /// from [widthOf].
+  void setLayoutWidths(Map<String, double> widths) {
+    _layoutWidths
+      ..clear()
+      ..addAll(widths);
+  }
+
   List<SuperColumn> get startPins => _startPins;
   List<SuperColumn> get endPins => _endPins;
 

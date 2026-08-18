@@ -3,6 +3,30 @@
 All notable changes to **super_table_field** are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/); versioning is [SemVer](https://semver.org/).
 
+## [2.8.0] - 2026-08-18
+
+### Added
+
+- Added `SuperColumnWidthFit` with four column sizing modes:
+  - `none` keeps the declared/default fixed width.
+  - `auto` gives all auto columns the same share of available viewport width.
+  - `maxCell` measures the widest rendered cell value.
+  - `fit` shares otherwise-unused viewport space between fit columns.
+- Added `SuperColumn.widthFit` to the base column and every typed column
+  constructor.
+
+### Changed
+
+- Corrected `SuperColumnWidthFit.maxCell` intrinsic measurement by adding a 30 px rendering allowance after normal cell padding to avoid text truncation.
+
+- Column widths are now resolved from the live horizontal viewport before the
+  header, filter row, body, totals, skeletons, and selection geometry render.
+- Manual `SuperTableController.setWidth` overrides remain fixed and take
+  precedence over responsive width modes until `resetWidth` is called.
+- Responsive layout widths are transient and are not written into saved view
+  state.
+
+
 ## [2.7.3] - 2026-08-18
 
 ### Changed

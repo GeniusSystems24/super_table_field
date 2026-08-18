@@ -1,3 +1,60 @@
+# Migration to super_table_field 2.8.0
+
+Version 2.8.0 adds responsive/intrinsic column width strategies without changing
+the existing default behavior.
+
+## New width-fit enum
+
+```dart
+enum SuperColumnWidthFit {
+  none,
+  auto,
+  maxCell,
+  fit,
+}
+```
+
+Existing columns require no changes because the default is
+`SuperColumnWidthFit.none`.
+
+### `none`
+
+Uses the declared `width`, including the typed column's existing default width.
+
+### `auto`
+
+All auto columns receive the same share of the horizontal viewport space left
+after fixed, max-cell, and fit base widths are reserved.
+
+### `maxCell`
+
+Measures every rendered row value through `SuperColumnLogic.toText` and sizes
+the column to the widest value plus normal horizontal cell padding and a
+30 px rendering allowance. Empty tables
+fall back to the declared width.
+
+### `fit`
+
+Keeps the declared width as a base. If the viewport still has empty horizontal
+space after all columns are resolved, that surplus is divided equally between
+fit columns.
+
+## Manual resize precedence
+
+`controller.setWidth(key, px)` is an explicit fixed override and takes
+precedence over `widthFit`. Call:
+
+```dart
+controller.resetWidth(key);
+```
+
+to remove the override and restore responsive sizing.
+
+Responsive layout widths are transient and are not persisted in
+`SuperViewState.widths`; only explicit user/runtime width overrides are saved.
+
+---
+
 # Migration to super_table_field 2.7.3
 
 Version 2.7.3 updates combo integration to `super_auto_suggestion_box 1.2.0`.

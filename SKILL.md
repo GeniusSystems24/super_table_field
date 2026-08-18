@@ -42,7 +42,7 @@ come for free.
 
 ```yaml
 dependencies:
-  super_table_field: ^2.7.3
+  super_table_field: ^2.8.0
 ```
 
 ```dart
@@ -607,3 +607,45 @@ package's barrel. Add new column behavior in
 - Expecting `unique:` to compare raw values → it compares **display text**,
   case-insensitively, and exempts blanks (use `required: true` alongside it for
   a mandatory natural key).
+
+## Column width fitting (2.8.0)
+
+Use `SuperColumnWidthFit` instead of manually calculating responsive widths:
+
+```dart
+SuperTextColumn(
+  key: 'code',
+  label: 'Code',
+  width: 120,
+  widthFit: SuperColumnWidthFit.none,
+);
+
+SuperTextColumn(
+  key: 'description',
+  label: 'Description',
+  widthFit: SuperColumnWidthFit.maxCell,
+);
+
+SuperNumberColumn<num>(
+  key: 'amount',
+  label: 'Amount',
+  widthFit: SuperColumnWidthFit.auto,
+);
+
+SuperTextColumn(
+  key: 'notes',
+  label: 'Notes',
+  width: 180,
+  widthFit: SuperColumnWidthFit.fit,
+);
+```
+
+Rules:
+
+- `none`: fixed declared/default width.
+- `auto`: equal width across all auto columns from the available viewport.
+- `maxCell`: widest displayed row value + cell padding + 30 px allowance.
+- `fit`: base width plus an equal share of otherwise-empty viewport space.
+- explicit `controller.setWidth(...)` overrides any width-fit mode until
+  `controller.resetWidth(...)`.
+- responsive resolved widths are layout state, not saved-view width overrides.

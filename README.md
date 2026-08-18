@@ -53,7 +53,7 @@ Add the package to `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  super_table_field: ^2.7.3
+  super_table_field: ^2.8.0
 ```
 
 Then install the dependency:
@@ -1255,3 +1255,51 @@ final controller = SuperTableController<Map<String, dynamic>>(
 ## License
 
 This package is available under the [MIT License](LICENSE).
+
+## Column width fitting (2.8.0)
+
+Every column accepts `widthFit`:
+
+```dart
+SuperTextColumn(
+  key: 'sku',
+  label: 'SKU',
+  width: 130,
+  widthFit: SuperColumnWidthFit.none,
+);
+
+SuperTextColumn(
+  key: 'description',
+  label: 'Description',
+  widthFit: SuperColumnWidthFit.maxCell,
+);
+
+SuperNumberColumn<int>(
+  key: 'qty',
+  label: 'Qty',
+  widthFit: SuperColumnWidthFit.auto,
+);
+
+SuperTextColumn(
+  key: 'notes',
+  label: 'Notes',
+  width: 180,
+  widthFit: SuperColumnWidthFit.fit,
+);
+```
+
+`SuperColumnWidthFit.none` keeps the declared (or typed default) width.
+`auto` columns share the viewport width left after fixed/intrinsic/base widths
+are reserved. `maxCell` measures the widest rendered row value, includes the
+normal cell padding, and adds 30 px of measurement allowance to
+avoid edge clipping/ellipsis. `fit` keeps its base width and shares any genuinely empty
+viewport space with other fit columns.
+
+A runtime `controller.setWidth(key, px)` override always wins and behaves as a
+fixed width. Call `controller.resetWidth(key)` to restore the column's declared
+`widthFit` behavior.
+
+When `auto` and `fit` are mixed, `auto` resolves its equal viewport share first;
+`fit` receives only surplus that is still empty afterward. If the resolved
+columns are wider than the viewport, the existing horizontal scrolling behavior
+is preserved.
