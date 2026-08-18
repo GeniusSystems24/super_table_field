@@ -342,6 +342,17 @@ class SuperTableController<R> extends ChangeNotifier {
   Map<String, dynamic> viewStateJson({bool includeFilters = true}) =>
       viewState(includeFilters: includeFilters).toJson();
 
+  /// Decode persisted pin values.
+  ///
+  /// `start` / `end` are the canonical wire values. `left` / `right` remain
+  /// accepted so view state saved by super_table_field <= 2.7.3 still restores
+  /// correctly after the logical-edge migration.
+  SuperPin _pinFromPersistedValue(String value) {
+    if (value == 'start' || value == 'left') return SuperPin.start;
+    if (value == 'end' || value == 'right') return SuperPin.end;
+    return SuperPin.none;
+  }
+
   /// Apply a saved [SuperViewState]. Unknown column keys (the schema may have
   /// changed since the view was saved) are dropped; columns missing from a
   /// saved order are appended in their natural position. A null
@@ -357,11 +368,7 @@ class SuperTableController<R> extends ChangeNotifier {
       ..clear()
       ..addAll({
         for (final e in s.pins.entries)
-          if (colByKey(e.key) != null)
-            e.key: SuperPin.values.firstWhere(
-              (p) => p.name == e.value,
-              orElse: () => SuperPin.none,
-            ),
+          if (colByKey(e.key) != null) e.key: _pinFromPersistedValue(e.value),
       });
     if (s.order != null) {
       final baseKeys = dataColumns.map((c) => c.key).toList();
@@ -1141,14 +1148,14 @@ class SuperTableController<R> extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Cycle a column's pin none → left → right → none (header-menu convenience).
+  /// Cycle a column's pin none → start → end → none (header-menu convenience).
   void cycleColumnPin(String key) {
     final col = colByKey(key);
     if (col == null) return;
     final next = switch (pinOf(col)) {
-      SuperPin.none => SuperPin.left,
-      SuperPin.left => SuperPin.right,
-      SuperPin.right => SuperPin.none,
+      SuperPin.none => SuperPin.start,
+      SuperPin.start => SuperPin.end,
+      SuperPin.end => SuperPin.none,
     };
     setColumnPin(key, next);
   }
@@ -1302,12 +1309,13 @@ class SuperTableController<R> extends ChangeNotifier {
             (_visibleKeys == null || _visibleKeys!.contains(c.key)),
       )
       .toList();
-  List<SuperColumn> get _leftPins =>
-      _baseCols.where((c) => pinOf(c) == SuperPin.left).toList();
-  List<SuperColumn> get _rightPins =>
-      _baseCols.where((c) => pinOf(c) == SuperPin.right).toList();
+  List<SuperColumn> get _startPins =>
+      _baseCols.where((c) => pinOf(c) == SuperPin.start).toList();
+  List<SuperColumn> get _endPins =>
+      _baseCols.where((c) => pinOf(c) == SuperPin.end).toList();
   List<SuperColumn> get _midBase =>
       _baseCols.where((c) => pinOf(c) == SuperPin.none).toList();
+
   List<SuperColumn> get midCols {
     final base = _midBase;
     return _order
@@ -1321,7 +1329,11 @@ class SuperTableController<R> extends ChangeNotifier {
         .toList();
   }
 
-  List<SuperColumn> get cols => [..._leftPins, ...midCols, ..._rightPins];
+  /// Render-order columns in logical text-direction order.
+  ///
+  /// Flutter [Row] places its first child at the start edge automatically, so
+  /// this order is correct in both LTR and RTL. Do not reverse it for RTL.
+  List<SuperColumn> get cols => [..._startPins, ...midCols, ..._endPins];
   int get nCols => cols.length;
 
   SuperColumn? colByKey(String k) => _rawColumns
@@ -1329,8 +1341,8 @@ class SuperTableController<R> extends ChangeNotifier {
       .firstWhere((c) => c!.key == k, orElse: () => null);
 
   double widthOf(SuperColumn c) => _widths[c.key] ?? c.width;
-  List<SuperColumn> get leftPins => _leftPins;
-  List<SuperColumn> get rightPins => _rightPins;
+  List<SuperColumn> get startPins => _startPins;
+  List<SuperColumn> get endPins => _endPins;
 
   // ── data pipeline ──
   List<SuperRow<R>> get _filtered {
@@ -2566,8 +2578,10 @@ class SuperTableController<R> extends ChangeNotifier {
 
   /// The cached SuperAutoSuggestions source for a cell (built by the View; rebuilt
   /// when the row's fingerPrint changes). Null until first edit-focus.
-  SuperAutoSuggestionsSource<dynamic>? comboSourceFor(SuperRow row, String colKey) =>
-      _comboSources[_comboKey(row, colKey)];
+  SuperAutoSuggestionsSource<dynamic>? comboSourceFor(
+    SuperRow row,
+    String colKey,
+  ) => _comboSources[_comboKey(row, colKey)];
 
   /// The cached SuperAutoSuggestionsController for a cell. Null until first
   /// edit-focus. Use this to drive the cell's box from outside (open/close,

@@ -72,7 +72,7 @@ class _PlaygroundExampleState extends State<PlaygroundExample> {
       width: 112,
       mono: true,
       required: true,
-      pin: SuperPin.left,
+      pin: SuperPin.start,
     ),
     SuperTextColumn(key: 'name', label: 'Product', width: 226, arKey: 'nameAr'),
     SuperEnumerationColumn<String>(
@@ -134,7 +134,7 @@ class _PlaygroundExampleState extends State<PlaygroundExample> {
       label: 'Ref',
       width: 110,
       mono: true,
-      pin: SuperPin.right,
+      pin: SuperPin.end,
     ),
   ];
 
@@ -473,9 +473,9 @@ class _PlaygroundExampleState extends State<PlaygroundExample> {
   void _addColumn() {
     final key = 'f${DateTime.now().millisecondsSinceEpoch.toRadixString(36)}';
     _c.updateColumns([
-      ..._columns.where((col) => col.pin != SuperPin.right),
+      ..._columns.where((col) => col.pin != SuperPin.end),
       SuperTextColumn(key: key, label: 'Field', width: 130),
-      ..._columns.where((col) => col.pin == SuperPin.right),
+      ..._columns.where((col) => col.pin == SuperPin.end),
     ]);
   }
 

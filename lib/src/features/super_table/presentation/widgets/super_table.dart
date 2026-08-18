@@ -1148,16 +1148,20 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
           separatorBefore: true,
           children: [
             SuperMenuEntry(
-              icon: Icons.first_page_rounded,
+              icon: Directionality.of(context) == TextDirection.rtl
+                  ? Icons.east_rounded
+                  : Icons.west_rounded,
               label: l10n.pinLeft,
-              checked: c.pinOf(col) == SuperPin.left,
-              onTap: () => c.setColumnPin(col.key, SuperPin.left),
+              checked: c.pinOf(col) == SuperPin.start,
+              onTap: () => c.setColumnPin(col.key, SuperPin.start),
             ),
             SuperMenuEntry(
-              icon: Icons.last_page_rounded,
+              icon: Directionality.of(context) == TextDirection.rtl
+                  ? Icons.west_rounded
+                  : Icons.east_rounded,
               label: l10n.pinRight,
-              checked: c.pinOf(col) == SuperPin.right,
-              onTap: () => c.setColumnPin(col.key, SuperPin.right),
+              checked: c.pinOf(col) == SuperPin.end,
+              onTap: () => c.setColumnPin(col.key, SuperPin.end),
             ),
             SuperMenuEntry(
               icon: Icons.remove_rounded,

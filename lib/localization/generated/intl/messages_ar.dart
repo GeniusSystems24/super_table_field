@@ -256,8 +256,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "pasted": MessageLookupByLibrary.simpleMessage("تم اللصق"),
     "pastedBlockTooWide": m24,
     "pin": MessageLookupByLibrary.simpleMessage("تثبيت"),
-    "pinLeft": MessageLookupByLibrary.simpleMessage("تثبيت يساراً"),
-    "pinRight": MessageLookupByLibrary.simpleMessage("تثبيت يميناً"),
+    "pinLeft": MessageLookupByLibrary.simpleMessage("تثبيت في البداية"),
+    "pinRight": MessageLookupByLibrary.simpleMessage("تثبيت في النهاية"),
     "readableStatusHint": m25,
     "removeFromGrouping": MessageLookupByLibrary.simpleMessage(
       "إزالة من التجميع",

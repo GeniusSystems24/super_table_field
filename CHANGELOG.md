@@ -3,6 +3,25 @@
 All notable changes to **super_table_field** are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/); versioning is [SemVer](https://semver.org/).
 
+## [2.7.3] - 2026-08-18
+
+### Changed
+
+- Updated `super_auto_suggestion_box` to `^1.2.0`.
+- Migrated combo suggestion sources to `SuperAutoSuggestionSources` and the
+  1.2.0 `SuperAuto*SuggestionsSource` implementation names.
+- Migrated the inline combo editor away from removed
+  `SuperAutoSuggestionsBox.onChanged`, `onSelected`, and `onSubmitted`
+  arguments. Query text is observed from the controller, while raw selection
+  commits use `onSelectionChanged`.
+- Preserved table free-text Enter commits even though
+  `super_auto_suggestion_box 1.2.0` no longer exposes a submit callback.
+- Added a deterministic built-in English `SuperTableTranslation` fallback when
+  the host app does not register the package localization delegate.
+- Updated README, migration guidance, skill instructions, and example screens
+  for the 1.2.0 API.
+
+
 ## [2.7.2] - 2026-08-16
 
 ### Changed

@@ -26,8 +26,8 @@ class SuperViewState {
   /// The visible-keys allow-list, or null for "all renderable columns".
   final List<String>? visibleKeys;
 
-  /// Runtime pin overrides (2.2.0): `columnKey → 'left' | 'right' | 'none'`.
-  /// Only columns whose live pin differs from their declaration appear here.
+  /// Runtime pin overrides (2.2.0): `columnKey → 'start' | 'end' | 'none'`.
+  /// `start`/`end` are logical text-direction edges. Legacy persisted `left`/`right` values are accepted by the controller.
   /// Empty = no overrides. Stored as strings to keep this entity Flutter-free.
   final Map<String, String> pins;
 

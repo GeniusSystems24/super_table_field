@@ -1,3 +1,87 @@
+# Migration to super_table_field 2.7.3
+
+Version 2.7.3 updates combo integration to `super_auto_suggestion_box 1.2.0`.
+The upstream package now validates selected raw values through `FormField<T>`,
+uses `onSelectionChanged` as its single public selection callback, removes the
+old text/action callbacks, and uses the `SuperAutoSuggestionSources` namespace.
+
+## Requirements
+
+```yaml
+dependencies:
+  super_table_field: ^2.7.3
+  # Add directly only when importing it independently.
+  super_auto_suggestion_box: ^1.2.0
+```
+
+## Suggestion source names
+
+Use the canonical source namespace:
+
+```dart
+final source = SuperAutoSuggestionSources.list<String>(
+  const ['Piece', 'Box', 'Carton'],
+);
+```
+
+The concrete source implementations were also renamed:
+
+| Before | 1.2.0 |
+|---|---|
+| `ListSuggestionsSource<T>` | `SuperAutoListSuggestionsSource<T>` |
+| `AsyncSuggestionsSource<T>` | `SuperAutoAsyncSuggestionsSource<T>` |
+| `HybridSuggestionsSource<T>` | `SuperAutoHybridSuggestionsSource<T>` |
+| `RemoteFallbackSuggestionsSource<T>` | `SuperAutoRemoteFallbackSuggestionsSource<T>` |
+| `PagedSuggestionsSource<T>` | `SuperAutoPagedSuggestionsSource<T>` |
+
+## Direct SuperAutoSuggestionsBox usage
+
+`onSelected`, `onChanged`, `onSubmitted`, `onFieldSubmitted`,
+`onEditingComplete`, `onSave`, and `onValidity` are no longer widget
+arguments. Observe query text from the controller and use
+`onSelectionChanged` for raw selection:
+
+```dart
+final controller = SuperAutoSuggestionsController<String>();
+
+controller.text.addListener(() {
+  final query = controller.text.text;
+  // Observe query text when needed.
+});
+
+SuperAutoSuggestionsBox<String>(
+  controller: controller,
+  source: SuperAutoSuggestionSources.list<String>(
+    const ['Piece', 'Box', 'Carton'],
+  ),
+  suggestionBuilder: (items, index, value) => SuperAutoSuggestionsItem(
+    value: value,
+    titleText: value,
+  ),
+  onSelectionChanged: (values) {
+    final selected = values.isEmpty ? null : values.last;
+    // Handle the selected raw String value.
+  },
+);
+```
+
+For custom validation, `validator` now receives the selected raw `T?` rather
+than the query string. `SuperAutoSuggestionsBox<T>` participates in the normal
+Flutter `FormField<T>` lifecycle.
+
+`SuperComboColumn` keeps its table-level compatibility callbacks. Internally the
+table adapts them to the 1.2.0 controller/selection model, including free-text
+Enter commits.
+
+## Localization fallback
+
+Registering `SuperTableLocalizations.localizationsDelegates` is still required
+for Arabic. If `SuperTableTranslation` is absent from the widget tree, package
+strings now use an explicit built-in English translation instead of depending
+on the process-wide `Intl.defaultLocale`.
+
+---
+
 # Migration to super_table_field 2.7.2
 
 Version 2.7.2 updates combo integration to `super_auto_suggestion_box 1.1.0` and

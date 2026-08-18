@@ -17,7 +17,7 @@ dependencies:
 
   # Shared GeniusLink foundation (transitive via the package; listed for resolution).
   super_core: ">=3.3.0 <4.0.0"
-  super_form_field: ">=1.8.2 <2.0.0"
+  super_form_field: ">=1.10.0 <2.0.0"
   super_table_field:
     path: ../
 

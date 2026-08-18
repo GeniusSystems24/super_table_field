@@ -351,10 +351,13 @@ class _SuperComboEditorState extends State<_SuperComboEditor> {
   late final TextEditingController _text = TextEditingController(
     text: widget.value,
   );
-  late final FocusNode _focus = FocusNode(debugLabel: 'SuperCombo');
+  late final FocusNode _focus;
   late SuperAutoSuggestionsController<dynamic> _box;
   late SuperAutoSuggestionsSource<dynamic> _source;
   bool _ownsBox = false;
+  bool _lastBoxOpen = false;
+  bool _suppressNextCloseCommit = false;
+  String? _lastObservedQuery;
 
   SuperComboColumn? get _combo =>
       widget.col is SuperComboColumn ? widget.col as SuperComboColumn : null;
@@ -362,7 +365,12 @@ class _SuperComboEditorState extends State<_SuperComboEditor> {
   @override
   void initState() {
     super.initState();
+    _focus = FocusNode(
+      debugLabel: 'SuperCombo',
+      onKeyEvent: _handleFocusKeyEvent,
+    );
     _resolveBox();
+    _attachBoxListeners();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       _focus.requestFocus();
@@ -374,6 +382,66 @@ class _SuperComboEditorState extends State<_SuperComboEditor> {
       }
       _box.open();
     });
+  }
+
+  /// Observes the 1.2.0 controller because query/action callbacks were removed
+  /// from SuperAutoSuggestionsBox.
+  void _attachBoxListeners() {
+    _lastObservedQuery = _box.text.text;
+    _lastBoxOpen = _box.isOpen;
+    _box.text.addListener(_onBoxTextChanged);
+    _box.addListener(_onBoxStateChanged);
+  }
+
+  void _detachBoxListeners() {
+    _box.text.removeListener(_onBoxTextChanged);
+    _box.removeListener(_onBoxStateChanged);
+  }
+
+  void _onBoxTextChanged() {
+    final next = _box.text.text;
+    if (_lastObservedQuery == next) return;
+    _lastObservedQuery = next;
+    widget.onChanged(next);
+  }
+
+  /// Free-text Enter is committed internally by super_auto_suggestion_box 1.2.0
+  /// without a public submit callback. A focused open->closed transition with no
+  /// selected raw value is therefore the observable free-text submit boundary.
+  ///
+  /// Escape/Tab are suppressed explicitly, and blur closes are ignored because
+  /// the field no longer owns focus.
+  void _onBoxStateChanged() {
+    final isOpen = _box.isOpen;
+    final didClose = _lastBoxOpen && !isOpen;
+    _lastBoxOpen = isOpen;
+    if (!didClose) return;
+
+    if (_suppressNextCloseCommit) {
+      _suppressNextCloseCommit = false;
+      return;
+    }
+    if (!_focus.hasFocus || _box.selected != null) return;
+    if (!(_combo?.allowFreeText ?? true)) return;
+
+    _commitFreeText(_box.query);
+  }
+
+  KeyEventResult _handleFocusKeyEvent(FocusNode node, KeyEvent event) {
+    if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
+      return KeyEventResult.ignored;
+    }
+
+    if (event.logicalKey == LogicalKeyboardKey.escape ||
+        event.logicalKey == LogicalKeyboardKey.tab) {
+      _suppressNextCloseCommit = _box.isOpen;
+    }
+    return KeyEventResult.ignored;
+  }
+
+  void _commitFreeText(String raw) {
+    _combo?.onSubmitted?.call(raw);
+    widget.onCommit(override: raw, dr: 0, dc: 0);
   }
 
   /// Build (or reuse) the box source + controller for this cell. Honors the
@@ -407,7 +475,7 @@ class _SuperComboEditorState extends State<_SuperComboEditor> {
     } else {
       final opts = widget.col.opts ?? const <String>[];
       final ovals = widget.col.optValues;
-      source = SuggestionSources.list<dynamic>([
+      source = SuperAutoSuggestionSources.list<dynamic>([
         for (var i = 0; i < opts.length; i++)
           ovals != null && i < ovals.length ? ovals[i] : opts[i],
       ]);
@@ -440,6 +508,7 @@ class _SuperComboEditorState extends State<_SuperComboEditor> {
 
   @override
   void dispose() {
+    _detachBoxListeners();
     if (_ownsBox) {
       widget.controller.disposeCombo(widget.row, widget.col.key);
       _box.dispose();
@@ -516,15 +585,12 @@ class _SuperComboEditorState extends State<_SuperComboEditor> {
               height: 1.2,
               color: skin.fg1,
             ),
-            onChanged: widget.onChanged,
-            onSelected: (value) {
+            onSelectionChanged: (values) {
+              if (values.isEmpty) return;
+              final value = values.last;
               col?.notifySelected(value);
               widget.onChanged('$value');
               widget.onCommit(override: value, dr: 0, dc: 0);
-            },
-            onSubmitted: (raw) {
-              col?.onSubmitted?.call(raw);
-              widget.onCommit(override: raw, dr: 0, dc: 0);
             },
             onEscape: widget.onCancel,
             onTabNext: () =>
@@ -547,10 +613,7 @@ class _SuperComboEditorState extends State<_SuperComboEditor> {
       return col.buildSuggestion(items, index, value);
     }
     final label = SuperColumnLogic.displayOf(widget.col, value);
-    return SuperAutoSuggestionsItem<dynamic>(
-      value: value,
-      titleText: label,
-    );
+    return SuperAutoSuggestionsItem<dynamic>(value: value, titleText: label);
   }
 
   Widget _itemBuilder(

@@ -42,7 +42,7 @@ come for free.
 
 ```yaml
 dependencies:
-  super_table_field: ^2.7.2
+  super_table_field: ^2.7.3
 ```
 
 ```dart
@@ -77,9 +77,9 @@ MaterialApp(
 
 `SuperTableLocalizations` includes the package `SuperTableTranslation` delegate
 and Flutter's Material, Cupertino, and Widgets localization delegates. Supported
-package locales are English (`en`) and Arabic (`ar`). The widgets still fall
-back to English if a host app forgets the delegate, but Arabic requires
-registration.
+package locales are English (`en`) and Arabic (`ar`). If the host omits the
+delegate, package-owned strings use the explicit built-in English fallback;
+Arabic requires registration.
 
 ### super_core 3.3.0 typography rules
 
@@ -209,7 +209,7 @@ builders — `sourceController` / `cellController` — which are re-invoked when
 cell takes edit-focus **and** the row's `fingerPrint` changed (so suggestions can
 depend on the rest of the row). Reach a cell's live box via
 `controller.comboControllerFor(row, key)` / `comboSourceFor(row, key)`.
-With `super_auto_suggestion_box 1.1.0`, `source` is a widget concern: keep
+With `super_auto_suggestion_box 1.2.0`, `source` is a widget concern: keep
 row-dependent data in `sourceController` and return only controller state from
 `cellController`. The table passes the resolved source to
 `SuperAutoSuggestionsBox` and keeps `suggestionBuilder` on the widget boundary.
@@ -445,12 +445,12 @@ SuperTable<R>(
 Runtime reorder / show-hide / pin, opt-in UI + a controller API. `SuperTable(
 columnManager: true)` (default) adds **Pin ▸ / Hide column / Manage columns…** to
 every header menu; `showSuperColumnManager(context, c)` opens the dialog (drag to
-reorder, eye to show/hide, pin left/none/right) from your own *Columns* button.
+reorder, eye to show/hide, pin start/none/right) from your own *Columns* button.
 
 ```dart
 showSuperColumnManager(context, c);
-c.setColumnPin('code', SuperPin.left);   // runtime pin (overrides the declared pin:)
-c.cycleColumnPin('total');               // none → left → right → none
+c.setColumnPin('code', SuperPin.start);   // runtime pin (overrides the declared pin:)
+c.cycleColumnPin('total');               // none → start → end → none
 c.pinOf(col);                            // effective pin
 c.showColumn('x'); c.hideColumn('x'); c.toggleColumnVisible('x'); c.isColumnVisible('x');
 c.moveColumn('region', 2);               // reorder by key; or c.setManagedOrder([...keys])
@@ -483,10 +483,15 @@ during horizontal scroll and **clicking a row number selects the whole row**
 ## SuperAutoSuggestionsBox (standalone)
 
 ```dart
-final source = SuggestionSources.list<String>(['each', 'box']);
+final source = SuperAutoSuggestionSources.list<String>(['each', 'box']);
 final box = SuperAutoSuggestionsController<String>(
   allowFreeText: true, // false = pick-only
 );
+
+box.text.addListener(() {
+  final query = box.text.text;
+  // Observe query text here when needed.
+});
 
 SuperAutoSuggestionsBox<String>(
   controller: box,
@@ -497,12 +502,21 @@ SuperAutoSuggestionsBox<String>(
   ),
   multiSelect: false,
   hintText: 'Type or pick…',
-  onSelected: (value) => /* raw String value */,
-  onSubmitted: (raw) => /* free-text Enter */,
+  onSelectionChanged: (values) {
+    final selected = values.isEmpty ? null : values.last;
+    // selected is the raw String value.
+  },
 );
 ```
 
-Suggestion sources: `SuggestionSources.list(...)` / `.strings(...)` (static),
+In `super_auto_suggestion_box 1.2.0`, do not generate `onChanged`, `onSelected`,
+`onSubmitted`, `onFieldSubmitted`, `onEditingComplete`, `onSave`, or
+`onValidity` arguments on the suggestion box. Query text comes from
+`controller.text`; selection comes from `onSelectionChanged` or controller
+selection state. Validators receive the selected raw `T?` and participate in
+Flutter's `FormField<T>` lifecycle.
+
+Suggestion sources: `SuperAutoSuggestionSources.list(...)` / `.strings(...)` (static),
 `.fuzzy(...)` (fuzzy-ranked), `.async(...)` (debounced remote), and
 `.remoteFallback(...)` (local-first progressive). Prefer **`remoteFallback`** for
 “mostly local, occasionally remote” data: it shows local matches instantly and

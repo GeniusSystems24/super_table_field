@@ -1746,7 +1746,7 @@ class _MgrIconToggle extends StatelessWidget {
   }
 }
 
-/// A three-way segmented control for a column's pin: left · none · right.
+/// A three-way segmented control for a column's pin: start · none · end.
 class _PinSegment extends StatelessWidget {
   final SuperTableSkin skin;
   final SuperPin pin;
@@ -1790,12 +1790,26 @@ class _PinSegment extends StatelessWidget {
         border: Border.all(color: s.borderStrong),
         borderRadius: BorderRadius.circular(7),
       ),
+      // Start/end are logical edges. Let the ambient Directionality position
+      // the first segment at the actual start edge.
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          seg(SuperPin.left, Icons.first_page_rounded, 'Pin left'),
+          seg(
+            SuperPin.start,
+            Directionality.of(context) == TextDirection.rtl
+                ? Icons.east_rounded
+                : Icons.west_rounded,
+            context.superTableTranslations.pinLeft,
+          ),
           seg(SuperPin.none, Icons.remove_rounded, 'Unpinned'),
-          seg(SuperPin.right, Icons.last_page_rounded, 'Pin right'),
+          seg(
+            SuperPin.end,
+            Directionality.of(context) == TextDirection.rtl
+                ? Icons.west_rounded
+                : Icons.east_rounded,
+            context.superTableTranslations.pinRight,
+          ),
         ],
       ),
     );

@@ -73,7 +73,9 @@ class _AsyncComboExampleState extends State<AsyncComboExample> {
         // change) — scoped to the row's current warehouse.
         sourceController: (ctx, c, row, cell) {
           final wh = '${row['warehouse']}';
-          return SuggestionSources.async<String>((q) => _fetchBins(wh, q));
+          return SuperAutoSuggestionSources.async<String>(
+            (q) => _fetchBins(wh, q),
+          );
         },
       ),
     ],

@@ -222,14 +222,14 @@ class SuperTableTranslation {
     return Intl.message('Pin', name: 'pin', desc: '', args: []);
   }
 
-  /// `Pin left`
+  /// `Pin start`
   String get pinLeft {
-    return Intl.message('Pin left', name: 'pinLeft', desc: '', args: []);
+    return Intl.message('Pin start', name: 'pinLeft', desc: '', args: []);
   }
 
-  /// `Pin right`
+  /// `Pin end`
   String get pinRight {
-    return Intl.message('Pin right', name: 'pinRight', desc: '', args: []);
+    return Intl.message('Pin end', name: 'pinRight', desc: '', args: []);
   }
 
   /// `Unpinned`

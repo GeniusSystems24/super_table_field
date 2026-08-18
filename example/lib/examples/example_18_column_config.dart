@@ -42,7 +42,7 @@ class _ColumnConfigExampleState extends State<ColumnConfigExample> {
           label: 'Account',
           width: 120,
           mono: true,
-          pin: SuperPin.left,
+          pin: SuperPin.start,
         ),
         SuperTextColumn(key: 'name', label: 'Account name', width: 230),
         SuperEnumerationColumn<String>(
@@ -152,7 +152,7 @@ class _ColumnConfigExampleState extends State<ColumnConfigExample> {
                   t,
                   Icons.push_pin_rounded,
                   'Pin balance right',
-                  () => _c.setColumnPin('balance', SuperPin.right),
+                  () => _c.setColumnPin('balance', SuperPin.end),
                 ),
                 _btn(
                   t,

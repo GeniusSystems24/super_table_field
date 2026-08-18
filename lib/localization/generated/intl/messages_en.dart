@@ -259,8 +259,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "pasted": MessageLookupByLibrary.simpleMessage("Pasted"),
     "pastedBlockTooWide": m24,
     "pin": MessageLookupByLibrary.simpleMessage("Pin"),
-    "pinLeft": MessageLookupByLibrary.simpleMessage("Pin left"),
-    "pinRight": MessageLookupByLibrary.simpleMessage("Pin right"),
+    "pinLeft": MessageLookupByLibrary.simpleMessage("Pin start"),
+    "pinRight": MessageLookupByLibrary.simpleMessage("Pin end"),
     "readableStatusHint": m25,
     "removeFromGrouping": MessageLookupByLibrary.simpleMessage(
       "Remove from grouping",

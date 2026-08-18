@@ -82,7 +82,7 @@ class _ShowcaseExampleState extends State<ShowcaseExample> {
       mono: true,
       required: true,
       unique: true,
-      pin: SuperPin.left,
+      pin: SuperPin.start,
     ),
     SuperTextColumn(
       key: 'name',
@@ -168,7 +168,7 @@ class _ShowcaseExampleState extends State<ShowcaseExample> {
       hintText: 'Pick unit',
       sourceController: (context, controller, row, cell) {
         final units = _unitsFor(row['category']);
-        return SuggestionSources.list<String>(units);
+        return SuperAutoSuggestionSources.list<String>(units);
       },
     ),
     SuperCurrencyColumn(
@@ -247,7 +247,7 @@ class _ShowcaseExampleState extends State<ShowcaseExample> {
       label: 'Ref',
       width: 118,
       mono: true,
-      pin: SuperPin.right,
+      pin: SuperPin.end,
     ),
   ];
 

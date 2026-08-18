@@ -34,7 +34,7 @@ class _SuperTableDemoState extends State<SuperTableDemo> {
       label: 'SKU',
       width: 130,
       mono: true,
-      pin: SuperPin.left,
+      pin: SuperPin.start,
     ),
     SuperTextColumn(
       key: 'item',

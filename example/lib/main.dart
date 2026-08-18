@@ -80,10 +80,10 @@ class _ExampleAppState extends State<ExampleApp> {
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
-        SuperTableLocalizations.delegate,
+        SuperTableTranslation.delegate,
         SuperFormTranslation.delegate,
       ],
-      supportedLocales: SuperTableLocalizations.supportedLocales,
+      supportedLocales: SuperTableTranslation.delegate.supportedLocales,
 
       // builder: (context, child) =>
       //     Directionality(textDirection: _dir, child: child!),

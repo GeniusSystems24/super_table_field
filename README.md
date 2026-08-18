@@ -44,7 +44,7 @@ import 'package:super_table_field/super_table_field.dart';
 | Dart SDK | `3.8.0` |
 | Flutter SDK | `3.32.0` |
 | `super_core` | `3.3.0` |
-| `super_auto_suggestion_box` | `1.1.0` |
+| `super_auto_suggestion_box` | `1.2.0` |
 | `super_form_field` | `1.8.2` |
 
 ## Installation
@@ -53,7 +53,7 @@ Add the package to `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  super_table_field: ^2.7.2
+  super_table_field: ^2.7.3
 ```
 
 Then install the dependency:
@@ -115,7 +115,7 @@ class MyApp extends StatelessWidget {
 `SuperMaterialThemeData.of(context).textTheme`. The table follows the ambient
 `SuperTextTheme` body/display/mono font families.
 
-`SuperTableLocalizations` includes the package translation delegate together with Flutter's Material, Cupertino, and Widgets delegates. The package currently supports:
+`SuperTableLocalizations` includes the package translation delegate together with Flutter's Material, Cupertino, and Widgets delegates. Registering it enables Arabic; if `SuperTableTranslation` is absent from the widget tree, package-owned strings use the built-in English fallback. The package currently supports:
 
 ```dart
 const Locale('en');
@@ -404,7 +404,7 @@ SuperTextColumn(
   label: 'Account code',
   width: 160,
   align: SuperAlign.start,
-  pin: SuperPin.left,
+  pin: SuperPin.start,
   editable: true,
   sortable: true,
   groupable: true,
@@ -798,7 +798,7 @@ await showSuperColumnManager(context, controller);
 Programmatic operations:
 
 ```dart
-controller.setColumnPin('sku', SuperPin.left);
+controller.setColumnPin('sku', SuperPin.start);
 controller.cycleColumnPin('price');
 controller.hideColumn('internalId');
 controller.showColumn('internalId');
@@ -906,14 +906,16 @@ SuperComboColumn<String>(
 );
 ```
 
-`SuperComboColumn` follows `super_auto_suggestion_box` 1.1.0: suggestion data,
-selection callbacks, and row-scoped sources use raw `T` values. Metadata is
-derived from optional `suggestionBuilder`, then the column's `display` callback.
-Custom rows can read the built `SuperAutoSuggestionsItem<T>` from `itemBuilder`.
-In `super_auto_suggestion_box 1.1.0`, the source is bound to
-`SuperAutoSuggestionsBox` rather than `SuperAutoSuggestionsController`; the
-table handles that binding internally for both static `values` and
-`sourceController` sources.
+`SuperComboColumn` follows `super_auto_suggestion_box` 1.2.0: suggestion data
+and row-scoped sources use raw `T` values. Metadata is derived from optional
+`suggestionBuilder`, then the column's `display` callback. Custom rows can
+read the built `SuperAutoSuggestionsItem<T>` from `itemBuilder`.
+
+The 1.2.0 suggestion box exposes selection through `onSelectionChanged` and
+observes query text through `SuperAutoSuggestionsController.text`. The table
+adapts these APIs internally while preserving `SuperComboColumn`'s table-level
+selection/free-text behavior. Sources stay bound to
+`SuperAutoSuggestionsBox`, while controller instances own field state.
 
 ```dart
 SuperComboColumn<String>(
@@ -1152,7 +1154,7 @@ MaterialApp(
 );
 ```
 
-Flutter automatically applies RTL layout for Arabic. Table menus, filters, validation messages, pagination labels, column management, shortcut help, and status text use the package localization delegate.
+Flutter automatically applies RTL layout for Arabic. Table menus, filters, validation messages, pagination labels, column management, shortcut help, and status text use the package localization delegate. Without that delegate, package-owned strings fall back to deterministic English.
 
 Read package translations directly from a widget context when needed:
 

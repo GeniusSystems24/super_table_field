@@ -22,6 +22,6 @@ export 'package:super_core/super_core.dart';
 export 'package:super_auto_suggestion_box/super_auto_suggestion_box.dart';
 
 // ── Feature ─────────────────────────────────────────────────────────────────
-export 'localization/generated/l10n.dart';
+export 'localization/generated/l10n.dart' hide AppLocalizationDelegate;
 export 'localization/super_table_localizations.dart';
 export 'src/features/super_table/super_table.dart';

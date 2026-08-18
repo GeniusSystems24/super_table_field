@@ -66,8 +66,14 @@ enum SuperColumnType {
 /// Horizontal alignment of a column's content.
 enum SuperAlign { start, center, end }
 
-/// Whether a column is frozen to an edge (sticky) and on which side.
-enum SuperPin { none, left, right }
+/// Whether a column is frozen to a logical text-direction edge.
+///
+/// [start] is the leading edge of the current [TextDirection]:
+/// left in LTR and right in RTL.
+///
+/// [end] is the trailing edge:
+/// right in LTR and left in RTL.
+enum SuperPin { none, start, end }
 
 /// The aggregate shown in the totals row / group headers for a column.
 enum SuperAgg { none, sum, avg, count, min, max, custom }
