@@ -1437,11 +1437,16 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
         widget.groupFooters && c.mode == SuperTableMode.readable;
     final skin = SuperTableSkin.of(context);
     final cols = c.cols;
+    // v3: capture the controller's immutable materialized render snapshot once
+    // for this frame. List builders must not repeatedly consult derived-state
+    // getters while Flutter is bringing children into the viewport.
+    final renderItems = c.renderList;
+    final rowCount = c.nRows;
 
     final showFilter =
         widget.columnFilters && c.mode == SuperTableMode.readable;
     final showTotalsRow =
-        widget.showTotals && _hasTotals(cols) && !widget.loading && c.nRows > 0;
+        widget.showTotals && _hasTotals(cols) && !widget.loading && rowCount > 0;
     final extraSkeleton = c.loadingMore && !widget.loading
         ? widget.skeletonRows
         : 0;
@@ -1494,6 +1499,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
                         showFilter: showFilter,
                         extraSkeleton: extraSkeleton,
                         showTotals: showTotalsRow,
+                        renderItems: renderItems,
                       ),
                     Expanded(
                       child: LayoutBuilder(
@@ -1538,8 +1544,8 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
                                     Flexible(
                                       child: widget.loading
                                           ? _buildSkeleton(skin, cols)
-                                          : (c.nRows == 0 &&
-                                                c.renderList.isEmpty &&
+                                          : (rowCount == 0 &&
+                                                renderItems.isEmpty &&
                                                 extraSkeleton == 0)
                                           ? _buildEmpty(skin)
                                           : Scrollbar(
@@ -1553,14 +1559,14 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
                                                     ? _rowH
                                                     : null,
                                                 itemCount:
-                                                    c.renderList.length +
+                                                    renderItems.length +
                                                     extraSkeleton,
                                                 itemBuilder: (ctx, i) =>
-                                                    i < c.renderList.length
+                                                    i < renderItems.length
                                                     ? _buildRenderItem(
                                                         skin,
                                                         cols,
-                                                        c.renderList[i],
+                                                        renderItems[i],
                                                       )
                                                     : _skeletonRow(skin, cols),
                                               ),
@@ -1593,6 +1599,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
     required bool showFilter,
     required int extraSkeleton,
     required bool showTotals,
+    required List<RenderItem<R>> renderItems,
   }) {
     Widget middle;
     if (widget.loading) {
@@ -1603,7 +1610,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
             _gutterSkeletonCell(skin),
         ],
       );
-    } else if (c.nRows == 0 && c.renderList.isEmpty && extraSkeleton == 0) {
+    } else if (renderItems.isEmpty && extraSkeleton == 0) {
       middle = const SizedBox.shrink();
     } else {
       middle = ListView.builder(
@@ -1613,9 +1620,9 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
         // itemExtent must be null when expansion is active: rows are variable
         // height (base rowH + animated panel height).
         itemExtent: widget.expansion == null ? _rowH : null,
-        itemCount: c.renderList.length + extraSkeleton,
-        itemBuilder: (ctx, i) => i < c.renderList.length
-            ? _gutterItem(skin, c.renderList[i])
+        itemCount: renderItems.length + extraSkeleton,
+        itemBuilder: (ctx, i) => i < renderItems.length
+            ? _gutterItem(skin, renderItems[i])
             : _gutterSkeletonCell(skin),
       );
     }

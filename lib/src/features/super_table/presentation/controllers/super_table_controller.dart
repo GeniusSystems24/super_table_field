@@ -91,12 +91,20 @@ class SuperTableController<R> extends ChangeNotifier {
        _mode = mode,
        _selectionMode = selectionMode,
        _search = search,
-       _visibleKeys = visibleKeys,
+       _visibleKeys = visibleKeys == null ? null : List.of(visibleKeys),
        _hasMore = hasMore,
        _loadingMore = loadingMore,
        _pagination = pagination,
        _emptyValue = emptyRowValue {
-    _order = _midBase.map((c) => c.key).toList();
+    _order = columns
+        .where(
+          (c) =>
+              !c.hidden &&
+              (_visibleKeys == null || _visibleKeys!.contains(c.key)) &&
+              c.pin == SuperPin.none,
+        )
+        .map((c) => c.key)
+        .toList(growable: true);
     _selRows = {0};
     _ensureCells();
     if (trackChanges) _captureBaseline();
@@ -143,7 +151,15 @@ class SuperTableController<R> extends ChangeNotifier {
   /// Whether the render list should emit a [RenderItem.groupFooter] subtotal
   /// row after each expanded group (2.1.0). Set by the View each build from
   /// `SuperTable(groupFooters:)` — like [viewContext], not a reactive setting.
-  bool groupFootersEnabled = false;
+  bool _groupFootersEnabled = false;
+
+  bool get groupFootersEnabled => _groupFootersEnabled;
+
+  set groupFootersEnabled(bool value) {
+    if (_groupFootersEnabled == value) return;
+    _groupFootersEnabled = value;
+    _invalidatePipeline();
+  }
 
   // ── load-more paging state (host-driven) ──
   bool _hasMore;
@@ -232,6 +248,7 @@ class SuperTableController<R> extends ChangeNotifier {
     _deletedRows
       ..clear()
       ..addAll(s.deletedLog);
+    _invalidateRows();
     _clampSelection();
   }
 
@@ -243,6 +260,132 @@ class SuperTableController<R> extends ChangeNotifier {
   final Map<String, SuperAutoSuggestionsSource<dynamic>> _comboSources = {};
   final Map<String, Object?> _comboFingerPrints = {};
 
+  // ── v3 materialized-state caches ──────────────────────────────────────
+  // Reads from the rendering layer must be O(1). Derived data is rebuilt only
+  // when a semantic mutation invalidates it, never because a getter was read.
+  bool _columnCacheDirty = true;
+  bool _rowIndexDirty = true;
+  bool _pipelineDirty = true;
+
+  Map<String, SuperColumn> _columnsByKey = const {};
+  List<SuperColumn> _dataColumnsCache = const [];
+  List<SuperColumn> _hiddenColumnsCache = const [];
+  List<SuperColumn> _baseColumnsCache = const [];
+  List<SuperColumn> _startPinsCache = const [];
+  List<SuperColumn> _endPinsCache = const [];
+  List<SuperColumn> _midBaseCache = const [];
+  List<SuperColumn> _midColumnsCache = const [];
+  List<SuperColumn> _columnsCache = const [];
+
+  final Map<SuperRow<R>, int> _sourceIndexByRow =
+      Map<SuperRow<R>, int>.identity();
+  List<SuperRow<R>> _filteredCache = const [];
+  List<SuperRow<R>> _sortedCache = const [];
+  int _pageCountCache = 1;
+
+  int _pipelineRebuildCount = 0;
+  int _columnCacheRebuildCount = 0;
+  int _rowIndexRebuildCount = 0;
+
+  /// Diagnostics used by v3 performance regression tests and profile harnesses.
+  @visibleForTesting
+  int get debugPipelineRebuildCount => _pipelineRebuildCount;
+
+  @visibleForTesting
+  int get debugColumnCacheRebuildCount => _columnCacheRebuildCount;
+
+  @visibleForTesting
+  int get debugRowIndexRebuildCount => _rowIndexRebuildCount;
+
+  @visibleForTesting
+  void resetDebugPerformanceCounters() {
+    _pipelineRebuildCount = 0;
+    _columnCacheRebuildCount = 0;
+    _rowIndexRebuildCount = 0;
+  }
+
+  void _invalidatePipeline() {
+    _pipelineDirty = true;
+  }
+
+  void _invalidateRows() {
+    _rowIndexDirty = true;
+    _invalidatePipeline();
+  }
+
+  void _invalidateColumns({bool pipeline = true}) {
+    _columnCacheDirty = true;
+    if (pipeline) _invalidatePipeline();
+  }
+
+  void _ensureRowIndex() {
+    if (!_rowIndexDirty) return;
+    _sourceIndexByRow.clear();
+    for (var i = 0; i < _rows.length; i++) {
+      _sourceIndexByRow[_rows[i]] = i;
+    }
+    _rowIndexDirty = false;
+    _rowIndexRebuildCount++;
+  }
+
+  int _sourceIndexOf(SuperRow<R> row) {
+    _ensureRowIndex();
+    return _sourceIndexByRow[row] ?? -1;
+  }
+
+  void _ensureColumnCache() {
+    if (!_columnCacheDirty) return;
+
+    final byKey = <String, SuperColumn>{};
+    for (final column in _rawColumns) {
+      // Preserve the old firstWhere semantics if a caller supplied duplicate
+      // keys. Duplicate keys are discouraged, but v3 caching should not change
+      // which column wins.
+      byKey.putIfAbsent(column.key, () => column);
+    }
+    _columnsByKey = Map.unmodifiable(byKey);
+
+    final data = _rawColumns.where((c) => !c.hidden).toList(growable: false);
+    final hidden = _rawColumns.where((c) => c.hidden).toList(growable: false);
+    final visible = data
+        .where(
+          (c) => _visibleKeys == null || _visibleKeys!.contains(c.key),
+        )
+        .toList(growable: false);
+    final start = visible
+        .where((c) => pinOf(c) == SuperPin.start)
+        .toList(growable: false);
+    final end = visible
+        .where((c) => pinOf(c) == SuperPin.end)
+        .toList(growable: false);
+    final midBase = visible
+        .where((c) => pinOf(c) == SuperPin.none)
+        .toList(growable: false);
+    final midByKey = {for (final c in midBase) c.key: c};
+    final mid = <SuperColumn>[];
+    final seen = <String>{};
+    for (final key in _order) {
+      final column = midByKey[key];
+      if (column != null && seen.add(key)) mid.add(column);
+    }
+    // Keep newly introduced middle columns visible even before the host has
+    // explicitly refreshed its persisted order.
+    for (final column in midBase) {
+      if (seen.add(column.key)) mid.add(column);
+    }
+
+    _dataColumnsCache = List.unmodifiable(data);
+    _hiddenColumnsCache = List.unmodifiable(hidden);
+    _baseColumnsCache = List.unmodifiable(visible);
+    _startPinsCache = List.unmodifiable(start);
+    _endPinsCache = List.unmodifiable(end);
+    _midBaseCache = List.unmodifiable(midBase);
+    _midColumnsCache = List.unmodifiable(mid);
+    _columnsCache = List.unmodifiable([...start, ...mid, ...end]);
+    _columnCacheDirty = false;
+    _columnCacheRebuildCount++;
+  }
+
   // ── reads ──
   SuperTableMode get mode => _mode;
   List<SuperRow<R>> get rows => _rows;
@@ -250,13 +393,17 @@ class SuperTableController<R> extends ChangeNotifier {
 
   /// Every column that can ever render — all columns except the
   /// [SuperColumn.hidden] ones.
-  List<SuperColumn> get dataColumns =>
-      _rawColumns.where((c) => !c.hidden).toList();
+  List<SuperColumn> get dataColumns {
+    _ensureColumnCache();
+    return _dataColumnsCache;
+  }
 
   /// Columns marked [SuperColumn.hidden]: present only for filtering, grouping
   /// and aggregation (by key), never rendered and never revealable.
-  List<SuperColumn> get hiddenColumns =>
-      _rawColumns.where((c) => c.hidden).toList();
+  List<SuperColumn> get hiddenColumns {
+    _ensureColumnCache();
+    return _hiddenColumnsCache;
+  }
   SuperSelectionMode get selectionMode => _selectionMode;
   String get search => _search;
   CellPos get sel => _sel;
@@ -316,6 +463,7 @@ class SuperTableController<R> extends ChangeNotifier {
     _advanced = List.of(s.advanced);
     _advancedActive = s.advancedActive;
     _page = 0;
+    _invalidatePipeline();
     _clampSelection();
     notifyListeners();
   }
@@ -408,6 +556,7 @@ class SuperTableController<R> extends ChangeNotifier {
       _advancedActive = s.filters!.advancedActive;
     }
     _page = 0;
+    _invalidateColumns();
     _clampSelection();
     notifyListeners();
   }
@@ -422,7 +571,9 @@ class SuperTableController<R> extends ChangeNotifier {
   void resetViewState({bool clearFilters = true}) {
     _visibleKeys = null;
     _pinOverrides.clear();
+    _invalidateColumns();
     _order = _midBase.map((c) => c.key).toList();
+    _invalidateColumns();
     _widths.clear();
     _sort = const SortSpec();
     _groupKeys.clear();
@@ -434,6 +585,7 @@ class SuperTableController<R> extends ChangeNotifier {
       _advancedActive = false;
     }
     _page = 0;
+    _invalidatePipeline();
     _clampSelection();
     notifyListeners();
   }
@@ -541,6 +693,7 @@ class SuperTableController<R> extends ChangeNotifier {
     }
     _deletedRows.clear();
     _rows = restored;
+    _invalidateRows();
     onChange?.call(_rows);
     _clampSelection();
     notifyListeners();
@@ -828,7 +981,7 @@ class SuperTableController<R> extends ChangeNotifier {
   }) {
     final col = colByKey(columnKey);
     if (col == null) return null;
-    final list = (rows ?? _sorted).toList();
+    final list = (rows ?? sortedRows).toList();
     return SuperColumnLogic.aggregate(
       col,
       list,
@@ -846,7 +999,7 @@ class SuperTableController<R> extends ChangeNotifier {
     Iterable<String>? columns,
     bool filtered = true,
   }) {
-    final source = filtered ? _sorted : _rows;
+    final source = filtered ? sortedRows : _rows;
     return {
       for (final col in _aggColumns(columns))
         col.key: SuperColumnLogic.aggregate(col, source),
@@ -869,7 +1022,7 @@ class SuperTableController<R> extends ChangeNotifier {
     final gcol = colByKey(groupColumnKey);
     final vcol = colByKey(valueColumnKey);
     if (gcol == null || vcol == null) return const {};
-    final source = filtered ? _sorted : _rows;
+    final source = filtered ? sortedRows : _rows;
     final buckets = <String, List<SuperRow<R>>>{};
     for (final row in source) {
       final v = SuperColumnLogic.toText(gcol, gcol.rawValue(row), row);
@@ -939,7 +1092,7 @@ class SuperTableController<R> extends ChangeNotifier {
       return out;
     }
 
-    return rec(_sorted, 0, '');
+    return rec(sortedRows, 0, '');
   }
 
   // ── cell scaffolding ──
@@ -1004,6 +1157,34 @@ class SuperTableController<R> extends ChangeNotifier {
     }
   }
 
+  // ── batched notifications (v3) ────────────────────────────────────────
+  int _batchDepth = 0;
+  bool _notificationPending = false;
+
+  /// Run several controller mutations as one listener notification. Dirty
+  /// caches are still invalidated immediately, but widgets rebuild only once.
+  void batch(VoidCallback action) {
+    _batchDepth++;
+    try {
+      action();
+    } finally {
+      _batchDepth--;
+      if (_batchDepth == 0 && _notificationPending) {
+        _notificationPending = false;
+        super.notifyListeners();
+      }
+    }
+  }
+
+  @override
+  void notifyListeners() {
+    if (_batchDepth > 0) {
+      _notificationPending = true;
+      return;
+    }
+    super.notifyListeners();
+  }
+
   // ── mode switching (controller-driven) ──
   /// Switch between readable and editable at runtime. Cancels any open editor.
   void setMode(SuperTableMode m) {
@@ -1028,12 +1209,14 @@ class SuperTableController<R> extends ChangeNotifier {
     if (_pagination == p) return;
     _pagination = p;
     _page = 0;
+    _invalidatePipeline();
     notifyListeners();
   }
 
   // ── host updates / table actions ──
   void updateRows(List<SuperRow<R>> rows) {
     _rows = rows;
+    _invalidateRows();
     _ensureCells();
     if (trackChanges) _captureBaseline();
     // A wholesale replace invalidates history + per-row combo resources.
@@ -1054,6 +1237,7 @@ class SuperTableController<R> extends ChangeNotifier {
     bool loadingDone = true,
   }) {
     _rows = [..._rows, ...more];
+    _invalidateRows();
     _ensureCells();
     // Streamed-in rows are persisted data, not local edits.
     if (trackChanges) _baselineRows(more);
@@ -1082,16 +1266,19 @@ class SuperTableController<R> extends ChangeNotifier {
   void updateColumns(List<SuperColumn> columns) {
     _rawColumns = columns;
     _layoutWidths.clear();
+    _invalidateColumns();
     final keys = _midBase.map((c) => c.key).toList();
     final kept = _order.where(keys.contains).toList();
     final added = keys.where((k) => !kept.contains(k)).toList();
     _order = [...kept, ...added];
+    _invalidateColumns();
     _ensureCells();
     notifyListeners();
   }
 
   void setVisibleKeys(List<String>? keys) {
-    _visibleKeys = keys;
+    _visibleKeys = keys == null ? null : List.of(keys);
+    _invalidateColumns();
     notifyListeners();
   }
 
@@ -1104,6 +1291,7 @@ class SuperTableController<R> extends ChangeNotifier {
     if (next.isEmpty) return;
     onVisibleChange?.call(next);
     _visibleKeys = next;
+    _invalidateColumns();
     notifyListeners();
   }
 
@@ -1133,6 +1321,7 @@ class SuperTableController<R> extends ChangeNotifier {
         .toList();
     onVisibleChange?.call(next);
     _visibleKeys = next;
+    _invalidateColumns();
     notifyListeners();
   }
 
@@ -1153,6 +1342,7 @@ class SuperTableController<R> extends ChangeNotifier {
       _pinOverrides[key] = pin;
     }
     if (pinOf(col) == SuperPin.none && !_order.contains(key)) _order.add(key);
+    _invalidateColumns(pipeline: false);
     notifyListeners();
   }
 
@@ -1195,6 +1385,7 @@ class SuperTableController<R> extends ChangeNotifier {
         .toList();
     final tail = dataColumns.map((c) => c.key).where((k) => !valid.contains(k));
     _order = [...valid, ...tail];
+    _invalidateColumns(pipeline: false);
     notifyListeners();
   }
 
@@ -1229,6 +1420,7 @@ class SuperTableController<R> extends ChangeNotifier {
   void setSearch(String q) {
     _search = q;
     _page = 0;
+    _invalidatePipeline();
     _clampSelection();
     notifyListeners();
   }
@@ -1247,6 +1439,7 @@ class SuperTableController<R> extends ChangeNotifier {
     }
     _advancedActive = false;
     _page = 0;
+    _invalidatePipeline();
     _clampSelection();
     notifyListeners();
   }
@@ -1255,6 +1448,7 @@ class SuperTableController<R> extends ChangeNotifier {
     if (_colFilters.isEmpty) return;
     _colFilters.clear();
     _page = 0;
+    _invalidatePipeline();
     _clampSelection();
     notifyListeners();
   }
@@ -1270,6 +1464,7 @@ class SuperTableController<R> extends ChangeNotifier {
     _advancedActive = active && clauses.isNotEmpty;
     if (_advancedActive) _colFilters.clear();
     _page = 0;
+    _invalidatePipeline();
     _clampSelection();
     notifyListeners();
   }
@@ -1280,6 +1475,7 @@ class SuperTableController<R> extends ChangeNotifier {
     _advancedActive = active && _advanced.isNotEmpty;
     if (_advancedActive) _colFilters.clear();
     _page = 0;
+    _invalidatePipeline();
     _clampSelection();
     notifyListeners();
   }
@@ -1289,6 +1485,7 @@ class SuperTableController<R> extends ChangeNotifier {
     _advanced = [];
     _advancedActive = false;
     _page = 0;
+    _invalidatePipeline();
     _clampSelection();
     notifyListeners();
   }
@@ -1310,43 +1507,49 @@ class SuperTableController<R> extends ChangeNotifier {
   // ── column resolution ──
   /// The columns eligible to render: never the [SuperColumn.hidden] ones, and —
   /// when a visible-key allow-list is set — only the keys it includes.
-  List<SuperColumn> get _baseCols => _rawColumns
-      .where(
-        (c) =>
-            !c.hidden &&
-            (_visibleKeys == null || _visibleKeys!.contains(c.key)),
-      )
-      .toList();
-  List<SuperColumn> get _startPins =>
-      _baseCols.where((c) => pinOf(c) == SuperPin.start).toList();
-  List<SuperColumn> get _endPins =>
-      _baseCols.where((c) => pinOf(c) == SuperPin.end).toList();
-  List<SuperColumn> get _midBase =>
-      _baseCols.where((c) => pinOf(c) == SuperPin.none).toList();
+  List<SuperColumn> get _baseCols {
+    _ensureColumnCache();
+    return _baseColumnsCache;
+  }
+
+  List<SuperColumn> get _startPins {
+    _ensureColumnCache();
+    return _startPinsCache;
+  }
+
+  List<SuperColumn> get _endPins {
+    _ensureColumnCache();
+    return _endPinsCache;
+  }
+
+  List<SuperColumn> get _midBase {
+    _ensureColumnCache();
+    return _midBaseCache;
+  }
 
   List<SuperColumn> get midCols {
-    final base = _midBase;
-    return _order
-        .map(
-          (k) => base.cast<SuperColumn?>().firstWhere(
-            (c) => c!.key == k,
-            orElse: () => null,
-          ),
-        )
-        .whereType<SuperColumn>()
-        .toList();
+    _ensureColumnCache();
+    return _midColumnsCache;
   }
 
   /// Render-order columns in logical text-direction order.
   ///
   /// Flutter [Row] places its first child at the start edge automatically, so
   /// this order is correct in both LTR and RTL. Do not reverse it for RTL.
-  List<SuperColumn> get cols => [..._startPins, ...midCols, ..._endPins];
-  int get nCols => cols.length;
+  List<SuperColumn> get cols {
+    _ensureColumnCache();
+    return _columnsCache;
+  }
 
-  SuperColumn? colByKey(String k) => _rawColumns
-      .cast<SuperColumn?>()
-      .firstWhere((c) => c!.key == k, orElse: () => null);
+  int get nCols {
+    _ensureColumnCache();
+    return _columnsCache.length;
+  }
+
+  SuperColumn? colByKey(String k) {
+    _ensureColumnCache();
+    return _columnsByKey[k];
+  }
 
   /// Whether [key] has a user/runtime width override.
   bool hasWidthOverride(String key) => _widths.containsKey(key);
@@ -1372,41 +1575,41 @@ class SuperTableController<R> extends ChangeNotifier {
   List<SuperColumn> get endPins => _endPins;
 
   // ── data pipeline ──
-  List<SuperRow<R>> get _filtered {
+  List<SuperRow<R>> _computeFilteredRows() {
     final q = _search.trim().toLowerCase();
-    final c = cols;
+    final visibleColumns = cols;
 
     // Advanced filter takes precedence and ignores per-column filters.
     if (_advancedActive && _advanced.isNotEmpty) {
-      bool matchesGlobal(SuperRow<R> r) {
+      bool matchesGlobal(SuperRow<R> row) {
         if (q.isEmpty) return true;
-        for (final col in c) {
+        for (final col in visibleColumns) {
           if (SuperColumnLogic.toText(
             col,
-            col.rawValue(r),
-            r,
+            col.rawValue(row),
+            row,
           ).toLowerCase().contains(q)) {
             return true;
           }
-          if (SuperColumnLogic.arText(col, r).toLowerCase().contains(q)) {
+          if (SuperColumnLogic.arText(col, row).toLowerCase().contains(q)) {
             return true;
           }
         }
         return false;
       }
 
-      bool matchesAdvanced(SuperRow<R> r) {
+      bool matchesAdvanced(SuperRow<R> row) {
         for (final clause in _advanced) {
           final col = colByKey(clause.columnKey);
           if (col == null) continue;
-          if (!SuperColumnLogic.matchesClause(col, r, clause)) return false;
+          if (!SuperColumnLogic.matchesClause(col, row, clause)) return false;
         }
         return true;
       }
 
       return _rows
-          .where((r) => matchesGlobal(r) && matchesAdvanced(r))
-          .toList();
+          .where((row) => matchesGlobal(row) && matchesAdvanced(row))
+          .toList(growable: false);
     }
 
     final active = activeColumnFilters;
@@ -1418,165 +1621,197 @@ class SuperTableController<R> extends ChangeNotifier {
       if (col != null) colFilters[col] = '$value'.trim().toLowerCase();
     });
 
-    bool matchesGlobal(SuperRow<R> r) {
+    bool matchesGlobal(SuperRow<R> row) {
       if (q.isEmpty) return true;
-      for (final col in c) {
+      for (final col in visibleColumns) {
         if (SuperColumnLogic.toText(
           col,
-          col.rawValue(r),
-          r,
+          col.rawValue(row),
+          row,
         ).toLowerCase().contains(q)) {
           return true;
         }
-        if (SuperColumnLogic.arText(col, r).toLowerCase().contains(q)) {
+        if (SuperColumnLogic.arText(col, row).toLowerCase().contains(q)) {
           return true;
         }
       }
       return false;
     }
 
-    bool matchesColumns(SuperRow<R> r) {
+    bool matchesColumns(SuperRow<R> row) {
       for (final entry in colFilters.entries) {
         final col = entry.key;
         final needle = entry.value;
         final hay = SuperColumnLogic.toText(
           col,
-          col.rawValue(r),
-          r,
+          col.rawValue(row),
+          row,
         ).toLowerCase();
-        final arHay = SuperColumnLogic.arText(col, r).toLowerCase();
+        final arHay = SuperColumnLogic.arText(col, row).toLowerCase();
         if (!hay.contains(needle) && !arHay.contains(needle)) return false;
       }
       return true;
     }
 
-    return _rows.where((r) => matchesGlobal(r) && matchesColumns(r)).toList();
+    return _rows
+        .where((row) => matchesGlobal(row) && matchesColumns(row))
+        .toList(growable: false);
   }
 
-  List<SuperRow<R>> get _sorted {
-    final f = _filtered;
-    if (_sort.key == null) return f;
-    final c = colByKey(_sort.key!);
-    if (c == null) return f;
-    final out = [...f];
+  List<SuperRow<R>> _computeSortedRows(List<SuperRow<R>> filtered) {
+    if (_sort.key == null) return filtered;
+    final col = colByKey(_sort.key!);
+    if (col == null) return filtered;
+    final out = List<SuperRow<R>>.of(filtered);
     out.sort(
       (a, b) =>
-          SuperColumnLogic.compare(c, c.rawValue(a), c.rawValue(b)) *
+          SuperColumnLogic.compare(col, col.rawValue(a), col.rawValue(b)) *
           (_sort.ascending ? 1 : -1),
     );
     return out;
   }
 
-  int get pageCount {
-    if (_pagination != SuperPagination.pages || grouped) return 1;
-    final n = _sorted.length;
-    return n == 0 ? 1 : ((n + pageSize - 1) ~/ pageSize);
-  }
+  List<RenderItem<R>> _renderCache = const [];
+  List<RenderItem<R>> _dataView = const [];
 
-  List<RenderItem<R>> _renderCache = [];
-  List<RenderItem<R>> _dataView = [];
+  void _ensurePipeline() {
+    if (!_pipelineDirty) return;
 
-  void _rebuildRenderList() {
-    final sorted = _sorted;
+    _ensureColumnCache();
+    _ensureRowIndex();
+
+    final filtered = _computeFilteredRows();
+    final sorted = _computeSortedRows(filtered);
+    _filteredCache = List.unmodifiable(filtered);
+    _sortedCache = List.unmodifiable(sorted);
+    _pageCountCache = _pagination != SuperPagination.pages || grouped
+        ? 1
+        : (sorted.isEmpty ? 1 : ((sorted.length + pageSize - 1) ~/ pageSize));
+
     final list = <RenderItem<R>>[];
     final view = <RenderItem<R>>[];
 
     if (!grouped) {
-      final arr = _pagination == SuperPagination.pages
-          ? sorted.skip(_page * pageSize).take(pageSize).toList()
+      final Iterable<SuperRow<R>> rowsForPage =
+          _pagination == SuperPagination.pages
+          ? sorted.skip(_page * pageSize).take(pageSize)
           : sorted;
-      for (var i = 0; i < arr.length; i++) {
+      var dataIndex = 0;
+      for (final row in rowsForPage) {
         final item = RenderItem<R>.data(
-          row: arr[i],
-          dataIndex: i,
-          sourceIndex: _rows.indexOf(arr[i]),
+          row: row,
+          dataIndex: dataIndex++,
+          sourceIndex: _sourceIndexOf(row),
         );
         view.add(item);
         list.add(item);
       }
-      _renderCache = list;
-      _dataView = view;
-      return;
-    }
-
-    final keys = _groupKeys.map(colByKey).whereType<SuperColumn>().toList();
-    void rec(List<SuperRow<R>> items, int depth, String prefix) {
-      final col = keys[depth];
-      final map = <String, List<SuperRow<R>>>{};
-      for (final row in items) {
-        final v = SuperColumnLogic.toText(col, col.rawValue(row), row);
-        map.putIfAbsent(v, () => []).add(row);
-      }
-      map.forEach((value, groupItems) {
-        final path = '$prefix/$depth:$value';
-        list.add(
-          RenderItem<R>.group(
-            groupCol: col,
-            groupValue: value,
-            groupCount: groupItems.length,
-            depth: depth,
-            path: path,
-            groupRows: groupItems,
-          ),
-        );
-        if (isCollapsed(path)) return;
-        if (depth + 1 < keys.length) {
-          rec(groupItems, depth + 1, path);
-        } else {
-          for (final row in groupItems) {
-            final di = view.length;
-            final item = RenderItem<R>.data(
-              row: row,
-              dataIndex: di,
-              sourceIndex: _rows.indexOf(row),
-            );
-            view.add(item);
-            list.add(item);
+    } else {
+      final keys = _groupKeys.map(colByKey).whereType<SuperColumn>().toList();
+      if (keys.isNotEmpty) {
+        void rec(List<SuperRow<R>> items, int depth, String prefix) {
+          final col = keys[depth];
+          final groups = <String, List<SuperRow<R>>>{};
+          for (final row in items) {
+            final value = SuperColumnLogic.toText(col, col.rawValue(row), row);
+            groups.putIfAbsent(value, () => <SuperRow<R>>[]).add(row);
           }
+          groups.forEach((value, groupItems) {
+            final path = '$prefix/$depth:$value';
+            list.add(
+              RenderItem<R>.group(
+                groupCol: col,
+                groupValue: value,
+                groupCount: groupItems.length,
+                depth: depth,
+                path: path,
+                groupRows: groupItems,
+              ),
+            );
+            if (isCollapsed(path)) return;
+            if (depth + 1 < keys.length) {
+              rec(groupItems, depth + 1, path);
+            } else {
+              for (final row in groupItems) {
+                final item = RenderItem<R>.data(
+                  row: row,
+                  dataIndex: view.length,
+                  sourceIndex: _sourceIndexOf(row),
+                );
+                view.add(item);
+                list.add(item);
+              }
+            }
+            if (groupFootersEnabled) {
+              list.add(
+                RenderItem<R>.groupFooter(
+                  groupCol: col,
+                  groupValue: value,
+                  groupCount: groupItems.length,
+                  depth: depth,
+                  path: path,
+                  groupRows: groupItems,
+                ),
+              );
+            }
+          });
         }
-        if (groupFootersEnabled) {
-          list.add(
-            RenderItem<R>.groupFooter(
-              groupCol: col,
-              groupValue: value,
-              groupCount: groupItems.length,
-              depth: depth,
-              path: path,
-              groupRows: groupItems,
-            ),
-          );
-        }
-      });
+
+        rec(sorted, 0, '');
+      }
     }
 
-    rec(sorted, 0, '');
-    _renderCache = list;
-    _dataView = view;
+    _renderCache = List.unmodifiable(list);
+    _dataView = List.unmodifiable(view);
+    _pipelineDirty = false;
+    _pipelineRebuildCount++;
   }
 
+  /// Materialized render snapshot. Reading this getter never filters, sorts or
+  /// groups unless a prior semantic mutation invalidated the pipeline.
   List<RenderItem<R>> get renderList {
-    _rebuildRenderList();
+    _ensurePipeline();
     return _renderCache;
   }
 
+  /// Materialized data-row view (post-filter/sort/pagination/group expansion).
   List<RenderItem<R>> get view {
-    _rebuildRenderList();
+    _ensurePipeline();
     return _dataView;
   }
 
-  int get nRows => view.length;
-  List<SuperRow<R>> get sortedRows => _sorted;
+  int get nRows {
+    _ensurePipeline();
+    return _dataView.length;
+  }
+
+  int get pageCount {
+    _ensurePipeline();
+    return _pageCountCache;
+  }
+
+  List<SuperRow<R>> get filteredRows {
+    _ensurePipeline();
+    return _filteredCache;
+  }
+
+  List<SuperRow<R>> get sortedRows {
+    _ensurePipeline();
+    return _sortedCache;
+  }
 
   // ── sort ──
   void sortBy(SuperColumn c, bool ascending) {
     if (c.sortable == false) return;
     _sort = SortSpec(key: c.key, ascending: ascending);
+    _invalidatePipeline();
     notifyListeners();
   }
 
   /// Remove any active sort, returning the table to its natural row order.
   void clearSort() {
     _sort = const SortSpec();
+    _invalidatePipeline();
     notifyListeners();
   }
 
@@ -1590,6 +1825,7 @@ class SuperTableController<R> extends ChangeNotifier {
       ..clear()
       ..addAll(keys);
     _collapsed.clear();
+    _invalidatePipeline();
     notifyListeners();
   }
 
@@ -1599,23 +1835,27 @@ class SuperTableController<R> extends ChangeNotifier {
     } else {
       _groupKeys.add(key);
     }
+    _invalidatePipeline();
     notifyListeners();
   }
 
   void clearGroups() {
     _groupKeys.clear();
     _collapsed.clear();
+    _invalidatePipeline();
     notifyListeners();
   }
 
   void toggleCollapse(String path) {
     _collapsed[path] = !(_collapsed[path] ?? false);
+    _invalidatePipeline();
     notifyListeners();
   }
 
   // ── pages ──
   void setPage(int p) {
     _page = p.clamp(0, pageCount - 1);
+    _invalidatePipeline();
     notifyListeners();
   }
 
@@ -1637,6 +1877,7 @@ class SuperTableController<R> extends ChangeNotifier {
     to = to.clamp(0, _order.length - 1);
     final k = _order.removeAt(fromSlot);
     _order.insert(to, k);
+    _invalidateColumns(pipeline: false);
     notifyListeners();
   }
 
@@ -1644,7 +1885,7 @@ class SuperTableController<R> extends ChangeNotifier {
 
   // ── selection helpers ──
   void _clampSelection() {
-    _rebuildRenderList();
+    _ensurePipeline();
     final n = _dataView.length;
     _sel = CellPos(
       _sel.r.clamp(0, n == 0 ? 0 : n - 1),
@@ -1909,7 +2150,7 @@ class SuperTableController<R> extends ChangeNotifier {
     if (r >= nRows) {
       if (_mode == SuperTableMode.editable && addRowEnabled && !grouped) {
         _applyRows([..._rows, _blankRow()]);
-        _rebuildRenderList();
+        _ensurePipeline();
         final t = CellPos(nRows - 1, 0); // first cell of the freshly-added row
         _sel = t;
         _anchor = t;
@@ -1945,6 +2186,7 @@ class SuperTableController<R> extends ChangeNotifier {
       _redo.clear();
     }
     _rows = next;
+    _invalidateRows();
     onChange?.call(next);
   }
 
@@ -2151,7 +2393,7 @@ class SuperTableController<R> extends ChangeNotifier {
       if (r >= nRows) {
         if (addRowEnabled && !grouped) {
           _applyRows([..._rows, _blankRow()]);
-          _rebuildRenderList();
+          _ensurePipeline();
           r = nRows - 1;
           cc = 0;
         } else {
@@ -2181,7 +2423,7 @@ class SuperTableController<R> extends ChangeNotifier {
   void addRow() {
     if (!addRowEnabled) return;
     _applyRows([..._rows, _blankRow()]);
-    _rebuildRenderList();
+    _ensurePipeline();
     final at = nRows - 1;
     _sel = CellPos(at, 0);
     _anchor = _sel;
@@ -2197,7 +2439,7 @@ class SuperTableController<R> extends ChangeNotifier {
         : _rows.length;
     next.insert(at, _blankRow());
     _applyRows(next);
-    _rebuildRenderList();
+    _ensurePipeline();
     _sel = CellPos(
       (viewR + (after ? 1 : 0)).clamp(0, nRows == 0 ? 0 : nRows - 1),
       _sel.c,
@@ -2242,7 +2484,7 @@ class SuperTableController<R> extends ChangeNotifier {
     final next = [..._rows];
     next.insert(entry.sourceIndex + 1, dup);
     _applyRows(next);
-    _rebuildRenderList();
+    _ensurePipeline();
     _sel = CellPos((vr + 1).clamp(0, nRows == 0 ? 0 : nRows - 1), _sel.c);
     _anchor = _sel;
     notifyListeners();
@@ -2282,7 +2524,7 @@ class SuperTableController<R> extends ChangeNotifier {
     final row = next.removeAt(fromSrc);
     next.insert(toSrc.clamp(0, next.length), row);
     _applyRows(next);
-    _rebuildRenderList();
+    _ensurePipeline();
     _sel = CellPos(clampedTo, _sel.c);
     _anchor = _sel;
     _selRows = {clampedTo};

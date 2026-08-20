@@ -1,3 +1,40 @@
+# Migration to super_table_field 3.0.0
+
+Version 3.0.0 starts the new performance architecture. The first milestone
+materializes derived controller state instead of recomputing filtering, sorting,
+grouping, pagination, and column resolution from rendering getters.
+
+## Derived collections are snapshots
+
+`renderList`, `view`, `filteredRows`, `sortedRows`, `cols`, `dataColumns`, and
+`hiddenColumns` are materialized, unmodifiable snapshots. Do not mutate these
+collections directly. Use controller APIs such as `updateRows`, `appendRows`,
+`updateColumns`, `setSearch`, `sortBy`, and the grouping/visibility APIs so cache
+invalidation remains correct.
+
+## Batch related mutations
+
+Use `controller.batch(...)` when several controller mutations belong to one UI
+action. Cache invalidation happens immediately, while listener delivery is
+coalesced to one notification:
+
+```dart
+controller.batch(() {
+  controller.setSearch('open');
+  controller.sortBy(amountColumn, false);
+  controller.setPage(0);
+});
+```
+
+## Performance diagnostics
+
+The v3 controller exposes `debugPipelineRebuildCount`,
+`debugColumnCacheRebuildCount`, `debugRowIndexRebuildCount`, and
+`resetDebugPerformanceCounters()` for regression tests and profile harnesses.
+They are diagnostic APIs, not application state.
+
+---
+
 # Migration to super_table_field 2.8.0
 
 Version 2.8.0 adds responsive/intrinsic column width strategies without changing

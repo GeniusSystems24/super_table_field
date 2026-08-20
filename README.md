@@ -53,7 +53,7 @@ Add the package to `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  super_table_field: ^2.8.0
+  super_table_field: ^3.0.0
 ```
 
 Then install the dependency:

@@ -3,6 +3,18 @@
 All notable changes to **super_table_field** are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/); versioning is [SemVer](https://semver.org/).
 
+## [3.0.0] - 2026-08-20
+
+### Performance architecture — milestone 1
+
+- Materialized the filter/sort/group/pagination pipeline so `renderList`, `view`, `sortedRows`, `nRows`, and `pageCount` are cached O(1) reads until semantic state changes.
+- Added O(1) row source-index and column-key indexes, replacing repeated `List.indexOf` / `firstWhere` hot-path scans.
+- Materialized resolved column lists and invalidated them only for schema/visibility/pin/order changes.
+- Added dirty-cache invalidation for row, filter, sort, group, pagination, and view-state mutations.
+- Added controller `batch(...)` mutations to coalesce multiple listener notifications into one rebuild.
+- Added performance diagnostics used by regression tests.
+- Captured one immutable render-list snapshot per table build for the main viewport and gutter.
+
 ## [2.8.0] - 2026-08-18
 
 ### Added

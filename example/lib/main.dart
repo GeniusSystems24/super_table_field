@@ -34,6 +34,7 @@ import 'examples/example_18_column_config.dart';
 import 'examples/example_19_showcase.dart';
 import 'examples/example_20_table_styles.dart';
 import 'examples/example_21_column_width_fit.dart';
+import 'examples/example_22_big_data_load_more.dart';
 import 'super_table_demo.dart';
 
 void main() => runApp(const ExampleApp());
@@ -251,6 +252,12 @@ class _Launcher extends StatelessWidget {
       'none · auto · maxCell · fit · responsive viewport sizing',
       Icons.width_normal_outlined,
       (_) => const ColumnWidthFitExample(),
+    ),
+    _Demo(
+      '22 · Big data load-more',
+      '1k / 5k / 10k rows per load · 100k max · performance counters',
+      Icons.speed_rounded,
+      (_) => const BigDataLoadMoreExample(),
     ),
   ];
 
