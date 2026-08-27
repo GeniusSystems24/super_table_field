@@ -10,6 +10,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:super_table_field/super_table_field.dart';
+import 'package:super_core/super_core.dart';
 
 /// The host's typed domain model (the row's backing `value`).
 class Sale {

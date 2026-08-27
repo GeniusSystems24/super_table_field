@@ -19,6 +19,7 @@
 import 'package:flutter/widgets.dart';
 
 import 'package:super_auto_suggestion_box/super_auto_suggestion_box.dart';
+import 'package:super_form_field/super_form_field.dart';
 import '../../presentation/controllers/super_table_controller.dart';
 import 'super_column.dart';
 import 'super_filter.dart';
@@ -140,12 +141,88 @@ class SuperCurrencyColumn extends SuperColumn<num> {
 }
 
 // ── enumeration ───────────────────────────────────────────────────────────────
-/// A strict, pick-only dropdown over a typed value set. Provide [values] (the
-/// real values) and an optional [display] to label them; filter values are
-/// [FilterItem]s derived from the same set (or supplied explicitly).
+// SuperEnumerationColumn ↔ SuperSelectFormField integration
+/// A strict, pick-only column edited through [SuperSelectFormField].
+///
+/// [values] remains the simplest local-data API. For source-driven data, pass
+/// [sources], or use [sourcesController] when the available values depend on
+/// the current row/cell. [optionBuilder] maps each raw `T` value to the
+/// [SuperOption] metadata rendered by the select menu.
+///
+/// Row-scoped [sourcesController] and [cellController] are rebuilt when the
+/// row's [SuperRow.fingerPrint] changes, matching the lifecycle strategy used
+/// by [SuperComboColumn] while keeping select-specific behavior independent.
 class SuperEnumerationColumn<T> extends SuperColumn<T> {
+  /// Local values. Used as a [SuperSelectListSource] when [sources] and
+  /// [sourcesController] are not supplied.
   final List<T> values;
+
+  /// Canonical display text used by read-mode cells and the default option
+  /// builder.
   final String Function(T value) display;
+  final String Function(Object? value) _displayAny;
+
+  /// Static select sources shared by every cell in this column.
+  ///
+  /// Resolution order is: [sourcesController] → [sources] → [values].
+  final List<SuperSelectSource<T>> sources;
+  final List<SuperSelectSource<dynamic>> _sourcesAny;
+
+  /// Optional metadata builder for the select menu.
+  ///
+  /// When omitted, each option uses [display] as its label.
+  final SuperSelectOptionBuilder<T>? optionBuilder;
+  final SuperOption<dynamic> Function(
+    List<dynamic> items,
+    int index,
+    dynamic value,
+  )
+  _optionBuilderAny;
+
+  /// Explicit search behavior. When null, search turns on automatically for
+  /// more than eight local values and for source-driven enumerations.
+  final bool? searchable;
+  final String searchHint;
+  final String emptyLabel;
+  final bool searchAutofocus;
+
+  /// Called after a value is picked, before the table commits the cell.
+  final ValueChanged<T>? onSelected;
+  final void Function(dynamic value)? _onSelectedAny;
+
+  /// Builds select sources for one row/cell.
+  ///
+  /// Use this when enumeration choices depend on other cells in the row.
+  final List<SuperSelectSource<T>> Function(
+    BuildContext context,
+    SuperTableController<dynamic> controller,
+    SuperRow row,
+    SuperCell cell,
+  )?
+  sourcesController;
+  final List<SuperSelectSource<dynamic>> Function(
+    BuildContext context,
+    SuperTableController<dynamic> controller,
+    SuperRow row,
+    SuperCell cell,
+  )?
+  _sourcesControllerAny;
+
+  /// Builds a select controller for one row/cell.
+  final SuperSelectFieldController<T> Function(
+    BuildContext context,
+    SuperTableController<dynamic> controller,
+    SuperRow row,
+    SuperCell cell,
+  )?
+  cellController;
+  final SuperSelectFieldController<dynamic> Function(
+    BuildContext context,
+    SuperTableController<dynamic> controller,
+    SuperRow row,
+    SuperCell cell,
+  )?
+  _cellControllerAny;
 
   SuperEnumerationColumn({
     required super.key,
@@ -153,8 +230,17 @@ class SuperEnumerationColumn<T> extends SuperColumn<T> {
     super.hidden,
     super.unique,
     super.formatter,
-    required this.values,
+    this.values = const [],
     String Function(T value)? display,
+    this.sources = const [],
+    this.optionBuilder,
+    this.searchable,
+    this.searchHint = 'Search…',
+    this.emptyLabel = 'No matches',
+    this.searchAutofocus = true,
+    this.onSelected,
+    this.sourcesController,
+    this.cellController,
     super.width,
     super.widthFit,
     super.align,
@@ -174,11 +260,96 @@ class SuperEnumerationColumn<T> extends SuperColumn<T> {
     super.read,
     super.write,
   }) : display = display ?? ((T v) => '$v'),
+       _displayAny = ((value) {
+         if (value == null) return '';
+         return (display ?? ((T v) => '$v'))(value as T);
+       }),
+       _sourcesAny = List<SuperSelectSource<dynamic>>.from(sources),
+       _optionBuilderAny = ((items, index, value) {
+         final typedValue = value as T;
+         final typedItems = List<T>.generate(
+           items.length,
+           (i) => items[i] as T,
+           growable: false,
+         );
+         final builder = optionBuilder;
+         if (builder != null) {
+           return builder(typedItems, index, typedValue);
+         }
+         return SuperOption<T>(
+           value: typedValue,
+           label: (display ?? ((T v) => '$v'))(typedValue),
+         );
+       }),
+       _onSelectedAny = onSelected == null
+           ? null
+           : ((value) => onSelected(value as T)),
+       _sourcesControllerAny = sourcesController == null
+           ? null
+           : ((context, controller, row, cell) =>
+                 List<SuperSelectSource<dynamic>>.from(
+                   sourcesController(context, controller, row, cell),
+                 )),
+       _cellControllerAny = cellController == null
+           ? null
+           : ((context, controller, row, cell) =>
+                 cellController(context, controller, row, cell)),
        super(
          type: SuperColumnType.enumeration,
          opts: _displays(values, display),
          optValues: values,
        );
+
+  /// Whether this column has static source-driven data.
+  bool get hasSources => _sourcesAny.isNotEmpty;
+
+  /// Whether this column has a row-scoped source builder.
+  bool get hasSourcesController => _sourcesControllerAny != null;
+
+  /// Whether this column has a row-scoped select controller builder.
+  bool get hasCellController => _cellControllerAny != null;
+
+  /// Whether the select menu should expose its search field.
+  bool get effectiveSearchable =>
+      searchable ?? (values.length > 8 || hasSources || hasSourcesController);
+
+  /// Static sources erased to the editor's runtime boundary.
+  List<SuperSelectSource<dynamic>> get editorSources => _sourcesAny;
+
+  /// Returns the canonical display string for an untyped cell value.
+  String displayValue(Object? value) => _displayAny(value);
+
+  /// Builds option metadata from the editor's runtime boundary.
+  SuperOption<dynamic> buildOption(
+    List<dynamic> items,
+    int index,
+    dynamic value,
+  ) => _optionBuilderAny(items, index, value);
+
+  /// Builds row-scoped sources from the editor's runtime boundary.
+  List<SuperSelectSource<dynamic>> buildSources(
+    BuildContext context,
+    SuperTableController<dynamic> controller,
+    SuperRow row,
+    SuperCell cell,
+  ) {
+    return _sourcesControllerAny!(context, controller, row, cell);
+  }
+
+  /// Builds a row-scoped select controller from the editor boundary.
+  SuperSelectFieldController<dynamic> buildController(
+    BuildContext context,
+    SuperTableController<dynamic> controller,
+    SuperRow row,
+    SuperCell cell,
+  ) {
+    return _cellControllerAny!(context, controller, row, cell);
+  }
+
+  /// Invokes [onSelected] from the raw-value editor boundary.
+  void notifySelected(Object? value) {
+    if (value != null) _onSelectedAny?.call(value);
+  }
 }
 
 // ── combo (SuperAutoSuggestionsBox-backed) ─────────────────────────────────────────

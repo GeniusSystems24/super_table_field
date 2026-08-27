@@ -11,15 +11,11 @@
 ///   domain/      — entities, repository contracts, usecases (pure Dart)
 ///   presentation/— controllers (Model / state), widgets + pages (the View)
 ///
-/// The shared GeniusLink **core** foundation and the **SuperAutoSuggestionsBox** live
-/// in `super_auto_suggestion_box`, which this package depends on and re-exports —
-/// so this single barrel still gives you everything:
-///   `import 'package:super_table_field/super_table_field.dart';`
+/// Companion packages are implementation dependencies, not part of this
+/// library's export surface. Import `super_core`,
+/// `super_auto_suggestion_box`, or `super_form_field` directly when app
+/// code references one of their public APIs.
 library super_table_field;
-
-// ── Core + SuperAutoSuggestionsBox (re-exported from super_auto_suggestion_box) ───
-export 'package:super_core/super_core.dart';
-export 'package:super_auto_suggestion_box/super_auto_suggestion_box.dart';
 
 // ── Feature ─────────────────────────────────────────────────────────────────
 export 'localization/generated/l10n.dart' hide AppLocalizationDelegate;

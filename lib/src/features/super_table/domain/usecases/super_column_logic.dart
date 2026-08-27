@@ -93,6 +93,8 @@ abstract final class SuperColumnLogic {
   // ── enum/combo display resolution ──
   /// Map a raw cell value to its display string for an enum/combo column.
   static String displayOf(SuperColumn col, Object? value) {
+    if (col is SuperEnumerationColumn) return col.displayValue(value);
+
     final ov = col.optValues;
     final opts = col.opts;
     if (ov != null && opts != null) {

@@ -11,6 +11,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:super_table_field/super_table_field.dart';
+import 'package:super_core/super_core.dart';
 
 typedef _Row = Map<String, dynamic>;
 
@@ -310,15 +311,6 @@ class _BigDataLoadMoreExampleState extends State<BigDataLoadMoreExample> {
                 _Metric('Last batch', _compact(_lastBatchCount)),
                 _Metric('Generate', '${_lastGenerate.inMilliseconds} ms'),
                 _Metric('appendRows', '${_lastAppend.inMilliseconds} ms'),
-                _Metric('Pipeline rebuilds', '${_c.debugPipelineRebuildCount}'),
-                _Metric(
-                  'Column-cache rebuilds',
-                  '${_c.debugColumnCacheRebuildCount}',
-                ),
-                _Metric(
-                  'Row-index rebuilds',
-                  '${_c.debugRowIndexRebuildCount}',
-                ),
               ],
             ),
             const SizedBox(height: 12),

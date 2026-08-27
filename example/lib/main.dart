@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:super_form_field/super_form_field.dart';
 import 'package:super_table_field/super_table_field.dart';
+import 'package:super_core/super_core.dart';
 
 import 'examples/example_1_readonly_report.dart';
 import 'examples/example_2_editable_journal.dart';
@@ -35,6 +36,7 @@ import 'examples/example_19_showcase.dart';
 import 'examples/example_20_table_styles.dart';
 import 'examples/example_21_column_width_fit.dart';
 import 'examples/example_22_big_data_load_more.dart';
+import 'examples/example_23_enumeration_select.dart';
 import 'super_table_demo.dart';
 
 void main() => runApp(const ExampleApp());
@@ -171,7 +173,7 @@ class _Launcher extends StatelessWidget {
     ),
     _Demo(
       '8 · Selection statistics',
-      'multiCells · selectionStats · Sum/Avg/Min/Max status bar',
+      'multiCells · selectionStats · custom Sum/Avg/Min/Max summary',
       Icons.functions_outlined,
       (_) => const SelectionStatsExample(),
     ),
@@ -259,6 +261,12 @@ class _Launcher extends StatelessWidget {
       Icons.speed_rounded,
       (_) => const BigDataLoadMoreExample(),
     ),
+    _Demo(
+      '23 · Enumeration select',
+      'SuperEnumerationColumn · SuperSelectFormField · row-aware sources',
+      Icons.list_alt_outlined,
+      (_) => const EnumerationSelectExample(),
+    ),
   ];
 
   @override
@@ -334,48 +342,57 @@ class _DemoCard extends StatelessWidget {
     final spacing = theme.spacing;
     final colorScheme = Theme.of(context).colorScheme;
 
-    return SuperSectionCard(
-      onTap: () => Navigator.of(
-        context,
-      ).push(MaterialPageRoute<void>(builder: demo.builder)),
-      padding: spacing.cardPadding,
-      child: Row(
-        children: [
-          Container(
-            width: spacing.controlHeight,
-            height: spacing.controlHeight,
-            decoration: BoxDecoration(
-              color: Color.alphaBlend(
-                colorScheme.primary.withValues(alpha: 0.14),
-                theme.surface,
-              ),
-              borderRadius: spacing.borderRadiusControl,
-            ),
-            child: Icon(demo.icon, size: 22, color: colorScheme.primary),
-          ),
-          SizedBox(width: spacing.space4),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    return SuperSectionCard1(
+      padding: EdgeInsets.zero,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: spacing.borderRadiusCard,
+          onTap: () => Navigator.of(
+            context,
+          ).push(MaterialPageRoute<void>(builder: demo.builder)),
+          child: Padding(
+            padding: spacing.cardPadding,
+            child: Row(
               children: [
-                Text(
-                  demo.title,
-                  style: context.superTextTheme.heading.copyWith(
-                    color: theme.fg1,
+                Container(
+                  width: spacing.controlHeight,
+                  height: spacing.controlHeight,
+                  decoration: BoxDecoration(
+                    color: Color.alphaBlend(
+                      colorScheme.primary.withValues(alpha: 0.14),
+                      theme.surface,
+                    ),
+                    borderRadius: spacing.borderRadiusControl,
+                  ),
+                  child: Icon(demo.icon, size: 22, color: colorScheme.primary),
+                ),
+                SizedBox(width: spacing.space4),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        demo.title,
+                        style: context.superTextTheme.heading.copyWith(
+                          color: theme.fg1,
+                        ),
+                      ),
+                      SizedBox(height: spacing.space1),
+                      Text(
+                        demo.subtitle,
+                        style: context.superTextTheme.caption.copyWith(
+                          color: theme.fg3,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                SizedBox(height: spacing.space1),
-                Text(
-                  demo.subtitle,
-                  style: context.superTextTheme.caption.copyWith(
-                    color: theme.fg3,
-                  ),
-                ),
+                Icon(Icons.chevron_right, color: theme.fg4),
               ],
             ),
           ),
-          Icon(Icons.chevron_right, color: theme.fg4),
-        ],
+        ),
       ),
     );
   }

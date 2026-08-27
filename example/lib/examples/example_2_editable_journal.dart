@@ -11,6 +11,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:super_table_field/super_table_field.dart';
+import 'package:super_auto_suggestion_box/super_auto_suggestion_box.dart';
 
 class EditableJournalExample extends StatefulWidget {
   const EditableJournalExample({super.key});

@@ -22,9 +22,12 @@ description: >
 
 `super_table_field` provides the `SuperTable` data grid and wires it to the
 `SuperAutoSuggestionsBox` typeahead from its companion package
-`super_auto_suggestion_box` (which this package depends on and re-exports). In
+`super_auto_suggestion_box` (which this package depends on but does not re-export). In
 editable mode, the table's `combo` columns are edited through the real
-`SuperAutoSuggestionsBox`. This skill tells you how to wire them correctly.
+`SuperAutoSuggestionsBox`. Enumeration cells use the source-driven
+`SuperSelectFormField<T>` API from `super_form_field 1.12.0`, while the
+public `SuperEnumerationColumn` API remains unchanged. This skill tells you
+how to wire these components correctly.
 
 ## When to use
 
@@ -42,7 +45,7 @@ come for free.
 
 ```yaml
 dependencies:
-  super_table_field: ^2.8.0
+  super_table_field: ^3.1.0
 ```
 
 ```dart
@@ -81,7 +84,7 @@ package locales are English (`en`) and Arabic (`ar`). If the host omits the
 delegate, package-owned strings use the explicit built-in English fallback;
 Arabic requires registration.
 
-### super_core 3.3.0 typography rules
+### super_core 3.6.0 typography rules
 
 - `SuperMaterialThemeData.light` and `.dark` require `textTheme` and
   `primaryTextTheme`, both of type `SuperTextTheme`.
@@ -297,7 +300,7 @@ Right-click (or touch double-tap) opens the header menu which also has
 
 **Selection statistics.** In a cell-selection mode, `c.selectionStats` returns a
 `SuperSelectionStats` (`sum`/`average`/`min`/`max`/`count`/`numericCount`) over the
-selected numeric cells; the footer shows it for 2+ numeric cells.
+selected numeric cells. The table does not render a persistent statistics status strip; build application-owned summary UI when needed.
 
 **Per-cell edit locking.** `cellEditable: (col, row) => bool` gates editing in
 addition to mode + column rules — e.g. freeze a posted row but keep its status
@@ -375,9 +378,9 @@ if (!c.isValid) {                 // silent variant (no badge changes)
 `SuperValidationIssue` carries `row`, `sourceIndex`, `columnKey`/`columnLabel`,
 `message`, and `cell` (a `CellPos?` — null when filtered/paged off screen; use
 it with `selectCellAt`). `validateAll` lights the per-cell badges
-(`markCells: false` to skip); when badges are lit the footer shows a tappable
-**⚠ N issues** chip (`c.errorCount`). Column `validator`s run only after the
-View has mounted (they receive its `BuildContext`).
+(`markCells: false` to skip). Read `c.errorCount` for application-owned issue
+indicators, or open `showSuperValidationPanel(context, c)` directly. Column
+`validator`s run only after the View has mounted (they receive its `BuildContext`).
 
 **Saved views.** One JSON snapshot of the user's grid personalisation:
 
@@ -554,7 +557,7 @@ package's barrel. Add new column behavior in
   falls back to English instead of Arabic.
 - Forgetting to provide the required `SuperTextTheme` values to
   `SuperMaterialThemeData.light` / `.dark` → the app does not compile against
-  `super_core 3.3.0`.
+  `super_core 3.6.0`.
 - Mutating the rows list directly instead of via the controller → breaks
   undo/redo and skips a rebuild.
 - Using `SuperColumnType.combo` directly instead of the typed `SuperComboColumn`

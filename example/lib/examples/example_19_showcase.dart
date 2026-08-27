@@ -16,6 +16,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:super_table_field/super_table_field.dart';
+import 'package:super_form_field/super_form_field.dart';
+import 'package:super_auto_suggestion_box/super_auto_suggestion_box.dart';
 
 typedef _Row = Map<String, dynamic>;
 
@@ -129,6 +131,12 @@ class _ShowcaseExampleState extends State<ShowcaseExample> {
       label: 'Status',
       width: 140,
       values: _statuses,
+      searchable: true,
+      optionBuilder: (items, index, status) => SuperOption<String>(
+        value: status,
+        label: status,
+        description: 'Inventory state ${index + 1} of ${items.length}',
+      ),
       dot: true,
       tones: const {
         'In Stock': Color(0xFF1DB88A),

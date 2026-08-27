@@ -1446,7 +1446,10 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
     final showFilter =
         widget.columnFilters && c.mode == SuperTableMode.readable;
     final showTotalsRow =
-        widget.showTotals && _hasTotals(cols) && !widget.loading && rowCount > 0;
+        widget.showTotals &&
+        _hasTotals(cols) &&
+        !widget.loading &&
+        rowCount > 0;
     final extraSkeleton = c.loadingMore && !widget.loading
         ? widget.skeletonRows
         : 0;
@@ -2217,8 +2220,6 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
           ),
         ],
         if (!isEnd) const Spacer(),
-        const SizedBox(width: 5),
-        Icon(Icons.more_vert_rounded, size: 12, color: skin.fg4),
       ],
     );
 
@@ -3167,7 +3168,6 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
         c.pageCount > 1) {
       out.add(_buildPager(skin));
     }
-    out.add(_buildStatusHint(skin));
     return out;
   }
 
@@ -3236,62 +3236,6 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
     );
   }
 
-  Widget _buildStatusHint(SuperTableSkin skin) {
-    final l10n = context.superTableTranslations;
-    final n = _editable ? c.rows.length : c.sortedRows.length;
-    final expKeys = !_editable && widget.expansion?.keymap != null
-        ? l10n.expandCollapseHint
-        : '';
-    final rowCount = l10n.rowCount(n, n == 1 ? '' : 's');
-    final hint = _editable
-        ? l10n.editableStatusHint(rowCount)
-        : l10n.readableStatusHint(rowCount, expKeys);
-    final stats = c.selectionStats;
-    final issues = _editable ? c.errorCount : 0;
-    String fmt(num v) =>
-        v == v.roundToDouble() ? v.toInt().toString() : v.toStringAsFixed(2);
-    return Padding(
-      padding: const EdgeInsets.only(top: 10),
-      child: Wrap(
-        runSpacing: 12,
-        spacing: 12,
-        children: [
-          Text(hint, style: TextStyle(fontSize: 12, color: skin.fg3)),
-          if (issues > 0) ...[
-            _ValidationChip(
-              skin: skin,
-              count: issues,
-              onTap: () => showSuperValidationPanel<R>(context, c),
-            ),
-            const SizedBox(width: 14),
-          ],
-          if (stats != null && stats.hasAggregate) ...[
-            Text(
-              l10n.selectionStats(
-                fmt(stats.sum),
-                fmt(stats.average),
-                fmt(stats.min!),
-                fmt(stats.max!),
-                stats.numericCount,
-              ),
-              style: TextStyle(
-                fontFamily: context.superTextTheme.mono.fontFamily,
-                fontSize: 11.5,
-                color: skin.accent(context),
-              ),
-            ),
-            const SizedBox(width: 14),
-          ],
-          if (c.rowMode && c.selRows.isNotEmpty)
-            Text(
-              l10n.selectedCount(c.selRows.length),
-              style: TextStyle(fontSize: 12, color: skin.accent(context)),
-            ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildSkeleton(SuperTableSkin skin, List<SuperColumn> cols) {
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -3324,60 +3268,6 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
             ),
           if (_actionable) SizedBox(width: _actW),
         ],
-      ),
-    );
-  }
-}
-
-// ── footer validation chip (2.1.0) ──
-class _ValidationChip extends StatelessWidget {
-  final SuperTableSkin skin;
-  final int count;
-  final VoidCallback onTap;
-  const _ValidationChip({
-    required this.skin,
-    required this.count,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: MouseRegion(
-        cursor: SystemMouseCursors.click,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-          decoration: BoxDecoration(
-            color: skin.tint(skin.danger(context), 0.07),
-            border: Border.all(
-              color: skin.danger(context).withValues(alpha: 0.3),
-            ),
-            borderRadius: BorderRadius.circular(6),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.error_outline_rounded,
-                size: 13,
-                color: skin.danger(context),
-              ),
-              const SizedBox(width: 5),
-              Text(
-                context.superTableTranslations.issueCount(
-                  count,
-                  count == 1 ? '' : 's',
-                ),
-                style: TextStyle(
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.w700,
-                  color: skin.danger(context),
-                ),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }

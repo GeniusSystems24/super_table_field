@@ -14,6 +14,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:super_auto_suggestion_box/super_auto_suggestion_box.dart';
 import 'package:super_form_field/super_form_field.dart' as sff;
 
 import '../../../../../super_table_field.dart';
@@ -626,6 +627,224 @@ class _SuperComboEditorState extends State<_SuperComboEditor> {
   }
 }
 
+// ============================================================
+// Enumeration cell editor — embeds SuperSelectFormField with source/controller
+// resolution owned by SuperEnumerationColumn. Resources may be row-scoped and
+// are cached by the table controller against row.fingerPrint.
+// ============================================================
+class _SuperEnumerationEditor extends StatefulWidget {
+  final SuperTableController controller;
+  final SuperRow row;
+  final SuperColumn col;
+  final double height;
+  final void Function({Object? override, int dr, int dc}) onCommit;
+  final VoidCallback onCancel;
+
+  const _SuperEnumerationEditor({
+    required this.controller,
+    required this.row,
+    required this.col,
+    required this.height,
+    required this.onCommit,
+    required this.onCancel,
+  });
+
+  @override
+  State<_SuperEnumerationEditor> createState() =>
+      _SuperEnumerationEditorState();
+}
+
+class _SuperEnumerationEditorState extends State<_SuperEnumerationEditor> {
+  late final FocusNode _focus = FocusNode(debugLabel: 'SuperEnumeration');
+  late sff.SuperSelectFieldController<dynamic> _select;
+  late List<sff.SuperSelectSource<dynamic>> _sources;
+  bool _ownsController = false;
+
+  SuperEnumerationColumn? get _enumeration =>
+      widget.col is SuperEnumerationColumn
+      ? widget.col as SuperEnumerationColumn
+      : null;
+
+  Object? get _initialValue => widget.row.cells[widget.col.key]?.value;
+
+  @override
+  void initState() {
+    super.initState();
+    _resolveSelect();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _focus.requestFocus();
+      _select.open();
+    });
+  }
+
+  /// Resolve the select resources using the same lifecycle principle as combo:
+  /// row-scoped builders first, then static column config, then local values.
+  void _resolveSelect() {
+    final table = widget.controller;
+    final col = _enumeration;
+    final reuse = !table.enumerationNeedsRebuild(widget.row, widget.col.key);
+
+    if (reuse) {
+      final cachedController = table.enumerationControllerFor(
+        widget.row,
+        widget.col.key,
+      );
+      final cachedSources = table.enumerationSourcesFor(
+        widget.row,
+        widget.col.key,
+      );
+      if (cachedController != null && cachedSources != null) {
+        _select = cachedController;
+        _sources = cachedSources;
+        _ownsController = false;
+        return;
+      }
+    }
+
+    if (col != null && col.hasSourcesController) {
+      _sources = col.buildSources(
+        context,
+        table,
+        widget.row,
+        widget.row.cells[widget.col.key]!,
+      );
+    } else if (col != null && col.hasSources) {
+      _sources = col.editorSources;
+    } else {
+      _sources = <sff.SuperSelectSource<dynamic>>[
+        sff.SuperSelectListSource<dynamic>(items: _fallbackValues()),
+      ];
+    }
+
+    if (col != null && col.hasCellController) {
+      _select = col.buildController(
+        context,
+        table,
+        widget.row,
+        widget.row.cells[widget.col.key]!,
+      );
+      _ownsController = false;
+    } else {
+      _select = sff.SuperSelectFieldController<dynamic>(
+        initialValue: _initialValue,
+      );
+      _ownsController = true;
+    }
+
+    table.registerEnumeration(
+      widget.row,
+      widget.col.key,
+      sources: _sources,
+      controller: _select,
+    );
+  }
+
+  List<dynamic> _fallbackValues() {
+    final col = _enumeration;
+    if (col != null && col.values.isNotEmpty) {
+      return List<dynamic>.of(col.values);
+    }
+
+    final opts = widget.col.opts ?? const <String>[];
+    final raw = widget.col.optValues;
+    return <dynamic>[
+      for (var i = 0; i < opts.length; i++)
+        raw != null && i < raw.length ? raw[i] : opts[i],
+    ];
+  }
+
+  sff.SuperOption<dynamic> _optionFor(
+    List<dynamic> items,
+    int index,
+    dynamic value,
+  ) {
+    final col = _enumeration;
+    if (col != null) return col.buildOption(items, index, value);
+    return sff.SuperOption<dynamic>(
+      value: value,
+      label: SuperColumnLogic.displayOf(widget.col, value),
+    );
+  }
+
+  KeyEventResult _handleKey(FocusNode node, KeyEvent event) {
+    if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
+      return KeyEventResult.ignored;
+    }
+
+    final key = event.logicalKey;
+    if (key == LogicalKeyboardKey.escape) {
+      _select.close();
+      widget.onCancel();
+      return KeyEventResult.handled;
+    }
+
+    if (key == LogicalKeyboardKey.tab) {
+      final shift = HardwareKeyboard.instance.isShiftPressed;
+      _select.close();
+      widget.onCommit(override: _select.value, dr: 0, dc: shift ? -1 : 1);
+      return KeyEventResult.handled;
+    }
+
+    // Enter / Space / ArrowDown remain owned by SuperSelectFormField so its
+    // menu keyboard behavior is not duplicated by the table editor.
+    return KeyEventResult.ignored;
+  }
+
+  @override
+  void dispose() {
+    if (_ownsController) {
+      widget.controller.disposeEnumeration(widget.row, widget.col.key);
+      _select.dispose();
+    }
+    _focus.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final col = _enumeration;
+    final skin = SuperTableSkin.of(context);
+
+    return Focus(
+      onKeyEvent: _handleKey,
+      child: SizedBox(
+        height: widget.height,
+        child: Center(
+          child: sff.SuperSelectFormField<dynamic>(
+            controller: _select,
+            focusNode: _focus,
+            autofocus: true,
+            sources: _sources,
+            optionBuilder: _optionFor,
+            density: FieldDensity.compact,
+            required: widget.col.required,
+            searchable: col?.effectiveSearchable ?? false,
+            searchHint: col?.searchHint ?? 'Search…',
+            emptyLabel: col?.emptyLabel ?? 'No matches',
+            searchAutofocus: col?.searchAutofocus ?? true,
+            clearable: false,
+            decoration: const InputDecoration(),
+            style: TextStyle(
+              fontFamily: widget.col.mono
+                  ? context.superTextTheme.mono.fontFamily
+                  : context.superTextTheme.body.fontFamily,
+              fontSize: 13,
+              height: 1.2,
+              color: skin.fg1,
+            ),
+            onChanged: (value) {
+              if (value == null) return;
+              col?.notifySelected(value);
+              widget.onCommit(override: value, dr: 0, dc: 0);
+            },
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 /// The inline editor for an editing cell. Routes to a type-specific editor and
 /// reports value changes / commit / cancel up to the host.
 class SuperCellEditor extends StatefulWidget {
@@ -666,7 +885,6 @@ class _SuperCellEditorState extends State<SuperCellEditor> {
   sff.SuperTextFieldController? _textField;
   sff.SuperNumericFieldController? _numericField;
   sff.SuperDateFieldController? _dateField;
-  sff.SuperSelectFieldController<Object?>? _selectField;
 
   @override
   void initState() {
@@ -684,20 +902,11 @@ class _SuperCellEditorState extends State<SuperCellEditor> {
       _dateField = sff.SuperDateFieldController(
         initialValue: _initialDate(widget.value),
       );
-    } else if (t == SuperColumnType.enumeration) {
-      _selectField = sff.SuperSelectFieldController<Object?>(
-        initialValue: _enumDraftValue(),
-      );
     } else if (t == SuperColumnType.checkbox) {
       _boolDraft = _boolValue(widget.value);
     }
 
-    if (t == SuperColumnType.enumeration) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        _selectField?.open();
-      });
-    } else if (t == SuperColumnType.text ||
+    if (t == SuperColumnType.text ||
         t == SuperColumnType.custom ||
         t == SuperColumnType.link) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -748,7 +957,6 @@ class _SuperCellEditorState extends State<SuperCellEditor> {
     _textField?.dispose();
     _numericField?.dispose();
     _dateField?.dispose();
-    _selectField?.dispose();
     _ctrl.dispose();
     _focus.dispose();
     super.dispose();
@@ -770,44 +978,11 @@ class _SuperCellEditorState extends State<SuperCellEditor> {
     _popup = null;
   }
 
-  /// Map an enum display string back to its raw option value.
-  Object? _enumValueFor(String display) {
-    final col = widget.col;
-    final ov = col.optValues, opts = col.opts;
-    if (ov != null && opts != null) {
-      final i = opts.indexOf(display);
-      if (i >= 0) return ov[i];
-    }
-    return display;
-  }
-
   void _openPopup() {
     if (_popup != null) return;
     final col = widget.col;
     Widget content;
     switch (col.type) {
-      case SuperColumnType.enumeration:
-        content = _OptionList(
-          options: col.opts ?? const [],
-          selected: SuperColumnLogic.displayOf(col, _enumDraftValue()),
-          keyboard: true,
-          onCancel: () {
-            _closePopup();
-            widget.onCancel();
-          },
-          builder: (o) => SuperPill(
-            text: o,
-            color:
-                SuperColumnLogic.toneFor(col, o) ??
-                SuperTableSkin.of(context).fg3,
-            dot: col.dot,
-          ),
-          onPick: (o) {
-            _closePopup();
-            widget.onCommit(override: _enumValueFor(o));
-          },
-        );
-        break;
       case SuperColumnType.time:
         content = _OptionList(
           options: SuperColumnLogic.timeOptions,
@@ -899,9 +1074,7 @@ class _SuperCellEditorState extends State<SuperCellEditor> {
     Overlay.of(context).insert(_popup!);
   }
 
-  Object? _enumDraftValue() => _enumValueFor(widget.value);
-
-  sff.FieldDensity get _fieldDensity => sff.FieldDensity.compact;
+  FieldDensity get _fieldDensity => FieldDensity.compact;
 
   InputDecoration _fieldDecoration(SuperColumn col) => InputDecoration(
     hintText: _hint(col),
@@ -944,18 +1117,6 @@ class _SuperCellEditorState extends State<SuperCellEditor> {
     setState(() {
       _boolDraft = !(_boolDraft ?? _boolValue(widget.value));
     });
-  }
-
-  List<sff.SuperOption<Object?>> _enumOptions(SuperColumn col) {
-    final opts = col.opts ?? const <String>[];
-    final values = col.optValues;
-    return [
-      for (var i = 0; i < opts.length; i++)
-        sff.SuperOption<Object?>(
-          value: values != null && i < values.length ? values[i] : opts[i],
-          label: opts[i],
-        ),
-    ];
   }
 
   Widget _withCellKeys(Widget child) {
@@ -1014,6 +1175,17 @@ class _SuperCellEditorState extends State<SuperCellEditor> {
       );
     }
 
+    if (col.type == SuperColumnType.enumeration) {
+      return _SuperEnumerationEditor(
+        controller: widget.controller,
+        row: widget.row,
+        col: col,
+        height: widget.height,
+        onCommit: widget.onCommit,
+        onCancel: widget.onCancel,
+      );
+    }
+
     final align = col.align == SuperAlign.end
         ? TextAlign.right
         : TextAlign.left;
@@ -1060,25 +1232,6 @@ class _SuperCellEditorState extends State<SuperCellEditor> {
                       )
                     : null,
               ),
-            ),
-          ),
-        ),
-      );
-    }
-
-    if (col.type == SuperColumnType.enumeration) {
-      return _withCellKeys(
-        SizedBox(
-          height: widget.height,
-          child: Center(
-            child: sff.SuperSelectFormField<Object?>(
-              controller: _selectField,
-              options: _enumOptions(col),
-              initialValue: _enumDraftValue(),
-              density: _fieldDensity,
-              searchable: (col.opts?.length ?? 0) > 8,
-              decoration: _fieldDecoration(col),
-              onChanged: (v) => widget.onCommit(override: v),
             ),
           ),
         ),
@@ -1284,10 +1437,6 @@ class _SuperCellEditorState extends State<SuperCellEditor> {
         dr: dr,
         dc: dc,
       );
-      return;
-    }
-    if (widget.col.type == SuperColumnType.enumeration) {
-      widget.onCommit(override: _selectField?.value, dr: dr, dc: dc);
       return;
     }
     if (widget.col.type == SuperColumnType.checkbox) {

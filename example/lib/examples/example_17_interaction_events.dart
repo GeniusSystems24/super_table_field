@@ -16,6 +16,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:super_table_field/super_table_field.dart';
+import 'package:super_core/super_core.dart';
 
 class InteractionEventsExample extends StatefulWidget {
   const InteractionEventsExample({super.key});

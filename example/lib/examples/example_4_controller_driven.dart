@@ -11,6 +11,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:super_table_field/super_table_field.dart';
+import 'package:super_form_field/super_form_field.dart';
+import 'package:super_core/super_core.dart';
 
 class ControllerDrivenExample extends StatefulWidget {
   const ControllerDrivenExample({super.key});
@@ -54,7 +56,15 @@ class _ControllerDrivenExampleState extends State<ControllerDrivenExample> {
           key: 'status',
           label: 'Status',
           width: 130,
-          values: const ['Posted', 'Pending', 'Void'],
+          sources: const [
+            SuperSelectListSource<String>(items: ['Posted', 'Pending', 'Void']),
+          ],
+          searchable: true,
+          optionBuilder: (items, index, status) => SuperOption<String>(
+            value: status,
+            label: status,
+            description: index == 0 ? 'Finalized transaction' : null,
+          ),
         ),
       ],
       rows: _page(8),

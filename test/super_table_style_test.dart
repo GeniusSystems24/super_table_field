@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:super_core/super_core.dart';
 import 'package:super_table_field/super_table_field.dart';
 
 void main() {

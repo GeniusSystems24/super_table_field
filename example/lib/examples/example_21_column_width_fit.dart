@@ -14,6 +14,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:super_table_field/super_table_field.dart';
+import 'package:super_core/super_core.dart';
 
 typedef _Row = Map<String, dynamic>;
 
@@ -332,7 +333,7 @@ class _ColumnWidthFitExampleState extends State<ColumnWidthFitExample> {
     final spacing = theme.spacing;
     final colorScheme = Theme.of(context).colorScheme;
 
-    return SuperSectionCard(
+    return SuperSectionCard1(
       padding: spacing.cardPadding,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,

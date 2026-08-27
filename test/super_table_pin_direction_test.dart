@@ -74,7 +74,7 @@ void main() {
       addTearDown(controller.dispose);
 
       controller.applyViewState(
-        SuperViewState(pins: const {'a': 'left', 'b': 'right'}),
+        const SuperViewState(pins: {'a': 'left', 'b': 'right'}),
       );
 
       expect(controller.pinOf(controller.colByKey('a')!), SuperPin.start);

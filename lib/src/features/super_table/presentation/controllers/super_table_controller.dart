@@ -31,6 +31,8 @@ import 'package:flutter/widgets.dart' show BuildContext, FocusNode;
 
 import 'package:super_auto_suggestion_box/super_auto_suggestion_box.dart'
     show SuperAutoSuggestionsController, SuperAutoSuggestionsSource;
+import 'package:super_form_field/super_form_field.dart'
+    show SuperSelectFieldController, SuperSelectSource;
 import '../../domain/entities/super_column.dart';
 import '../../domain/entities/super_change.dart';
 import '../../domain/entities/super_filter.dart';
@@ -255,6 +257,11 @@ class SuperTableController<R> extends ChangeNotifier {
   // ── change tracking (1.0.0) ──
   final List<({int index, SuperRow<R> row})> _deletedRows = [];
 
+  // ── enumeration per-cell registries (rebuilt on fingerPrint change) ──
+  final Map<String, SuperSelectFieldController<dynamic>> _enumerationCtrls = {};
+  final Map<String, List<SuperSelectSource<dynamic>>> _enumerationSources = {};
+  final Map<String, Object?> _enumerationFingerPrints = {};
+
   // ── combo per-cell registries (rebuilt on fingerPrint change) ──
   final Map<String, SuperAutoSuggestionsController<dynamic>> _comboCtrls = {};
   final Map<String, SuperAutoSuggestionsSource<dynamic>> _comboSources = {};
@@ -348,9 +355,7 @@ class SuperTableController<R> extends ChangeNotifier {
     final data = _rawColumns.where((c) => !c.hidden).toList(growable: false);
     final hidden = _rawColumns.where((c) => c.hidden).toList(growable: false);
     final visible = data
-        .where(
-          (c) => _visibleKeys == null || _visibleKeys!.contains(c.key),
-        )
+        .where((c) => _visibleKeys == null || _visibleKeys!.contains(c.key))
         .toList(growable: false);
     final start = visible
         .where((c) => pinOf(c) == SuperPin.start)
@@ -404,6 +409,7 @@ class SuperTableController<R> extends ChangeNotifier {
     _ensureColumnCache();
     return _hiddenColumnsCache;
   }
+
   SuperSelectionMode get selectionMode => _selectionMode;
   String get search => _search;
   CellPos get sel => _sel;
@@ -724,6 +730,7 @@ class SuperTableController<R> extends ChangeNotifier {
       if (idx < 0) return;
       final snap = _snapshot();
       _pruneCombos(row);
+      _pruneEnumerations(row);
       _applyRows([
         for (var i = 0; i < _rows.length; i++)
           if (i != idx) _rows[i],
@@ -1225,6 +1232,9 @@ class SuperTableController<R> extends ChangeNotifier {
     _comboCtrls.clear();
     _comboSources.clear();
     _comboFingerPrints.clear();
+    _enumerationCtrls.clear();
+    _enumerationSources.clear();
+    _enumerationFingerPrints.clear();
     _clampSelection();
     notifyListeners();
   }
@@ -1257,6 +1267,7 @@ class SuperTableController<R> extends ChangeNotifier {
     }
     for (final row in _rows) {
       _pruneCombos(row);
+      _pruneEnumerations(row);
     }
     _applyRows(<SuperRow<R>>[], undoSnapshot: snap);
     _clampSelection();
@@ -2348,6 +2359,9 @@ class SuperTableController<R> extends ChangeNotifier {
         final cell = row.cells[col.key] ??= SuperCell(columnKey: col.key);
         final prev = cell.value;
         Object? val = override ?? _draft;
+        if (override == null && col.type == SuperColumnType.enumeration) {
+          val = prev;
+        }
         // The editors commit typed overrides; the raw-draft fallback (e.g.
         // committing by clicking another cell) coerces numerics here so the
         // stored value keeps its type (change tracking stays clean).
@@ -2499,6 +2513,7 @@ class SuperTableController<R> extends ChangeNotifier {
       _deletedRows.add((index: entry.sourceIndex, row: entry.row!));
     }
     _pruneCombos(entry.row!);
+    _pruneEnumerations(entry.row!);
     _applyRows([
       for (var i = 0; i < _rows.length; i++)
         if (i != entry.sourceIndex) _rows[i],
@@ -2842,6 +2857,58 @@ class SuperTableController<R> extends ChangeNotifier {
     notifyListeners();
   }
 
+  // ── enumeration per-cell registries ───────────────────────────
+  String _enumerationKey(SuperRow row, String colKey) => '${row.id}:$colKey';
+
+  /// Cached select sources for an enumeration cell.
+  List<SuperSelectSource<dynamic>>? enumerationSourcesFor(
+    SuperRow row,
+    String colKey,
+  ) => _enumerationSources[_enumerationKey(row, colKey)];
+
+  /// Cached select controller for an enumeration cell.
+  SuperSelectFieldController<dynamic>? enumerationControllerFor(
+    SuperRow row,
+    String colKey,
+  ) => _enumerationCtrls[_enumerationKey(row, colKey)];
+
+  /// Whether row-scoped enumeration resources must be rebuilt.
+  bool enumerationNeedsRebuild(SuperRow row, String colKey) {
+    final key = _enumerationKey(row, colKey);
+    return _enumerationFingerPrints[key] != row.fingerPrint ||
+        !_enumerationCtrls.containsKey(key) ||
+        !_enumerationSources.containsKey(key);
+  }
+
+  /// Registers select resources resolved by the enumeration cell editor.
+  void registerEnumeration(
+    SuperRow row,
+    String colKey, {
+    List<SuperSelectSource<dynamic>>? sources,
+    SuperSelectFieldController<dynamic>? controller,
+  }) {
+    final key = _enumerationKey(row, colKey);
+    if (sources != null) _enumerationSources[key] = sources;
+    if (controller != null) _enumerationCtrls[key] = controller;
+    _enumerationFingerPrints[key] = row.fingerPrint;
+  }
+
+  /// Drops cached resources for one enumeration cell.
+  void disposeEnumeration(SuperRow row, String colKey) {
+    final key = _enumerationKey(row, colKey);
+    _enumerationSources.remove(key);
+    _enumerationCtrls.remove(key);
+    _enumerationFingerPrints.remove(key);
+  }
+
+  /// Drops every cached enumeration resource belonging to [row].
+  void _pruneEnumerations(SuperRow<R> row) {
+    final prefix = '${row.id}:';
+    _enumerationSources.removeWhere((key, _) => key.startsWith(prefix));
+    _enumerationCtrls.removeWhere((key, _) => key.startsWith(prefix));
+    _enumerationFingerPrints.removeWhere((key, _) => key.startsWith(prefix));
+  }
+
   // ── combo per-cell registries ─────────────────────────────────
   String _comboKey(SuperRow row, String colKey) => '${row.id}:$colKey';
 
@@ -2903,6 +2970,9 @@ class SuperTableController<R> extends ChangeNotifier {
 
   @override
   void dispose() {
+    _enumerationCtrls.clear();
+    _enumerationSources.clear();
+    _enumerationFingerPrints.clear();
     _comboCtrls.clear();
     _comboSources.clear();
     _comboFingerPrints.clear();

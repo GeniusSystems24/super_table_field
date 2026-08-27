@@ -3,6 +3,26 @@
 All notable changes to **super_table_field** are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/); versioning is [SemVer](https://semver.org/).
 
+
+## [3.1.0] - 2026-08-27
+
+### Changed
+
+- Removed the persistent bottom table status strip that displayed row-count/shortcut hints, selection aggregates, and selected-row counts.
+- `SuperTableController.selectionStats` remains available for application-owned selection summaries; selection behavior and interaction snapshots are unchanged.
+- `showFooter` now only contributes footer controls such as pagination and load-more UI; it no longer adds an always-visible status strip.
+- Updated examples, README, and agent skill guidance for the status-strip removal.
+
+- Updated `super_form_field` integration for the source-driven
+  `SuperSelectFormField<T>` API introduced in `super_form_field 1.12.0`.
+- Migrated enumeration cell editors from `options:` to
+  `SuperSelectListSource<Object?>` plus `optionBuilder`, while preserving
+  `SuperEnumerationColumn` display labels and `optValues` semantics.
+- Raised the example application's `super_form_field` requirement to
+  `>=1.12.0 <2.0.0` and refreshed affected documentation.
+- Added `migration_3.0.1_to_3.1.0.md`.
+- Updated affected examples for `super_core 3.6.0`, replacing the removed `SuperSectionCard` API with `SuperSectionCard1`.
+
 ## [3.0.0] - 2026-08-20
 
 ### Performance architecture — milestone 1

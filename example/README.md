@@ -1,7 +1,7 @@
 # super_table_field example
 
-Runnable gallery for `super_table_field 2.8.0`, using `super_core 3.3.0`,
-`super_auto_suggestion_box 1.2.0`, and `super_form_field 1.8.2+`.
+Runnable gallery for `super_table_field 3.1.0`, using `super_core 3.6.0`,
+`super_auto_suggestion_box 1.2.0`, and `super_form_field 1.12.0+`.
 
 ```bash
 flutter pub get
@@ -9,7 +9,7 @@ flutter run
 ```
 
 The launcher demonstrates the responsive `SuperScaffold` page frame,
-`SuperSectionCard` surfaces, light/dark themes, and LTR/RTL switching.
+`SuperSectionCard1` surfaces, light/dark themes, and LTR/RTL switching.
 
 ## Example 21 — Column width fit
 

@@ -1,16 +1,16 @@
 // ============================================================
 // example/lib/examples/example_8_selection_stats.dart
 // ------------------------------------------------------------
-// EXAMPLE 8 — Selection statistics (the spreadsheet status bar).
+// EXAMPLE 8 — Programmatic selection statistics.
 //
 // Demonstrates: `multiCells` selection + `controller.selectionStats`. Drag (or
-// Shift+arrow) across a block of numbers; the grid's footer shows the running
-// Sum / Avg / Min / Max / Count, and this screen mirrors the same stats in a
-// card so you can wire your own status bar.
+// Shift+arrow) across a block of numbers; this screen renders the returned
+// Sum / Avg / Min / Max / Count in an application-owned summary card.
 // ============================================================
 
 import 'package:flutter/material.dart';
 import 'package:super_table_field/super_table_field.dart';
+import 'package:super_core/super_core.dart';
 
 class SelectionStatsExample extends StatefulWidget {
   const SelectionStatsExample({super.key});
@@ -106,7 +106,7 @@ class _SelectionStatsExampleState extends State<SelectionStatsExample> {
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: Text(
-                'Shift-drag a block of the quarterly numbers — the live Sum / Avg / Min / Max appears below and in the grid footer.',
+                'Shift-drag a block of the quarterly numbers — the live Sum / Avg / Min / Max appears in the summary below.',
                 style: TextStyle(color: t.fg3),
               ),
             ),

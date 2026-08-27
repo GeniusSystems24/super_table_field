@@ -10,7 +10,7 @@ A keyboard-first, generic Flutter data grid for ERP, accounting, inventory, and 
 
 `super_table_field` provides a single `SuperTable<R>` widget for readable and editable workflows, backed by a `SuperTableController<R>`. It includes typed columns, validation, filtering, grouping, totals, pagination, change tracking, export, clipboard operations, undo/redo, expandable rows, runtime column configuration, and English/Arabic localization.
 
-The package also re-exports [`super_core`](https://pub.dev/packages/super_core) and [`super_auto_suggestion_box`](https://pub.dev/packages/super_auto_suggestion_box), so the main barrel import is sufficient for the table, design-system theme, and suggestion-box APIs.
+`super_table_field` exports only its own table APIs and localizations. It does **not** re-export `super_core`, `super_auto_suggestion_box`, or `super_form_field`. Import companion packages directly when application code references their APIs.
 
 ```dart
 import 'package:super_table_field/super_table_field.dart';
@@ -22,6 +22,7 @@ import 'package:super_table_field/super_table_field.dart';
 - Readable and editable modes that can be changed at runtime.
 - Thirteen column types, including text, number, currency, enum, combo, date, checkbox, computed, and read-only columns.
 - Inline editors based on `super_form_field`; combo cells use `SuperAutoSuggestionsBox`.
+- Enumeration editors use the `super_form_field 1.12.0` source-driven select API internally.
 - Single-cell, multi-cell, single-row, and multi-row selection modes.
 - Search, per-column filters, and advanced cross-column filters.
 - Multi-level grouping, group aggregates, group footers, and grand totals.
@@ -43,9 +44,9 @@ import 'package:super_table_field/super_table_field.dart';
 |---|---|---
 | Dart SDK | `3.8.0` |
 | Flutter SDK | `3.32.0` |
-| `super_core` | `3.3.0` |
-| `super_auto_suggestion_box` | `1.2.0` |
-| `super_form_field` | `1.8.2` |
+| `super_core` | `3.6.0` |
+| `super_auto_suggestion_box` | `1.3.2` |
+| `super_form_field` | `1.12.0` |
 
 ## Installation
 
@@ -53,7 +54,7 @@ Add the package to `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  super_table_field: ^3.0.0
+  super_table_field: ^3.1.0
 ```
 
 Then install the dependency:
@@ -70,12 +71,27 @@ dependencies:
     path: ../super_table_field
 ```
 
+
+### Companion package imports
+
+The table package keeps its public barrel focused on table-owned APIs. When your application directly uses a companion API, declare that package directly too. The package currently depends on:
+
+```yaml
+dependencies:
+  super_core: ">=3.6.0 <4.0.0"
+  super_auto_suggestion_box: ">=1.3.2 <2.0.0"
+  super_form_field: ">=1.12.0 <2.0.0"
+```
+
+Typical cases are `SuperTextTheme`/`SuperMaterialThemeData` from `super_core`, `SuperAutoSuggestionsItem` or custom suggestion sources from `super_auto_suggestion_box`, and `SuperSelectSource`/`SuperOption` from `super_form_field`.
+
 ## Application setup
 
 Register the package localization delegates and use the `super_core` Material themes:
 
 ```dart
 import 'package:flutter/material.dart';
+import 'package:super_core/super_core.dart';
 import 'package:super_table_field/super_table_field.dart';
 
 void main() {
@@ -109,7 +125,7 @@ class MyApp extends StatelessWidget {
 }
 ```
 
-`super_core 3.3.0` requires explicit `SuperTextTheme` values for both
+`super_core 3.6.0` requires explicit `SuperTextTheme` values for both
 `textTheme` and `primaryTextTheme`. `SuperThemeData` no longer exposes
 `textTheme`; read the branded typography through `context.superTextTheme` or
 `SuperMaterialThemeData.of(context).textTheme`. The table follows the ambient
@@ -279,6 +295,9 @@ class _InventoryTablePageState extends State<InventoryTablePage> {
 }
 ```
 
+`showFooter` controls pagination and load-more footer controls. It no longer adds
+a persistent table status strip.
+
 ## Core concepts
 
 ### `SuperTableController<R>`
@@ -423,6 +442,69 @@ Important behaviors:
 - `unique: true` validates non-empty values across all rows case-insensitively.
 - `formatter` changes displayed text only; sorting, filtering, grouping, and editing still use the raw value.
 - `read` and `write` map table values to typed backing objects.
+
+<!-- super-enumeration-select:start -->
+### Enumeration columns with `SuperSelectFormField`
+
+`SuperEnumerationColumn<T>` is strict pick-only editing backed by `SuperSelectFormField<T>`. The table still owns cell commit, validation, keyboard navigation, and row lifecycle; the select field owns option presentation and selection interaction.
+
+For a local value set, no companion import is needed in application code:
+
+```dart
+SuperEnumerationColumn<String>(
+  key: 'status',
+  label: 'Status',
+  values: const ['Draft', 'Posted', 'Cancelled'],
+  searchable: true,
+);
+```
+
+For source-driven values or custom option metadata, import `super_form_field` directly:
+
+```dart
+import 'package:super_form_field/super_form_field.dart';
+import 'package:super_table_field/super_table_field.dart';
+
+SuperEnumerationColumn<String>(
+  key: 'status',
+  label: 'Status',
+  sources: const [
+    SuperSelectListSource<String>(
+      items: ['Draft', 'Posted', 'Cancelled'],
+    ),
+  ],
+  searchable: true,
+  optionBuilder: (items, index, status) => SuperOption<String>(
+    value: status,
+    label: status,
+    description: 'Option ${index + 1} of ${items.length}',
+  ),
+);
+```
+
+When choices depend on other cells, use `sourcesController`. The table caches row-scoped select resources by `row.fingerPrint`; call `row.randomFingerPrint()` after changing the dependency:
+
+```dart
+SuperEnumerationColumn<String>(
+  key: 'bin',
+  label: 'Bin',
+  sourcesController: (context, controller, row, cell) {
+    final warehouse = row['warehouse'] as String?;
+    return [
+      SuperSelectListSource<String>(
+        items: binsByWarehouse[warehouse] ?? const [],
+      ),
+    ];
+  },
+  optionBuilder: (items, index, bin) => SuperOption(
+    value: bin,
+    label: bin,
+  ),
+);
+```
+
+Source resolution follows `sourcesController` → `sources` → `values`. Use `cellController` only when the host needs explicit row-scoped `SuperSelectFieldController<T>` control.
+<!-- super-enumeration-select:end -->
 
 ## Editing and validation
 
@@ -748,11 +830,15 @@ controller.selectAll();
 controller.clearSelection();
 ```
 
-Read spreadsheet-style statistics for numeric selected cells:
+Read spreadsheet-style statistics for numeric selected cells and render them
+where your application needs them:
 
 ```dart
 final SuperSelectionStats? stats = controller.selectionStats;
 ```
+
+`SuperTable` does not render a persistent row-count / shortcut / selection-statistics
+status strip. `selectionStats` remains available as a controller API for custom UI.
 
 Observe user and programmatic interactions:
 
@@ -894,6 +980,8 @@ Row styles take priority over cell styles.
 
 ## Combo columns and suggestions
 
+`super_auto_suggestion_box` is not re-exported. Import it directly when application code constructs suggestion sources, controllers, or `SuperAutoSuggestionsItem` metadata.
+
 A static combo column:
 
 ```dart
@@ -906,18 +994,21 @@ SuperComboColumn<String>(
 );
 ```
 
-`SuperComboColumn` follows `super_auto_suggestion_box` 1.2.0: suggestion data
+`SuperComboColumn` follows `super_auto_suggestion_box` 1.3.2: suggestion data
 and row-scoped sources use raw `T` values. Metadata is derived from optional
 `suggestionBuilder`, then the column's `display` callback. Custom rows can
 read the built `SuperAutoSuggestionsItem<T>` from `itemBuilder`.
 
-The 1.2.0 suggestion box exposes selection through `onSelectionChanged` and
+The 1.3.2 suggestion box exposes selection through `onSelectionChanged` and
 observes query text through `SuperAutoSuggestionsController.text`. The table
 adapts these APIs internally while preserving `SuperComboColumn`'s table-level
 selection/free-text behavior. Sources stay bound to
 `SuperAutoSuggestionsBox`, while controller instances own field state.
 
 ```dart
+import 'package:super_auto_suggestion_box/super_auto_suggestion_box.dart';
+import 'package:super_table_field/super_table_field.dart';
+
 SuperComboColumn<String>(
   key: 'account',
   label: 'Account',
