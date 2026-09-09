@@ -54,7 +54,7 @@ Add the package to `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  super_table_field: ^3.1.0
+  super_table_field: ^3.1.1
 ```
 
 Then install the dependency:
@@ -108,8 +108,8 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       localizationsDelegates:
-          SuperTableLocalizations.localizationsDelegates,
-      supportedLocales: SuperTableLocalizations.supportedLocales,
+          SuperTableLocalization.localizationsDelegates,
+      supportedLocales: SuperTableLocalization.supportedLocales,
       theme: SuperMaterialThemeData.light(
         textTheme: typography,
         primaryTextTheme: typography,
@@ -131,7 +131,7 @@ class MyApp extends StatelessWidget {
 `SuperMaterialThemeData.of(context).textTheme`. The table follows the ambient
 `SuperTextTheme` body/display/mono font families.
 
-`SuperTableLocalizations` includes the package translation delegate together with Flutter's Material, Cupertino, and Widgets delegates. Registering it enables Arabic; if `SuperTableTranslation` is absent from the widget tree, package-owned strings use the built-in English fallback. The package currently supports:
+`SuperTableLocalization.localizationsDelegates` includes the package translation delegate together with Flutter's Material, Cupertino, and Widgets delegates. Registering it enables Arabic. Inside table widgets, use `context.superTableLocalization`; the extension returns the active package localization and falls back to built-in English strings when the delegate is not registered. The package currently supports:
 
 ```dart
 const Locale('en');
@@ -1231,8 +1231,8 @@ final typography = SuperTextTheme(isArabic: true);
 MaterialApp(
   locale: const Locale('ar'),
   localizationsDelegates:
-      SuperTableLocalizations.localizationsDelegates,
-  supportedLocales: SuperTableLocalizations.supportedLocales,
+      SuperTableLocalization.localizationsDelegates,
+  supportedLocales: SuperTableLocalization.supportedLocales,
   theme: SuperMaterialThemeData.light(
     textTheme: typography,
     primaryTextTheme: typography,
@@ -1250,7 +1250,7 @@ Flutter automatically applies RTL layout for Arabic. Table menus, filters, valid
 Read package translations directly from a widget context when needed:
 
 ```dart
-final translations = context.superTableTranslations;
+final translations = context.superTableLocalization;
 ```
 
 ## Keyboard behavior

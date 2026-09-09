@@ -1,1269 +1,1063 @@
-// GENERATED CODE - DO NOT MODIFY BY HAND
-import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'intl/messages_all.dart';
+import 'dart:async';
 
-// **************************************************************************
-// Generator: Flutter Intl IDE plugin
-// Made by Localizely
-// **************************************************************************
+import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:intl/intl.dart' as intl;
 
-// ignore_for_file: non_constant_identifier_names, lines_longer_than_80_chars
-// ignore_for_file: join_return_with_assignment, prefer_final_in_for_each
-// ignore_for_file: avoid_redundant_argument_values, avoid_escaping_inner_quotes
+import 'l10n_ar.dart';
+import 'l10n_en.dart';
 
-class SuperTableTranslation {
-  SuperTableTranslation();
+// ignore_for_file: type=lint
 
-  static SuperTableTranslation? _current;
+/// Callers can lookup localized strings with an instance of SuperTableLocalization
+/// returned by `SuperTableLocalization.of(context)`.
+///
+/// Applications need to include `SuperTableLocalization.delegate()` in their app's
+/// `localizationDelegates` list, and the locales they support in the app's
+/// `supportedLocales` list. For example:
+///
+/// ```dart
+/// import 'generated/l10n.dart';
+///
+/// return MaterialApp(
+///   localizationsDelegates: SuperTableLocalization.localizationsDelegates,
+///   supportedLocales: SuperTableLocalization.supportedLocales,
+///   home: MyApplicationHome(),
+/// );
+/// ```
+///
+/// ## Update pubspec.yaml
+///
+/// Please make sure to update your pubspec.yaml to include the following
+/// packages:
+///
+/// ```yaml
+/// dependencies:
+///   # Internationalization support.
+///   flutter_localizations:
+///     sdk: flutter
+///   intl: any # Use the pinned version from flutter_localizations
+///
+///   # Rest of dependencies
+/// ```
+///
+/// ## iOS Applications
+///
+/// iOS applications define key application metadata, including supported
+/// locales, in an Info.plist file that is built into the application bundle.
+/// To configure the locales supported by your app, you’ll need to edit this
+/// file.
+///
+/// First, open your project’s ios/Runner.xcworkspace Xcode workspace file.
+/// Then, in the Project Navigator, open the Info.plist file under the Runner
+/// project’s Runner folder.
+///
+/// Next, select the Information Property List item, select Add Item from the
+/// Editor menu, then select Localizations from the pop-up menu.
+///
+/// Select and expand the newly-created Localizations item then, for each
+/// locale your application supports, add a new item and select the locale
+/// you wish to add from the pop-up menu in the Value field. This list should
+/// be consistent with the languages listed in the SuperTableLocalization.supportedLocales
+/// property.
+abstract class SuperTableLocalization {
+  SuperTableLocalization(String locale)
+    : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
-  static SuperTableTranslation get current {
-    assert(
-      _current != null,
-      'No instance of SuperTableTranslation was loaded. Try to initialize the SuperTableTranslation delegate before accessing SuperTableTranslation.current.',
-    );
-    return _current!;
-  }
+  final String localeName;
 
-  static const AppLocalizationDelegate delegate = AppLocalizationDelegate();
-
-  static Future<SuperTableTranslation> load(Locale locale) {
-    final name = (locale.countryCode?.isEmpty ?? false)
-        ? locale.languageCode
-        : locale.toString();
-    final localeName = Intl.canonicalizedLocale(name);
-    return initializeMessages(localeName).then((_) {
-      Intl.defaultLocale = localeName;
-      final instance = SuperTableTranslation();
-      SuperTableTranslation._current = instance;
-
-      return instance;
-    });
-  }
-
-  static SuperTableTranslation of(BuildContext context) {
-    final instance = SuperTableTranslation.maybeOf(context);
-    assert(
-      instance != null,
-      'No instance of SuperTableTranslation present in the widget tree. Did you add SuperTableTranslation.delegate in localizationsDelegates?',
-    );
-    return instance!;
-  }
-
-  static SuperTableTranslation? maybeOf(BuildContext context) {
-    return Localizations.of<SuperTableTranslation>(
+  static SuperTableLocalization of(BuildContext context) {
+    return Localizations.of<SuperTableLocalization>(
       context,
-      SuperTableTranslation,
-    );
-  }
-
-  /// `Cancel`
-  String get cancel {
-    return Intl.message('Cancel', name: 'cancel', desc: '', args: []);
-  }
-
-  /// `Delete`
-  String get delete {
-    return Intl.message('Delete', name: 'delete', desc: '', args: []);
-  }
-
-  /// `Clear`
-  String get clear {
-    return Intl.message('Clear', name: 'clear', desc: '', args: []);
-  }
-
-  /// `Reset`
-  String get reset {
-    return Intl.message('Reset', name: 'reset', desc: '', args: []);
-  }
-
-  /// `Done`
-  String get done {
-    return Intl.message('Done', name: 'done', desc: '', args: []);
-  }
-
-  /// `All`
-  String get all {
-    return Intl.message('All', name: 'all', desc: '', args: []);
-  }
-
-  /// `Yes`
-  String get yes {
-    return Intl.message('Yes', name: 'yes', desc: '', args: []);
-  }
-
-  /// `No`
-  String get no {
-    return Intl.message('No', name: 'no', desc: '', args: []);
-  }
-
-  /// `Checked`
-  String get checked {
-    return Intl.message('Checked', name: 'checked', desc: '', args: []);
-  }
-
-  /// `Unchecked`
-  String get unchecked {
-    return Intl.message('Unchecked', name: 'unchecked', desc: '', args: []);
-  }
-
-  /// `Filter...`
-  String get filterHint {
-    return Intl.message('Filter...', name: 'filterHint', desc: '', args: []);
-  }
-
-  /// `value`
-  String get valueHint {
-    return Intl.message('value', name: 'valueHint', desc: '', args: []);
-  }
-
-  /// `to`
-  String get toHint {
-    return Intl.message('to', name: 'toHint', desc: '', args: []);
-  }
-
-  /// `No rows`
-  String get noRows {
-    return Intl.message('No rows', name: 'noRows', desc: '', args: []);
-  }
-
-  /// `TOTALS`
-  String get totals {
-    return Intl.message('TOTALS', name: 'totals', desc: '', args: []);
-  }
-
-  /// `Load more`
-  String get loadMore {
-    return Intl.message('Load more', name: 'loadMore', desc: '', args: []);
-  }
-
-  /// `Loading...`
-  String get loading {
-    return Intl.message('Loading...', name: 'loading', desc: '', args: []);
-  }
-
-  /// `Delete row?`
-  String get deleteRowTitle {
-    return Intl.message(
-      'Delete row?',
-      name: 'deleteRowTitle',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Row {rowNumber} ({rowLabel}) will be permanently removed. This cannot be undone.`
-  String deleteRowBody(Object rowNumber, Object rowLabel) {
-    return Intl.message(
-      'Row $rowNumber ($rowLabel) will be permanently removed. This cannot be undone.',
-      name: 'deleteRowBody',
-      desc: '',
-      args: [rowNumber, rowLabel],
-    );
-  }
-
-  /// `Sort ascending`
-  String get sortAscending {
-    return Intl.message(
-      'Sort ascending',
-      name: 'sortAscending',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Sort descending`
-  String get sortDescending {
-    return Intl.message(
-      'Sort descending',
-      name: 'sortDescending',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Clear sort`
-  String get clearSort {
-    return Intl.message('Clear sort', name: 'clearSort', desc: '', args: []);
-  }
-
-  /// `Remove from grouping`
-  String get removeFromGrouping {
-    return Intl.message(
-      'Remove from grouping',
-      name: 'removeFromGrouping',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Group by this column`
-  String get groupByThisColumn {
-    return Intl.message(
-      'Group by this column',
-      name: 'groupByThisColumn',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Hide column`
-  String get hideColumn {
-    return Intl.message('Hide column', name: 'hideColumn', desc: '', args: []);
-  }
-
-  /// `Show column`
-  String get showColumn {
-    return Intl.message('Show column', name: 'showColumn', desc: '', args: []);
-  }
-
-  /// `Pin`
-  String get pin {
-    return Intl.message('Pin', name: 'pin', desc: '', args: []);
-  }
-
-  /// `Pin start`
-  String get pinLeft {
-    return Intl.message('Pin start', name: 'pinLeft', desc: '', args: []);
-  }
-
-  /// `Pin end`
-  String get pinRight {
-    return Intl.message('Pin end', name: 'pinRight', desc: '', args: []);
-  }
-
-  /// `Unpinned`
-  String get unpinned {
-    return Intl.message('Unpinned', name: 'unpinned', desc: '', args: []);
-  }
-
-  /// `Manage columns`
-  String get manageColumns {
-    return Intl.message(
-      'Manage columns',
-      name: 'manageColumns',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Drag to reorder · toggle visibility · pin to an edge`
-  String get manageColumnsDescription {
-    return Intl.message(
-      'Drag to reorder · toggle visibility · pin to an edge',
-      name: 'manageColumnsDescription',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `{shown} of {total} shown`
-  String shownOfColumns(Object shown, Object total) {
-    return Intl.message(
-      '$shown of $total shown',
-      name: 'shownOfColumns',
-      desc: '',
-      args: [shown, total],
-    );
-  }
-
-  /// `Copy JSON`
-  String get copyJson {
-    return Intl.message('Copy JSON', name: 'copyJson', desc: '', args: []);
-  }
-
-  /// `Copy as JSON`
-  String get copyAsJson {
-    return Intl.message('Copy as JSON', name: 'copyAsJson', desc: '', args: []);
-  }
-
-  /// `Shortcuts`
-  String get shortcuts {
-    return Intl.message('Shortcuts', name: 'shortcuts', desc: '', args: []);
-  }
-
-  /// `Keyboard shortcuts`
-  String get keyboardShortcuts {
-    return Intl.message(
-      'Keyboard shortcuts',
-      name: 'keyboardShortcuts',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Insert row above`
-  String get insertRowAbove {
-    return Intl.message(
-      'Insert row above',
-      name: 'insertRowAbove',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Insert row below`
-  String get insertRowBelow {
-    return Intl.message(
-      'Insert row below',
-      name: 'insertRowBelow',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Duplicate row`
-  String get duplicateRow {
-    return Intl.message(
-      'Duplicate row',
-      name: 'duplicateRow',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Revert cell`
-  String get revertCell {
-    return Intl.message('Revert cell', name: 'revertCell', desc: '', args: []);
-  }
-
-  /// `Revert row`
-  String get revertRow {
-    return Intl.message('Revert row', name: 'revertRow', desc: '', args: []);
-  }
-
-  /// `Revert row (remove added)`
-  String get revertRowRemoveAdded {
-    return Intl.message(
-      'Revert row (remove added)',
-      name: 'revertRowRemoveAdded',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Move row up`
-  String get moveRowUp {
-    return Intl.message('Move row up', name: 'moveRowUp', desc: '', args: []);
-  }
-
-  /// `Move row down`
-  String get moveRowDown {
-    return Intl.message(
-      'Move row down',
-      name: 'moveRowDown',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Delete row`
-  String get deleteRow {
-    return Intl.message('Delete row', name: 'deleteRow', desc: '', args: []);
-  }
-
-  /// `Row options`
-  String get rowOptions {
-    return Intl.message('Row options', name: 'rowOptions', desc: '', args: []);
-  }
-
-  /// `Group by`
-  String get groupBy {
-    return Intl.message('Group by', name: 'groupBy', desc: '', args: []);
-  }
-
-  /// `GROUPED BY`
-  String get groupedBy {
-    return Intl.message('GROUPED BY', name: 'groupedBy', desc: '', args: []);
-  }
-
-  /// `Clear all`
-  String get clearAll {
-    return Intl.message('Clear all', name: 'clearAll', desc: '', args: []);
-  }
-
-  /// `Add column`
-  String get addColumn {
-    return Intl.message('Add column', name: 'addColumn', desc: '', args: []);
-  }
-
-  /// `Advanced filter`
-  String get advancedFilter {
-    return Intl.message(
-      'Advanced filter',
-      name: 'advancedFilter',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Advanced filter active - edit`
-  String get advancedFilterActiveEdit {
-    return Intl.message(
-      'Advanced filter active - edit',
-      name: 'advancedFilterActiveEdit',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Clear all filters`
-  String get clearAllFilters {
-    return Intl.message(
-      'Clear all filters',
-      name: 'clearAllFilters',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Filter rows`
-  String get filterRows {
-    return Intl.message('Filter rows', name: 'filterRows', desc: '', args: []);
-  }
-
-  /// `All conditions must match (AND). Column filters are disabled while this is active.`
-  String get advancedFilterDescription {
-    return Intl.message(
-      'All conditions must match (AND). Column filters are disabled while this is active.',
-      name: 'advancedFilterDescription',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Add condition`
-  String get addCondition {
-    return Intl.message(
-      'Add condition',
-      name: 'addCondition',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Apply filter`
-  String get applyFilter {
-    return Intl.message(
-      'Apply filter',
-      name: 'applyFilter',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `contains`
-  String get opContains {
-    return Intl.message('contains', name: 'opContains', desc: '', args: []);
-  }
-
-  /// `equals`
-  String get opEquals {
-    return Intl.message('equals', name: 'opEquals', desc: '', args: []);
-  }
-
-  /// `not equals`
-  String get opNotEquals {
-    return Intl.message('not equals', name: 'opNotEquals', desc: '', args: []);
-  }
-
-  /// `starts with`
-  String get opStartsWith {
-    return Intl.message(
-      'starts with',
-      name: 'opStartsWith',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `ends with`
-  String get opEndsWith {
-    return Intl.message('ends with', name: 'opEndsWith', desc: '', args: []);
-  }
-
-  /// `> greater`
-  String get opGreaterThan {
-    return Intl.message('> greater', name: 'opGreaterThan', desc: '', args: []);
-  }
-
-  /// `>= at least`
-  String get opGreaterOrEqual {
-    return Intl.message(
-      '>= at least',
-      name: 'opGreaterOrEqual',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `< less`
-  String get opLessThan {
-    return Intl.message('< less', name: 'opLessThan', desc: '', args: []);
-  }
-
-  /// `<= at most`
-  String get opLessOrEqual {
-    return Intl.message(
-      '<= at most',
-      name: 'opLessOrEqual',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `between`
-  String get opBetween {
-    return Intl.message('between', name: 'opBetween', desc: '', args: []);
-  }
-
-  /// `is empty`
-  String get opIsEmpty {
-    return Intl.message('is empty', name: 'opIsEmpty', desc: '', args: []);
-  }
-
-  /// `is not empty`
-  String get opIsNotEmpty {
-    return Intl.message(
-      'is not empty',
-      name: 'opIsNotEmpty',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Navigate`
-  String get navigate {
-    return Intl.message('Navigate', name: 'navigate', desc: '', args: []);
-  }
-
-  /// `Edit`
-  String get edit {
-    return Intl.message('Edit', name: 'edit', desc: '', args: []);
-  }
-
-  /// `Rows & clipboard`
-  String get rowsAndClipboard {
-    return Intl.message(
-      'Rows & clipboard',
-      name: 'rowsAndClipboard',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Move between cells`
-  String get moveBetweenCells {
-    return Intl.message(
-      'Move between cells',
-      name: 'moveBetweenCells',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Next / previous cell`
-  String get nextPreviousCell {
-    return Intl.message(
-      'Next / previous cell',
-      name: 'nextPreviousCell',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `First / last column`
-  String get firstLastColumn {
-    return Intl.message(
-      'First / last column',
-      name: 'firstLastColumn',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `First / last cell`
-  String get firstLastCell {
-    return Intl.message(
-      'First / last cell',
-      name: 'firstLastCell',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Overwrite the cell`
-  String get overwriteCell {
-    return Intl.message(
-      'Overwrite the cell',
-      name: 'overwriteCell',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Edit, or open a select`
-  String get editOrOpenSelect {
-    return Intl.message(
-      'Edit, or open a select',
-      name: 'editOrOpenSelect',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Commit & move`
-  String get commitAndMove {
-    return Intl.message(
-      'Commit & move',
-      name: 'commitAndMove',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Append a new row`
-  String get appendNewRow {
-    return Intl.message(
-      'Append a new row',
-      name: 'appendNewRow',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Clear the cell`
-  String get clearCell {
-    return Intl.message(
-      'Clear the cell',
-      name: 'clearCell',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Cancel editing`
-  String get cancelEditing {
-    return Intl.message(
-      'Cancel editing',
-      name: 'cancelEditing',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Insert row after`
-  String get insertRowAfter {
-    return Intl.message(
-      'Insert row after',
-      name: 'insertRowAfter',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Insert row before`
-  String get insertRowBefore {
-    return Intl.message(
-      'Insert row before',
-      name: 'insertRowBefore',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Duplicate row · fill down`
-  String get duplicateRowFillDown {
-    return Intl.message(
-      'Duplicate row · fill down',
-      name: 'duplicateRowFillDown',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Fill right across the range`
-  String get fillRightAcrossRange {
-    return Intl.message(
-      'Fill right across the range',
-      name: 'fillRightAcrossRange',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Copy selection as JSON`
-  String get copySelectionAsJson {
-    return Intl.message(
-      'Copy selection as JSON',
-      name: 'copySelectionAsJson',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Cut / paste (validated)`
-  String get cutPasteValidated {
-    return Intl.message(
-      'Cut / paste (validated)',
-      name: 'cutPasteValidated',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Undo / redo`
-  String get undoRedo {
-    return Intl.message('Undo / redo', name: 'undoRedo', desc: '', args: []);
-  }
-
-  /// `All rows valid`
-  String get allRowsValid {
-    return Intl.message(
-      'All rows valid',
-      name: 'allRowsValid',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `{count} validation issue{pluralSuffix}`
-  String validationIssueCount(Object count, Object pluralSuffix) {
-    return Intl.message(
-      '$count validation issue$pluralSuffix',
-      name: 'validationIssueCount',
-      desc: '',
-      args: [count, pluralSuffix],
-    );
-  }
-
-  /// `Every cell passes the type rules, unique constraints and column validators.`
-  String get allRowsValidBody {
-    return Intl.message(
-      'Every cell passes the type rules, unique constraints and column validators.',
-      name: 'allRowsValidBody',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Row {rowNumber}`
-  String rowNumber(Object rowNumber) {
-    return Intl.message(
-      'Row $rowNumber',
-      name: 'rowNumber',
-      desc: '',
-      args: [rowNumber],
-    );
-  }
-
-  /// `{count} issue{pluralSuffix}`
-  String issueCount(Object count, Object pluralSuffix) {
-    return Intl.message(
-      '$count issue$pluralSuffix',
-      name: 'issueCount',
-      desc: '',
-      args: [count, pluralSuffix],
-    );
-  }
-
-  /// `{count} row{pluralSuffix}`
-  String rowCount(Object count, Object pluralSuffix) {
-    return Intl.message(
-      '$count row$pluralSuffix',
-      name: 'rowCount',
-      desc: '',
-      args: [count, pluralSuffix],
-    );
-  }
-
-  /// `{rowCount} · ↵ edit · Tab next (new row at end) · ⌘↵ insert after · ⌘C/V JSON · ⌘Z undo`
-  String editableStatusHint(Object rowCount) {
-    return Intl.message(
-      '$rowCount · ↵ edit · Tab next (new row at end) · ⌘↵ insert after · ⌘C/V JSON · ⌘Z undo',
-      name: 'editableStatusHint',
-      desc: '',
-      args: [rowCount],
-    );
-  }
-
-  /// `{rowCount} · ⇧+arrows to range-select · right-click header for options · ⌘C copy{expansionHint}`
-  String readableStatusHint(Object rowCount, Object expansionHint) {
-    return Intl.message(
-      '$rowCount · ⇧+arrows to range-select · right-click header for options · ⌘C copy$expansionHint',
-      name: 'readableStatusHint',
-      desc: '',
-      args: [rowCount, expansionHint],
-    );
-  }
-
-  /// ` · ⌘⇧↓ expand · ⌘⇧↑ collapse`
-  String get expandCollapseHint {
-    return Intl.message(
-      ' · ⌘⇧↓ expand · ⌘⇧↑ collapse',
-      name: 'expandCollapseHint',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `{count} selected`
-  String selectedCount(Object count) {
-    return Intl.message(
-      '$count selected',
-      name: 'selectedCount',
-      desc: '',
-      args: [count],
-    );
-  }
-
-  /// `0 of 0`
-  String get pageRangeEmpty {
-    return Intl.message('0 of 0', name: 'pageRangeEmpty', desc: '', args: []);
-  }
-
-  /// `{from}-{to} of {total}`
-  String pageRange(Object from, Object to, Object total) {
-    return Intl.message(
-      '$from-$to of $total',
-      name: 'pageRange',
-      desc: '',
-      args: [from, to, total],
-    );
-  }
-
-  /// `Sum {sum} · Avg {average} · Min {min} · Max {max} · Count {count}`
+      SuperTableLocalization,
+    )!;
+  }
+
+  static const LocalizationsDelegate<SuperTableLocalization> delegate =
+      _SuperTableLocalizationDelegate();
+
+  /// A list of this localizations delegate along with the default localizations
+  /// delegates.
+  ///
+  /// Returns a list of localizations delegates containing this delegate along with
+  /// GlobalMaterialLocalizations.delegate, GlobalCupertinoLocalizations.delegate,
+  /// and GlobalWidgetsLocalizations.delegate.
+  ///
+  /// Additional delegates can be added by appending to this list in
+  /// MaterialApp. This list does not have to be used at all if a custom list
+  /// of delegates is preferred or required.
+  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
+      <LocalizationsDelegate<dynamic>>[
+        delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ];
+
+  /// A list of this localizations delegate's supported locales.
+  static const List<Locale> supportedLocales = <Locale>[
+    Locale('ar'),
+    Locale('en'),
+  ];
+
+  /// No description provided for @cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancel;
+
+  /// No description provided for @delete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get delete;
+
+  /// No description provided for @clear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get clear;
+
+  /// No description provided for @reset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get reset;
+
+  /// No description provided for @done.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get done;
+
+  /// No description provided for @all.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get all;
+
+  /// No description provided for @yes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes'**
+  String get yes;
+
+  /// No description provided for @no.
+  ///
+  /// In en, this message translates to:
+  /// **'No'**
+  String get no;
+
+  /// No description provided for @checked.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked'**
+  String get checked;
+
+  /// No description provided for @unchecked.
+  ///
+  /// In en, this message translates to:
+  /// **'Unchecked'**
+  String get unchecked;
+
+  /// No description provided for @filterHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter...'**
+  String get filterHint;
+
+  /// No description provided for @valueHint.
+  ///
+  /// In en, this message translates to:
+  /// **'value'**
+  String get valueHint;
+
+  /// No description provided for @toHint.
+  ///
+  /// In en, this message translates to:
+  /// **'to'**
+  String get toHint;
+
+  /// No description provided for @noRows.
+  ///
+  /// In en, this message translates to:
+  /// **'No rows'**
+  String get noRows;
+
+  /// No description provided for @totals.
+  ///
+  /// In en, this message translates to:
+  /// **'TOTALS'**
+  String get totals;
+
+  /// No description provided for @loadMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Load more'**
+  String get loadMore;
+
+  /// No description provided for @loading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading...'**
+  String get loading;
+
+  /// No description provided for @deleteRowTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete row?'**
+  String get deleteRowTitle;
+
+  /// No description provided for @deleteRowBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Row {rowNumber} ({rowLabel}) will be permanently removed. This cannot be undone.'**
+  String deleteRowBody(int rowNumber, String rowLabel);
+
+  /// No description provided for @sortAscending.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort ascending'**
+  String get sortAscending;
+
+  /// No description provided for @sortDescending.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort descending'**
+  String get sortDescending;
+
+  /// No description provided for @clearSort.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear sort'**
+  String get clearSort;
+
+  /// No description provided for @removeFromGrouping.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from grouping'**
+  String get removeFromGrouping;
+
+  /// No description provided for @groupByThisColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'Group by this column'**
+  String get groupByThisColumn;
+
+  /// No description provided for @hideColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide column'**
+  String get hideColumn;
+
+  /// No description provided for @showColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'Show column'**
+  String get showColumn;
+
+  /// No description provided for @pin.
+  ///
+  /// In en, this message translates to:
+  /// **'Pin'**
+  String get pin;
+
+  /// No description provided for @pinLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'Pin start'**
+  String get pinLeft;
+
+  /// No description provided for @pinRight.
+  ///
+  /// In en, this message translates to:
+  /// **'Pin end'**
+  String get pinRight;
+
+  /// No description provided for @unpinned.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpinned'**
+  String get unpinned;
+
+  /// No description provided for @manageColumns.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage columns'**
+  String get manageColumns;
+
+  /// No description provided for @manageColumnsDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag to reorder · toggle visibility · pin to an edge'**
+  String get manageColumnsDescription;
+
+  /// No description provided for @shownOfColumns.
+  ///
+  /// In en, this message translates to:
+  /// **'{shown} of {total} shown'**
+  String shownOfColumns(int shown, int total);
+
+  /// No description provided for @copyJson.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy JSON'**
+  String get copyJson;
+
+  /// No description provided for @copyAsJson.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy as JSON'**
+  String get copyAsJson;
+
+  /// No description provided for @shortcuts.
+  ///
+  /// In en, this message translates to:
+  /// **'Shortcuts'**
+  String get shortcuts;
+
+  /// No description provided for @keyboardShortcuts.
+  ///
+  /// In en, this message translates to:
+  /// **'Keyboard shortcuts'**
+  String get keyboardShortcuts;
+
+  /// No description provided for @insertRowAbove.
+  ///
+  /// In en, this message translates to:
+  /// **'Insert row above'**
+  String get insertRowAbove;
+
+  /// No description provided for @insertRowBelow.
+  ///
+  /// In en, this message translates to:
+  /// **'Insert row below'**
+  String get insertRowBelow;
+
+  /// No description provided for @duplicateRow.
+  ///
+  /// In en, this message translates to:
+  /// **'Duplicate row'**
+  String get duplicateRow;
+
+  /// No description provided for @revertCell.
+  ///
+  /// In en, this message translates to:
+  /// **'Revert cell'**
+  String get revertCell;
+
+  /// No description provided for @revertRow.
+  ///
+  /// In en, this message translates to:
+  /// **'Revert row'**
+  String get revertRow;
+
+  /// No description provided for @revertRowRemoveAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Revert row (remove added)'**
+  String get revertRowRemoveAdded;
+
+  /// No description provided for @moveRowUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Move row up'**
+  String get moveRowUp;
+
+  /// No description provided for @moveRowDown.
+  ///
+  /// In en, this message translates to:
+  /// **'Move row down'**
+  String get moveRowDown;
+
+  /// No description provided for @deleteRow.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete row'**
+  String get deleteRow;
+
+  /// No description provided for @rowOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Row options'**
+  String get rowOptions;
+
+  /// No description provided for @groupBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Group by'**
+  String get groupBy;
+
+  /// No description provided for @groupedBy.
+  ///
+  /// In en, this message translates to:
+  /// **'GROUPED BY'**
+  String get groupedBy;
+
+  /// No description provided for @clearAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all'**
+  String get clearAll;
+
+  /// No description provided for @addColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'Add column'**
+  String get addColumn;
+
+  /// No description provided for @advancedFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'Advanced filter'**
+  String get advancedFilter;
+
+  /// No description provided for @advancedFilterActiveEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Advanced filter active - edit'**
+  String get advancedFilterActiveEdit;
+
+  /// No description provided for @clearAllFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all filters'**
+  String get clearAllFilters;
+
+  /// No description provided for @filterRows.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter rows'**
+  String get filterRows;
+
+  /// No description provided for @advancedFilterDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'All conditions must match (AND). Column filters are disabled while this is active.'**
+  String get advancedFilterDescription;
+
+  /// No description provided for @addCondition.
+  ///
+  /// In en, this message translates to:
+  /// **'Add condition'**
+  String get addCondition;
+
+  /// No description provided for @applyFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply filter'**
+  String get applyFilter;
+
+  /// No description provided for @opContains.
+  ///
+  /// In en, this message translates to:
+  /// **'contains'**
+  String get opContains;
+
+  /// No description provided for @opEquals.
+  ///
+  /// In en, this message translates to:
+  /// **'equals'**
+  String get opEquals;
+
+  /// No description provided for @opNotEquals.
+  ///
+  /// In en, this message translates to:
+  /// **'not equals'**
+  String get opNotEquals;
+
+  /// No description provided for @opStartsWith.
+  ///
+  /// In en, this message translates to:
+  /// **'starts with'**
+  String get opStartsWith;
+
+  /// No description provided for @opEndsWith.
+  ///
+  /// In en, this message translates to:
+  /// **'ends with'**
+  String get opEndsWith;
+
+  /// No description provided for @opGreaterThan.
+  ///
+  /// In en, this message translates to:
+  /// **'> greater'**
+  String get opGreaterThan;
+
+  /// No description provided for @opGreaterOrEqual.
+  ///
+  /// In en, this message translates to:
+  /// **'>= at least'**
+  String get opGreaterOrEqual;
+
+  /// No description provided for @opLessThan.
+  ///
+  /// In en, this message translates to:
+  /// **'< less'**
+  String get opLessThan;
+
+  /// No description provided for @opLessOrEqual.
+  ///
+  /// In en, this message translates to:
+  /// **'<= at most'**
+  String get opLessOrEqual;
+
+  /// No description provided for @opBetween.
+  ///
+  /// In en, this message translates to:
+  /// **'between'**
+  String get opBetween;
+
+  /// No description provided for @opIsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'is empty'**
+  String get opIsEmpty;
+
+  /// No description provided for @opIsNotEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'is not empty'**
+  String get opIsNotEmpty;
+
+  /// No description provided for @navigate.
+  ///
+  /// In en, this message translates to:
+  /// **'Navigate'**
+  String get navigate;
+
+  /// No description provided for @edit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get edit;
+
+  /// No description provided for @rowsAndClipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Rows & clipboard'**
+  String get rowsAndClipboard;
+
+  /// No description provided for @moveBetweenCells.
+  ///
+  /// In en, this message translates to:
+  /// **'Move between cells'**
+  String get moveBetweenCells;
+
+  /// No description provided for @nextPreviousCell.
+  ///
+  /// In en, this message translates to:
+  /// **'Next / previous cell'**
+  String get nextPreviousCell;
+
+  /// No description provided for @firstLastColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'First / last column'**
+  String get firstLastColumn;
+
+  /// No description provided for @firstLastCell.
+  ///
+  /// In en, this message translates to:
+  /// **'First / last cell'**
+  String get firstLastCell;
+
+  /// No description provided for @overwriteCell.
+  ///
+  /// In en, this message translates to:
+  /// **'Overwrite the cell'**
+  String get overwriteCell;
+
+  /// No description provided for @editOrOpenSelect.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit, or open a select'**
+  String get editOrOpenSelect;
+
+  /// No description provided for @commitAndMove.
+  ///
+  /// In en, this message translates to:
+  /// **'Commit & move'**
+  String get commitAndMove;
+
+  /// No description provided for @appendNewRow.
+  ///
+  /// In en, this message translates to:
+  /// **'Append a new row'**
+  String get appendNewRow;
+
+  /// No description provided for @clearCell.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear the cell'**
+  String get clearCell;
+
+  /// No description provided for @cancelEditing.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel editing'**
+  String get cancelEditing;
+
+  /// No description provided for @insertRowAfter.
+  ///
+  /// In en, this message translates to:
+  /// **'Insert row after'**
+  String get insertRowAfter;
+
+  /// No description provided for @insertRowBefore.
+  ///
+  /// In en, this message translates to:
+  /// **'Insert row before'**
+  String get insertRowBefore;
+
+  /// No description provided for @duplicateRowFillDown.
+  ///
+  /// In en, this message translates to:
+  /// **'Duplicate row · fill down'**
+  String get duplicateRowFillDown;
+
+  /// No description provided for @fillRightAcrossRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill right across the range'**
+  String get fillRightAcrossRange;
+
+  /// No description provided for @copySelectionAsJson.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy selection as JSON'**
+  String get copySelectionAsJson;
+
+  /// No description provided for @cutPasteValidated.
+  ///
+  /// In en, this message translates to:
+  /// **'Cut / paste (validated)'**
+  String get cutPasteValidated;
+
+  /// No description provided for @undoRedo.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo / redo'**
+  String get undoRedo;
+
+  /// No description provided for @allRowsValid.
+  ///
+  /// In en, this message translates to:
+  /// **'All rows valid'**
+  String get allRowsValid;
+
+  /// No description provided for @validationIssueCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} validation issue{pluralSuffix}'**
+  String validationIssueCount(int count, String pluralSuffix);
+
+  /// No description provided for @allRowsValidBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Every cell passes the type rules, unique constraints and column validators.'**
+  String get allRowsValidBody;
+
+  /// No description provided for @rowNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Row {rowNumber}'**
+  String rowNumber(int rowNumber);
+
+  /// No description provided for @issueCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} issue{pluralSuffix}'**
+  String issueCount(int count, String pluralSuffix);
+
+  /// No description provided for @rowCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} row{pluralSuffix}'**
+  String rowCount(int count, String pluralSuffix);
+
+  /// No description provided for @editableStatusHint.
+  ///
+  /// In en, this message translates to:
+  /// **'{rowCount} · ↵ edit · Tab next (new row at end) · ⌘↵ insert after · ⌘C/V JSON · ⌘Z undo'**
+  String editableStatusHint(String rowCount);
+
+  /// No description provided for @readableStatusHint.
+  ///
+  /// In en, this message translates to:
+  /// **'{rowCount} · ⇧+arrows to range-select · right-click header for options · ⌘C copy{expansionHint}'**
+  String readableStatusHint(String rowCount, String expansionHint);
+
+  /// No description provided for @expandCollapseHint.
+  ///
+  /// In en, this message translates to:
+  /// **' · ⌘⇧↓ expand · ⌘⇧↑ collapse'**
+  String get expandCollapseHint;
+
+  /// No description provided for @selectedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} selected'**
+  String selectedCount(int count);
+
+  /// No description provided for @pageRangeEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'0 of 0'**
+  String get pageRangeEmpty;
+
+  /// No description provided for @pageRange.
+  ///
+  /// In en, this message translates to:
+  /// **'{from}-{to} of {total}'**
+  String pageRange(int from, int to, int total);
+
+  /// No description provided for @selectionStats.
+  ///
+  /// In en, this message translates to:
+  /// **'Sum {sum} · Avg {average} · Min {min} · Max {max} · Count {count}'**
   String selectionStats(
-    Object sum,
-    Object average,
-    Object min,
-    Object max,
-    Object count,
-  ) {
-    return Intl.message(
-      'Sum $sum · Avg $average · Min $min · Max $max · Count $count',
-      name: 'selectionStats',
-      desc: '',
-      args: [sum, average, min, max, count],
-    );
-  }
+    String sum,
+    String average,
+    String min,
+    String max,
+    int count,
+  );
 
-  /// `Type a value...`
-  String get typeValueHint {
-    return Intl.message(
-      'Type a value...',
-      name: 'typeValueHint',
-      desc: '',
-      args: [],
-    );
-  }
+  /// No description provided for @typeValueHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Type a value...'**
+  String get typeValueHint;
 
-  /// `Type or pick...`
-  String get typeOrPickHint {
-    return Intl.message(
-      'Type or pick...',
-      name: 'typeOrPickHint',
-      desc: '',
-      args: [],
-    );
-  }
+  /// No description provided for @typeOrPickHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Type or pick...'**
+  String get typeOrPickHint;
 
-  /// `Today`
-  String get today {
-    return Intl.message('Today', name: 'today', desc: '', args: []);
-  }
+  /// No description provided for @today.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get today;
 
-  /// `Jan`
-  String get monthJan {
-    return Intl.message('Jan', name: 'monthJan', desc: '', args: []);
-  }
+  /// No description provided for @monthJan.
+  ///
+  /// In en, this message translates to:
+  /// **'Jan'**
+  String get monthJan;
 
-  /// `Feb`
-  String get monthFeb {
-    return Intl.message('Feb', name: 'monthFeb', desc: '', args: []);
-  }
+  /// No description provided for @monthFeb.
+  ///
+  /// In en, this message translates to:
+  /// **'Feb'**
+  String get monthFeb;
 
-  /// `Mar`
-  String get monthMar {
-    return Intl.message('Mar', name: 'monthMar', desc: '', args: []);
-  }
+  /// No description provided for @monthMar.
+  ///
+  /// In en, this message translates to:
+  /// **'Mar'**
+  String get monthMar;
 
-  /// `Apr`
-  String get monthApr {
-    return Intl.message('Apr', name: 'monthApr', desc: '', args: []);
-  }
+  /// No description provided for @monthApr.
+  ///
+  /// In en, this message translates to:
+  /// **'Apr'**
+  String get monthApr;
 
-  /// `May`
-  String get monthMay {
-    return Intl.message('May', name: 'monthMay', desc: '', args: []);
-  }
+  /// No description provided for @monthMay.
+  ///
+  /// In en, this message translates to:
+  /// **'May'**
+  String get monthMay;
 
-  /// `Jun`
-  String get monthJun {
-    return Intl.message('Jun', name: 'monthJun', desc: '', args: []);
-  }
+  /// No description provided for @monthJun.
+  ///
+  /// In en, this message translates to:
+  /// **'Jun'**
+  String get monthJun;
 
-  /// `Jul`
-  String get monthJul {
-    return Intl.message('Jul', name: 'monthJul', desc: '', args: []);
-  }
+  /// No description provided for @monthJul.
+  ///
+  /// In en, this message translates to:
+  /// **'Jul'**
+  String get monthJul;
 
-  /// `Aug`
-  String get monthAug {
-    return Intl.message('Aug', name: 'monthAug', desc: '', args: []);
-  }
+  /// No description provided for @monthAug.
+  ///
+  /// In en, this message translates to:
+  /// **'Aug'**
+  String get monthAug;
 
-  /// `Sep`
-  String get monthSep {
-    return Intl.message('Sep', name: 'monthSep', desc: '', args: []);
-  }
+  /// No description provided for @monthSep.
+  ///
+  /// In en, this message translates to:
+  /// **'Sep'**
+  String get monthSep;
 
-  /// `Oct`
-  String get monthOct {
-    return Intl.message('Oct', name: 'monthOct', desc: '', args: []);
-  }
+  /// No description provided for @monthOct.
+  ///
+  /// In en, this message translates to:
+  /// **'Oct'**
+  String get monthOct;
 
-  /// `Nov`
-  String get monthNov {
-    return Intl.message('Nov', name: 'monthNov', desc: '', args: []);
-  }
+  /// No description provided for @monthNov.
+  ///
+  /// In en, this message translates to:
+  /// **'Nov'**
+  String get monthNov;
 
-  /// `Dec`
-  String get monthDec {
-    return Intl.message('Dec', name: 'monthDec', desc: '', args: []);
-  }
+  /// No description provided for @monthDec.
+  ///
+  /// In en, this message translates to:
+  /// **'Dec'**
+  String get monthDec;
 
-  /// `Su`
-  String get weekdaySun {
-    return Intl.message('Su', name: 'weekdaySun', desc: '', args: []);
-  }
+  /// No description provided for @weekdaySun.
+  ///
+  /// In en, this message translates to:
+  /// **'Su'**
+  String get weekdaySun;
 
-  /// `Mo`
-  String get weekdayMon {
-    return Intl.message('Mo', name: 'weekdayMon', desc: '', args: []);
-  }
+  /// No description provided for @weekdayMon.
+  ///
+  /// In en, this message translates to:
+  /// **'Mo'**
+  String get weekdayMon;
 
-  /// `Tu`
-  String get weekdayTue {
-    return Intl.message('Tu', name: 'weekdayTue', desc: '', args: []);
-  }
+  /// No description provided for @weekdayTue.
+  ///
+  /// In en, this message translates to:
+  /// **'Tu'**
+  String get weekdayTue;
 
-  /// `We`
-  String get weekdayWed {
-    return Intl.message('We', name: 'weekdayWed', desc: '', args: []);
-  }
+  /// No description provided for @weekdayWed.
+  ///
+  /// In en, this message translates to:
+  /// **'We'**
+  String get weekdayWed;
 
-  /// `Th`
-  String get weekdayThu {
-    return Intl.message('Th', name: 'weekdayThu', desc: '', args: []);
-  }
+  /// No description provided for @weekdayThu.
+  ///
+  /// In en, this message translates to:
+  /// **'Th'**
+  String get weekdayThu;
 
-  /// `Fr`
-  String get weekdayFri {
-    return Intl.message('Fr', name: 'weekdayFri', desc: '', args: []);
-  }
+  /// No description provided for @weekdayFri.
+  ///
+  /// In en, this message translates to:
+  /// **'Fr'**
+  String get weekdayFri;
 
-  /// `Sa`
-  String get weekdaySat {
-    return Intl.message('Sa', name: 'weekdaySat', desc: '', args: []);
-  }
+  /// No description provided for @weekdaySat.
+  ///
+  /// In en, this message translates to:
+  /// **'Sa'**
+  String get weekdaySat;
 
-  /// `Copied {count} rows as CSV`
-  String copiedRowsCsv(Object count) {
-    return Intl.message(
-      'Copied $count rows as CSV',
-      name: 'copiedRowsCsv',
-      desc: '',
-      args: [count],
-    );
-  }
+  /// No description provided for @copiedRowsCsv.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied {count} rows as CSV'**
+  String copiedRowsCsv(int count);
 
-  /// `Filled {count} cell{pluralSuffix}`
-  String filledCells(Object count, Object pluralSuffix) {
-    return Intl.message(
-      'Filled $count cell$pluralSuffix',
-      name: 'filledCells',
-      desc: '',
-      args: [count, pluralSuffix],
-    );
-  }
+  /// No description provided for @filledCells.
+  ///
+  /// In en, this message translates to:
+  /// **'Filled {count} cell{pluralSuffix}'**
+  String filledCells(int count, String pluralSuffix);
 
-  /// `Copied {count} row{pluralSuffix} as JSON`
-  String copiedRowsJson(Object count, Object pluralSuffix) {
-    return Intl.message(
-      'Copied $count row$pluralSuffix as JSON',
-      name: 'copiedRowsJson',
-      desc: '',
-      args: [count, pluralSuffix],
-    );
-  }
+  /// No description provided for @copiedRowsJson.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied {count} row{pluralSuffix} as JSON'**
+  String copiedRowsJson(int count, String pluralSuffix);
 
-  /// `Row {rowNumber} is not an object`
-  String rowIsNotObject(Object rowNumber) {
-    return Intl.message(
-      'Row $rowNumber is not an object',
-      name: 'rowIsNotObject',
-      desc: '',
-      args: [rowNumber],
-    );
-  }
+  /// No description provided for @rowIsNotObject.
+  ///
+  /// In en, this message translates to:
+  /// **'Row {rowNumber} is not an object'**
+  String rowIsNotObject(int rowNumber);
 
-  /// `Row {rowNumber}: {error}`
-  String rowError(Object rowNumber, Object error) {
-    return Intl.message(
-      'Row $rowNumber: $error',
-      name: 'rowError',
-      desc: '',
-      args: [rowNumber, error],
-    );
-  }
+  /// No description provided for @rowError.
+  ///
+  /// In en, this message translates to:
+  /// **'Row {rowNumber}: {error}'**
+  String rowError(int rowNumber, String error);
 
-  /// `Unknown field "{field}" - not a column in this table`
-  String unknownField(Object field) {
-    return Intl.message(
-      'Unknown field "$field" - not a column in this table',
-      name: 'unknownField',
-      desc: '',
-      args: [field],
-    );
-  }
+  /// No description provided for @unknownField.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown field \"{field}\" - not a column in this table'**
+  String unknownField(String field);
 
-  /// `Pasted block is wider than the table (column {columnNumber} doesn't exist)`
-  String pastedBlockTooWide(Object columnNumber) {
-    return Intl.message(
-      'Pasted block is wider than the table (column $columnNumber doesn\'t exist)',
-      name: 'pastedBlockTooWide',
-      desc: '',
-      args: [columnNumber],
-    );
-  }
+  /// No description provided for @pastedBlockTooWide.
+  ///
+  /// In en, this message translates to:
+  /// **'Pasted block is wider than the table (column {columnNumber} doesn\'\'t exist)'**
+  String pastedBlockTooWide(int columnNumber);
 
-  /// `Cell {rowNumber}×{columnNumber}: {error}`
-  String cellError(Object rowNumber, Object columnNumber, Object error) {
-    return Intl.message(
-      'Cell $rowNumber×$columnNumber: $error',
-      name: 'cellError',
-      desc: '',
-      args: [rowNumber, columnNumber, error],
-    );
-  }
+  /// No description provided for @cellError.
+  ///
+  /// In en, this message translates to:
+  /// **'Cell {rowNumber}×{columnNumber}: {error}'**
+  String cellError(int rowNumber, int columnNumber, String error);
 
-  /// `Paste is only allowed in Editable mode`
-  String get pasteEditableOnly {
-    return Intl.message(
-      'Paste is only allowed in Editable mode',
-      name: 'pasteEditableOnly',
-      desc: '',
-      args: [],
-    );
-  }
+  /// No description provided for @pasteEditableOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste is only allowed in Editable mode'**
+  String get pasteEditableOnly;
 
-  /// `Clipboard is not valid JSON`
-  String get clipboardInvalidJson {
-    return Intl.message(
-      'Clipboard is not valid JSON',
-      name: 'clipboardInvalidJson',
-      desc: '',
-      args: [],
-    );
-  }
+  /// No description provided for @clipboardInvalidJson.
+  ///
+  /// In en, this message translates to:
+  /// **'Clipboard is not valid JSON'**
+  String get clipboardInvalidJson;
 
-  /// `Pasted`
-  String get pasted {
-    return Intl.message('Pasted', name: 'pasted', desc: '', args: []);
-  }
+  /// No description provided for @pasted.
+  ///
+  /// In en, this message translates to:
+  /// **'Pasted'**
+  String get pasted;
 
-  /// `"{column}" must be unique - duplicates row {rowNumber}`
-  String columnMustBeUniqueDuplicate(Object column, Object rowNumber) {
-    return Intl.message(
-      '"$column" must be unique - duplicates row $rowNumber',
-      name: 'columnMustBeUniqueDuplicate',
-      desc: '',
-      args: [column, rowNumber],
-    );
-  }
+  /// No description provided for @columnMustBeUniqueDuplicate.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{column}\" must be unique - duplicates row {rowNumber}'**
+  String columnMustBeUniqueDuplicate(String column, int rowNumber);
 
-  /// `"{column}" has an invalid value`
-  String columnInvalidValue(Object column) {
-    return Intl.message(
-      '"$column" has an invalid value',
-      name: 'columnInvalidValue',
-      desc: '',
-      args: [column],
-    );
-  }
+  /// No description provided for @columnInvalidValue.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{column}\" has an invalid value'**
+  String columnInvalidValue(String column);
 
-  /// `"{column}" must be unique`
-  String columnMustBeUnique(Object column) {
-    return Intl.message(
-      '"$column" must be unique',
-      name: 'columnMustBeUnique',
-      desc: '',
-      args: [column],
-    );
-  }
+  /// No description provided for @columnMustBeUnique.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{column}\" must be unique'**
+  String columnMustBeUnique(String column);
 
-  /// `This cell`
-  String get thisCell {
-    return Intl.message('This cell', name: 'thisCell', desc: '', args: []);
-  }
+  /// No description provided for @thisCell.
+  ///
+  /// In en, this message translates to:
+  /// **'This cell'**
+  String get thisCell;
 
-  /// `{name} is required`
-  String isRequired(Object name) {
-    return Intl.message(
-      '$name is required',
-      name: 'isRequired',
-      desc: '',
-      args: [name],
-    );
-  }
+  /// No description provided for @isRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is required'**
+  String isRequired(String name);
 
-  /// `{name} must be a number`
-  String mustBeNumber(Object name) {
-    return Intl.message(
-      '$name must be a number',
-      name: 'mustBeNumber',
-      desc: '',
-      args: [name],
-    );
-  }
+  /// No description provided for @mustBeNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} must be a number'**
+  String mustBeNumber(String name);
 
-  /// `{name} must be a date (YYYY-MM-DD)`
-  String mustBeDate(Object name) {
-    return Intl.message(
-      '$name must be a date (YYYY-MM-DD)',
-      name: 'mustBeDate',
-      desc: '',
-      args: [name],
-    );
-  }
+  /// No description provided for @mustBeDate.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} must be a date (YYYY-MM-DD)'**
+  String mustBeDate(String name);
 
-  /// `{name} must be a time (HH:mm)`
-  String mustBeTime(Object name) {
-    return Intl.message(
-      '$name must be a time (HH:mm)',
-      name: 'mustBeTime',
-      desc: '',
-      args: [name],
-    );
-  }
+  /// No description provided for @mustBeTime.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} must be a time (HH:mm)'**
+  String mustBeTime(String name);
 
-  /// `{name} must be a hex color (#RRGGBB)`
-  String mustBeHexColor(Object name) {
-    return Intl.message(
-      '$name must be a hex color (#RRGGBB)',
-      name: 'mustBeHexColor',
-      desc: '',
-      args: [name],
-    );
-  }
+  /// No description provided for @mustBeHexColor.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} must be a hex color (#RRGGBB)'**
+  String mustBeHexColor(String name);
 
-  /// `"{column}" is read-only`
-  String isReadOnly(Object column) {
-    return Intl.message(
-      '"$column" is read-only',
-      name: 'isReadOnly',
-      desc: '',
-      args: [column],
-    );
-  }
+  /// No description provided for @isReadOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{column}\" is read-only'**
+  String isReadOnly(String column);
 
-  /// `"{column}" is required`
-  String columnIsRequired(Object column) {
-    return Intl.message(
-      '"$column" is required',
-      name: 'columnIsRequired',
-      desc: '',
-      args: [column],
-    );
-  }
+  /// No description provided for @columnIsRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{column}\" is required'**
+  String columnIsRequired(String column);
 
-  /// `"{column}" expects a number - got "{value}"`
-  String expectsNumber(Object column, Object value) {
-    return Intl.message(
-      '"$column" expects a number - got "$value"',
-      name: 'expectsNumber',
-      desc: '',
-      args: [column, value],
-    );
-  }
+  /// No description provided for @expectsNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{column}\" expects a number - got \"{value}\"'**
+  String expectsNumber(String column, String value);
 
-  /// `"{column}" expects true/false - got "{value}"`
-  String expectsTrueFalse(Object column, Object value) {
-    return Intl.message(
-      '"$column" expects true/false - got "$value"',
-      name: 'expectsTrueFalse',
-      desc: '',
-      args: [column, value],
-    );
-  }
+  /// No description provided for @expectsTrueFalse.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{column}\" expects true/false - got \"{value}\"'**
+  String expectsTrueFalse(String column, String value);
 
-  /// `"{column}" must be one of: {options}`
-  String mustBeOneOf(Object column, Object options) {
-    return Intl.message(
-      '"$column" must be one of: $options',
-      name: 'mustBeOneOf',
-      desc: '',
-      args: [column, options],
-    );
-  }
+  /// No description provided for @mustBeOneOf.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{column}\" must be one of: {options}'**
+  String mustBeOneOf(String column, String options);
 
-  /// `"{column}" expects YYYY-MM-DD - got "{value}"`
-  String expectsDate(Object column, Object value) {
-    return Intl.message(
-      '"$column" expects YYYY-MM-DD - got "$value"',
-      name: 'expectsDate',
-      desc: '',
-      args: [column, value],
-    );
-  }
+  /// No description provided for @expectsDate.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{column}\" expects YYYY-MM-DD - got \"{value}\"'**
+  String expectsDate(String column, String value);
 
-  /// `"{column}" expects HH:mm - got "{value}"`
-  String expectsTime(Object column, Object value) {
-    return Intl.message(
-      '"$column" expects HH:mm - got "$value"',
-      name: 'expectsTime',
-      desc: '',
-      args: [column, value],
-    );
-  }
+  /// No description provided for @expectsTime.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{column}\" expects HH:mm - got \"{value}\"'**
+  String expectsTime(String column, String value);
 
-  /// `"{column}" expects #RRGGBB - got "{value}"`
-  String expectsHexColor(Object column, Object value) {
-    return Intl.message(
-      '"$column" expects #RRGGBB - got "$value"',
-      name: 'expectsHexColor',
-      desc: '',
-      args: [column, value],
-    );
-  }
+  /// No description provided for @expectsHexColor.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{column}\" expects #RRGGBB - got \"{value}\"'**
+  String expectsHexColor(String column, String value);
 }
 
-class AppLocalizationDelegate
-    extends LocalizationsDelegate<SuperTableTranslation> {
-  const AppLocalizationDelegate();
+class _SuperTableLocalizationDelegate
+    extends LocalizationsDelegate<SuperTableLocalization> {
+  const _SuperTableLocalizationDelegate();
 
-  List<Locale> get supportedLocales {
-    return const <Locale>[
-      Locale.fromSubtags(languageCode: 'en'),
-      Locale.fromSubtags(languageCode: 'ar'),
-    ];
+  @override
+  Future<SuperTableLocalization> load(Locale locale) {
+    return SynchronousFuture<SuperTableLocalization>(
+      lookupSuperTableLocalization(locale),
+    );
   }
 
   @override
-  bool isSupported(Locale locale) => _isSupported(locale);
-  @override
-  Future<SuperTableTranslation> load(Locale locale) =>
-      SuperTableTranslation.load(locale);
-  @override
-  bool shouldReload(AppLocalizationDelegate old) => false;
+  bool isSupported(Locale locale) =>
+      <String>['ar', 'en'].contains(locale.languageCode);
 
-  bool _isSupported(Locale locale) {
-    for (var supportedLocale in supportedLocales) {
-      if (supportedLocale.languageCode == locale.languageCode) {
-        return true;
-      }
-    }
-    return false;
+  @override
+  bool shouldReload(_SuperTableLocalizationDelegate old) => false;
+}
+
+SuperTableLocalization lookupSuperTableLocalization(Locale locale) {
+  // Lookup logic when only language code is specified.
+  switch (locale.languageCode) {
+    case 'ar':
+      return SuperTableLocalizationAr();
+    case 'en':
+      return SuperTableLocalizationEn();
   }
+
+  throw FlutterError(
+    'SuperTableLocalization.delegate failed to load unsupported locale "$locale". This is likely '
+    'an issue with the localizations generation tool. Please file an issue '
+    'on GitHub with a reproducible sample app and the gen-l10n configuration '
+    'that was used.',
+  );
 }

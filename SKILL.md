@@ -45,7 +45,7 @@ come for free.
 
 ```yaml
 dependencies:
-  super_table_field: ^3.1.0
+  super_table_field: ^3.1.1
 ```
 
 ```dart
@@ -63,9 +63,9 @@ MaterialApp(
     GlobalMaterialLocalizations.delegate,
     GlobalWidgetsLocalizations.delegate,
     GlobalCupertinoLocalizations.delegate,
-    SuperTableLocalizations.delegate,
+    SuperTableLocalization.delegate,
   ],
-  supportedLocales: SuperTableLocalizations.supportedLocales,
+  supportedLocales: SuperTableLocalization.supportedLocales,
   theme: SuperMaterialThemeData.light(
     textTheme: typography,
     primaryTextTheme: typography,
@@ -78,11 +78,12 @@ MaterialApp(
 );
 ```
 
-`SuperTableLocalizations` includes the package `SuperTableTranslation` delegate
-and Flutter's Material, Cupertino, and Widgets localization delegates. Supported
-package locales are English (`en`) and Arabic (`ar`). If the host omits the
-delegate, package-owned strings use the explicit built-in English fallback;
-Arabic requires registration.
+`SuperTableLocalization` is the generated package localization class. Use
+`SuperTableLocalization.localizationsDelegates` when you want the package
+delegate together with Flutter's Material, Cupertino, and Widgets delegates.
+Supported package locales are English (`en`) and Arabic (`ar`). If the host
+omits the delegate, `context.superTableLocalization` falls back to the explicit
+built-in English localization; Arabic requires registration.
 
 ### super_core 3.6.0 typography rules
 
@@ -552,8 +553,8 @@ package's barrel. Add new column behavior in
 
 ## Common mistakes
 
-- Forgetting `SuperTableLocalizations.localizationsDelegates` /
-  `SuperTableLocalizations.supportedLocales` on `MaterialApp` → package text
+- Forgetting `SuperTableLocalization.localizationsDelegates` /
+  `SuperTableLocalization.supportedLocales` on `MaterialApp` → package text
   falls back to English instead of Arabic.
 - Forgetting to provide the required `SuperTextTheme` values to
   `SuperMaterialThemeData.light` / `.dark` → the app does not compile against

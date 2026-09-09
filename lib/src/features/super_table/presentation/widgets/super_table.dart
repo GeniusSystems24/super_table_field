@@ -1,18 +1,18 @@
-// ============================================================
+﻿// ============================================================
 // features/super_table/presentation/widgets/super_table.dart
 // ------------------------------------------------------------
-// The VIEW for the unified SuperTable — a thin, keyboard-first render of a
+// The VIEW for the unified SuperTable â€” a thin, keyboard-first render of a
 // `SuperTableController<R>`. Generic over the row's backing type `R`.
 //
 // 0.4.0 highlights:
-//   • an ADVANCED-FILTER button in the row-number header (red badge when
+//   â€¢ an ADVANCED-FILTER button in the row-number header (red badge when
 //     active; while active the per-column filter fields are cleared, disabled
 //     and struck through with a slash),
-//   • RIGHT-CLICK (or touch double-tap) opens the column header menu,
-//   • conditional ROW styles (via `SuperTable.styles`) and CELL styles (via
-//     each column's `styles`) — row styles win,
-//   • a host `onKey` hook (on the controller) consulted before defaults,
-//   • integrated load-more skeletons at the scroll tail + a shimmer animation.
+//   â€¢ RIGHT-CLICK (or touch double-tap) opens the column header menu,
+//   â€¢ conditional ROW styles (via `SuperTable.styles`) and CELL styles (via
+//     each column's `styles`) â€” row styles win,
+//   â€¢ a host `onKey` hook (on the controller) consulted before defaults,
+//   â€¢ integrated load-more skeletons at the scroll tail + a shimmer animation.
 //
 // Cell display + editors come from `super_cell.dart`; menus / dialogs / the
 // error badge / the advanced-filter editor from `super_table_overlays.dart`.
@@ -434,7 +434,7 @@ class SuperTable<R> extends StatefulWidget {
   final SuperDensity density;
   final bool numbered;
 
-  /// Deprecated and ignored — a column's data type is never displayed in the
+  /// Deprecated and ignored â€” a column's data type is never displayed in the
   /// header. Kept for source compatibility; setting it has no effect.
   final bool? showTypeTags;
   final bool showTotals;
@@ -477,26 +477,26 @@ class SuperTable<R> extends StatefulWidget {
   /// Expandable-row configuration (Readable mode only).
   ///
   /// When set, each data row gains a rotate-chevron in the gutter that toggles
-  /// a smoothly-animated panel below the row. Editable mode is unaffected —
+  /// a smoothly-animated panel below the row. Editable mode is unaffected â€”
   /// the grid's editing behaviour is completely unchanged.
   ///
   /// See [SuperRowExpansion] and [SuperRowExpansionMode] for full docs.
   final SuperRowExpansion<R>? expansion;
 
   /// Render a subtotal row after each expanded group (2.1.0, readable mode).
-  /// The footer repeats the group's aggregates — [SuperColumn.agg] /
-  /// [SuperColumn.aggregator] — in the aggregate columns, aligned under them,
+  /// The footer repeats the group's aggregates â€” [SuperColumn.agg] /
+  /// [SuperColumn.aggregator] â€” in the aggregate columns, aligned under them,
   /// closing the group visually like a ledger subtotal line.
   final bool groupFooters;
 
-  /// Host interaction callbacks (2.2.0) — cell/row taps, activation, and
+  /// Host interaction callbacks (2.2.0) â€” cell/row taps, activation, and
   /// selection / sort snapshots. Pure observers: they never change how the grid
   /// itself responds to a gesture. Null (default) = no interaction work is done.
   final SuperInteractions<R>? interactions;
 
-  /// Add a **Manage columns…** entry (and *Pin* / *Hide column* entries) to
+  /// Add a **Manage columnsâ€¦** entry (and *Pin* / *Hide column* entries) to
   /// every header menu (2.2.0); the entry opens [showSuperColumnManager]
-  /// (drag-reorder · show/hide · pin). Default true — set false to hide the
+  /// (drag-reorder آ· show/hide آ· pin). Default true â€” set false to hide the
   /// entries (the programmatic column-config API still works).
   final bool columnManager;
 
@@ -542,14 +542,14 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
   int? _hoveredRow;
   CellPos? _hoveredCell;
 
-  // ── interaction-event diffing (2.2.0) ──
+  // â”€â”€ interaction-event diffing (2.2.0) â”€â”€
   Offset _lastPointer = Offset.zero;
   String? _lastSelSig;
   String? _lastSortKey;
   bool _lastSortAsc = true;
 
   /// IDs ([SuperRow.id]) of rows currently in the expanded state.
-  /// Lives in the View — expansion is a pure presentation concern.
+  /// Lives in the View â€” expansion is a pure presentation concern.
   final Set<int> _expandedRowIds = {};
 
   SuperTableController<R> get c => widget.controller;
@@ -685,7 +685,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
     _wasEditing = editing;
   }
 
-  // ── interaction events (2.2.0) ─────────────────────────────────────────
+  // â”€â”€ interaction events (2.2.0) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   String _selSig() =>
       '${c.sel.token}|${c.anchor.token}|${(c.selRows.toList()..sort()).join(',')}|${(c.rowBand.toList()..sort()).join(',')}';
 
@@ -807,7 +807,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
       widget.showRedoUndoButtons ||
       widget.showRedoButton;
 
-  // ── conditional style resolution ──
+  // â”€â”€ conditional style resolution â”€â”€
   SuperRowStyle? _rowStyle(SuperRow<R> row) {
     final styles = widget.styles;
     if (styles == null || c.mode != SuperTableMode.readable) return null;
@@ -831,7 +831,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
   void _ensureVisible() {
     final sel = c.sel;
     // Skip vertical auto-scroll when expansion is active: item heights are
-    // variable and a flat-index × rowH calculation would be wrong.
+    // variable and a flat-index أ— rowH calculation would be wrong.
     if (_vScroll.hasClients && widget.expansion == null) {
       final flat = c.renderList.indexWhere(
         (it) => !it.isGroup && it.dataIndex == sel.r,
@@ -879,7 +879,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
       keys.contains(LogicalKeyboardKey.controlRight);
 
   KeyEventResult _onKey(FocusNode node, KeyEvent e) {
-    // Host hook first — return true to mark handled and skip defaults.
+    // Host hook first â€” return true to mark handled and skip defaults.
     if (c.onKey != null && c.onKey!(context, c, node, e)) {
       return KeyEventResult.handled;
     }
@@ -901,8 +901,8 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
 
     if (c.editCell != null) return KeyEventResult.ignored;
 
-    // ── Expansion keyboard shortcuts ───────────────────────────────────────
-    // Checked here — before the meta/arrow blocks — so Ctrl+Shift+↓/↑ does
+    // â”€â”€ Expansion keyboard shortcuts â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // Checked here â€” before the meta/arrow blocks â€” so Ctrl+Shift+â†“/â†‘ does
     // not fall through to moveSel. Only fires when a keymap is configured and
     // the table is in Readable mode.
     {
@@ -959,7 +959,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
         c.fillRight();
         return KeyEventResult.handled;
       }
-      // Ctrl/⌘ + Enter → insert AFTER focus; + Shift → insert BEFORE focus.
+      // Ctrl/âŒک + Enter â†’ insert AFTER focus; + Shift â†’ insert BEFORE focus.
       if ((k == LogicalKeyboardKey.enter ||
               k == LogicalKeyboardKey.numpadEnter) &&
           ed) {
@@ -1060,7 +1060,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
   Future<void> _confirmDeleteRow([int? viewR]) async {
     final vr = viewR ?? c.sel.r;
     if (vr >= c.nRows) return;
-    final l10n = context.superTableTranslations;
+    final l10n = context.superTableLocalization;
     final label = c.firstColText(vr);
     final ok = await showSuperConfirm(
       context,
@@ -1070,8 +1070,8 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
     if (ok) c.deleteRow(vr);
   }
 
-  // ── header sort cycling (left-click) ──
-  /// Cycles sort for [col]: no-sort → ascending → descending → no-sort.
+  // â”€â”€ header sort cycling (left-click) â”€â”€
+  /// Cycles sort for [col]: no-sort â†’ ascending â†’ descending â†’ no-sort.
   void _cycleSortForColumn(SuperColumn col) {
     if (!col.sortable) return;
     if (c.sort.key != col.key) {
@@ -1083,9 +1083,9 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
     }
   }
 
-  // ── header menu (opens on RIGHT-click / touch double-tap) ──
+  // â”€â”€ header menu (opens on RIGHT-click / touch double-tap) â”€â”€
   void _openHeaderMenu(SuperColumn col, Offset pos) {
-    final l10n = context.superTableTranslations;
+    final l10n = context.superTableLocalization;
     final entries = <SuperMenuEntry>[];
     if (col.sortable) {
       entries.add(
@@ -1195,13 +1195,13 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
 
   void _openRowMenu(int viewR, Offset pos) {
     if (viewR >= c.view.length) return;
-    final l10n = context.superTableTranslations;
+    final l10n = context.superTableLocalization;
     final row = c.view[viewR].row!;
     final entries = <SuperMenuEntry>[
       SuperMenuEntry(
         icon: Icons.content_copy_rounded,
         label: l10n.copyAsJson,
-        hint: '⌘C',
+        hint: 'âŒکC',
         onTap: () => (c.rowMode && c.selRows.isNotEmpty)
             ? c.copyRowsJson(c.selRows.toList())
             : c.copyRowsJson([viewR]),
@@ -1212,20 +1212,20 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
         SuperMenuEntry(
           icon: Icons.vertical_align_top_rounded,
           label: l10n.insertRowAbove,
-          hint: '⌘⇧↵',
+          hint: 'âŒکâ‡§â†µ',
           separatorBefore: true,
           onTap: () => c.insertRow(viewR, after: false),
         ),
         SuperMenuEntry(
           icon: Icons.vertical_align_bottom_rounded,
           label: l10n.insertRowBelow,
-          hint: '⌘↵',
+          hint: 'âŒکâ†µ',
           onTap: () => c.insertRow(viewR, after: true),
         ),
         SuperMenuEntry(
           icon: Icons.copy_all_rounded,
           label: l10n.duplicateRow,
-          hint: '⌘D',
+          hint: 'âŒکD',
           onTap: () => c.duplicateRow(viewR),
         ),
         if (c.trackChanges) ...[
@@ -1262,7 +1262,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
         SuperMenuEntry(
           icon: Icons.delete_outline_rounded,
           label: l10n.deleteRow,
-          hint: '⌘⌫',
+          hint: 'âŒکâŒ«',
           danger: true,
           separatorBefore: true,
           onTap: () => _confirmDeleteRow(viewR),
@@ -1595,7 +1595,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
     );
   }
 
-  // ── pinned row-number gutter pane ──
+  // â”€â”€ pinned row-number gutter pane â”€â”€
   Widget _buildGutterPane(
     SuperTableSkin skin,
     List<SuperColumn> cols, {
@@ -1713,9 +1713,9 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
   bool _hasTotals(List<SuperColumn> cols) =>
       cols.any((c) => c.agg != SuperAgg.none);
 
-  // ── formula bar (editable) ──
+  // â”€â”€ formula bar (editable) â”€â”€
   Widget _buildFormulaBar(SuperTableSkin skin) {
-    final l10n = context.superTableTranslations;
+    final l10n = context.superTableLocalization;
     final actions = <Widget>[];
 
     void addAction(Widget action) {
@@ -1762,7 +1762,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
     );
   }
 
-  // ── grouped-by chips bar ──
+  // â”€â”€ grouped-by chips bar â”€â”€
   Widget _buildGroupBar(SuperTableSkin skin) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -1781,7 +1781,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
               ),
               const SizedBox(width: 6),
               Text(
-                context.superTableTranslations.groupedBy,
+                context.superTableLocalization.groupedBy,
                 style: TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.w700,
@@ -1796,7 +1796,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
           GestureDetector(
             onTap: c.clearGroups,
             child: Text(
-              context.superTableTranslations.clearAll,
+              context.superTableLocalization.clearAll,
               style: TextStyle(
                 fontSize: 11.5,
                 color: skin.fg3,
@@ -1852,7 +1852,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
     );
   }
 
-  // ── header ──
+  // â”€â”€ header â”€â”€
   Widget _buildHeader(SuperTableSkin skin, List<SuperColumn> cols) {
     final area = _headerArea;
     return Container(
@@ -1892,8 +1892,8 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
                   skin: skin,
                   icon: Icons.tune_rounded,
                   tooltip: active
-                      ? context.superTableTranslations.advancedFilterActiveEdit
-                      : context.superTableTranslations.advancedFilter,
+                      ? context.superTableLocalization.advancedFilterActiveEdit
+                      : context.superTableLocalization.advancedFilter,
                   accent: active,
                   onTap: _openAdvancedFilter,
                 ),
@@ -1931,14 +1931,14 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
           ? _IconHoverButton(
               skin: skin,
               icon: Icons.add_rounded,
-              tooltip: context.superTableTranslations.addColumn,
+              tooltip: context.superTableLocalization.addColumn,
               onTap: widget.onAddColumn!,
             )
           : Icon(Icons.delete_outline_rounded, size: 13, color: skin.fg4),
     );
   }
 
-  // ── per-column filter row ──
+  // â”€â”€ per-column filter row â”€â”€
   TextEditingController _filterCtrl(String key) {
     final existing = _filterCtrls[key];
     final current = c.columnFilter(key);
@@ -1974,7 +1974,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
 
   Widget _filterGutter(SuperTableSkin skin) {
     final active = c.hasColumnFilters;
-    final l10n = context.superTableTranslations;
+    final l10n = context.superTableLocalization;
     return Container(
       width: _gutterW,
       height: _kFilterRowH,
@@ -2033,8 +2033,8 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
         current,
         options: const ['Yes', 'No'],
         labelFor: (v) => v == 'Yes'
-            ? context.superTableTranslations.checked
-            : context.superTableTranslations.unchecked,
+            ? context.superTableLocalization.checked
+            : context.superTableLocalization.unchecked,
       );
     } else {
       field = _filterText(skin, col, current);
@@ -2087,7 +2087,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
                   minWidth: 25,
                   minHeight: 24,
                 ),
-                hintText: context.superTableTranslations.filterHint,
+                hintText: context.superTableLocalization.filterHint,
                 hintStyle: TextStyle(fontSize: 12, color: skin.fg4),
               ),
             ),
@@ -2115,7 +2115,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
     required List<String> options,
     String Function(String)? labelFor,
   }) {
-    final l10n = context.superTableTranslations;
+    final l10n = context.superTableLocalization;
     final active = current.trim().isNotEmpty;
     final label = active ? (labelFor?.call(current) ?? current) : l10n.all;
     return _DropdownTap(
@@ -2244,7 +2244,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
     // Right-click (mouse) or double-tap (touch) opens the menu.
     Widget cell = GestureDetector(
       behavior: HitTestBehavior.opaque,
-      // Left-click cycles sort: ascending → descending → clear (no-op for unsortable)
+      // Left-click cycles sort: ascending â†’ descending â†’ clear (no-op for unsortable)
       onTap: col.sortable ? () => _cycleSortForColumn(col) : null,
       onSecondaryTapDown: (d) => _openHeaderMenu(col, d.globalPosition),
       onDoubleTap: () {
@@ -2283,7 +2283,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
     return cell;
   }
 
-  // ── render item ──
+  // â”€â”€ render item â”€â”€
   Widget _buildRenderItem(
     SuperTableSkin skin,
     List<SuperColumn> cols,
@@ -2334,7 +2334,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
             Flexible(
               child: Text(
                 g.groupValue == null || g.groupValue!.isEmpty
-                    ? '—'
+                    ? 'â€”'
                     : g.groupValue!,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -2413,7 +2413,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
 
   /// A subtotal row closing a group (2.1.0, `groupFooters:`). Unlike the
   /// header's inline chips, the footer aligns each aggregate UNDER its own
-  /// column — a ledger subtotal line.
+  /// column â€” a ledger subtotal line.
   Widget _buildGroupFooter(
     SuperTableSkin skin,
     List<SuperColumn> cols,
@@ -2446,10 +2446,10 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
     Widget? child;
     if (ci == 0) {
       final label = g.groupValue == null || g.groupValue!.isEmpty
-          ? '—'
+          ? 'â€”'
           : g.groupValue!;
       child = Text(
-        'Σ $label',
+        'خ£ $label',
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         style: TextStyle(
@@ -2540,7 +2540,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
       );
     }
 
-    // No expansion feature, or currently in editable mode — return the bare row.
+    // No expansion feature, or currently in editable mode â€” return the bare row.
     if (exp == null || c.mode != SuperTableMode.readable) return rowWidget;
 
     final expanded = _isExpanded(item.row!);
@@ -2561,7 +2561,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
         _lastPointer = d.globalPosition;
       },
       // Clicking the row number selects the WHOLE row WITHOUT moving the edit
-      // cursor (0.4.0). Shift/⌘ extend or toggle.
+      // cursor (0.4.0). Shift/âŒک extend or toggle.
       onTap: () {
         c.selectGutterRow(
           r,
@@ -2615,14 +2615,14 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
           ? _IconHoverButton(
               skin: skin,
               icon: Icons.delete_outline_rounded,
-              tooltip: context.superTableTranslations.deleteRow,
+              tooltip: context.superTableLocalization.deleteRow,
               danger: true,
               onTap: () => _confirmDeleteRow(r),
             )
           : _IconHoverButton(
               skin: skin,
               icon: Icons.drag_indicator_rounded,
-              tooltip: context.superTableTranslations.rowOptions,
+              tooltip: context.superTableLocalization.rowOptions,
               onTap: () {},
             ),
     );
@@ -2896,7 +2896,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
     SuperAlign.start => TextAlign.left,
   };
 
-  // ── row expansion helpers (readable mode) ──────────────────────────────
+  // â”€â”€ row expansion helpers (readable mode) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   /// Whether [row] is currently expanded.
   bool _isExpanded(SuperRow<R> row) => _expandedRowIds.contains(row.id);
@@ -2926,7 +2926,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
     final viewR = c.sel.r;
     if (viewR >= c.view.length) return;
     final row = c.view[viewR].row;
-    if (row == null) return; // group-header row — not expandable
+    if (row == null) return; // group-header row â€” not expandable
     final id = row.id;
     if (!_expandedRowIds.contains(id)) {
       setState(() {
@@ -2953,7 +2953,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
   ///
   /// Uses [ClipRect] + [AnimatedAlign] with a `heightFactor` tween so the
   /// child is always laid out at the full panel height and smoothly
-  /// revealed/hidden — the same technique Flutter's own [ExpansionTile] uses.
+  /// revealed/hidden â€” the same technique Flutter's own [ExpansionTile] uses.
   /// The gutter's [AnimatedContainer] uses an identical height tween so both
   /// animate in perfect lock-step regardless of curve or duration.
   Widget _buildExpansionPanel(
@@ -3065,7 +3065,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
           Icon(Icons.inbox_rounded, size: 26, color: skin.fg3),
           const SizedBox(height: 10),
           Text(
-            context.superTableTranslations.noRows,
+            context.superTableLocalization.noRows,
             style: TextStyle(fontSize: 13, color: skin.fg3),
           ),
         ],
@@ -3119,7 +3119,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
       );
     } else if (i == 0) {
       child = Text(
-        context.superTableTranslations.totals,
+        context.superTableLocalization.totals,
         style: TextStyle(
           fontSize: 10,
           fontWeight: area?.fontWeight ?? FontWeight.w700,
@@ -3143,7 +3143,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
   }
 
   List<Widget> _buildFooterStack(SuperTableSkin skin) {
-    final l10n = context.superTableTranslations;
+    final l10n = context.superTableLocalization;
     final out = <Widget>[];
     if (c.pagination == SuperPagination.loadMore &&
         c.hasMore &&
@@ -3172,7 +3172,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
   }
 
   Widget _buildPager(SuperTableSkin skin) {
-    final l10n = context.superTableTranslations;
+    final l10n = context.superTableLocalization;
     final total = c.sortedRows.length;
     final from = total == 0 ? 0 : c.page * c.pageSize + 1;
     final to = (c.page * c.pageSize + c.pageSize).clamp(0, total);
@@ -3188,7 +3188,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
           SizedBox(
             width: 20,
             child: Center(
-              child: Text('…', style: TextStyle(color: skin.fg4)),
+              child: Text('â€¦', style: TextStyle(color: skin.fg4)),
             ),
           ),
         );
@@ -3273,7 +3273,7 @@ class _SuperTableState<R> extends State<SuperTable<R>> {
   }
 }
 
-// ── animated shimmer bar for skeleton rows ──
+// â”€â”€ animated shimmer bar for skeleton rows â”€â”€
 class _Shimmer extends StatefulWidget {
   final double width;
   final double height;
@@ -3379,7 +3379,7 @@ class _DirtyCornerPainter extends CustomPainter {
   bool shouldRepaint(covariant _DirtyCornerPainter old) => old.color != color;
 }
 
-// ── small shared widgets ──
+// â”€â”€ small shared widgets â”€â”€
 class _BarButton extends StatefulWidget {
   final SuperTableSkin skin;
   final IconData? icon;

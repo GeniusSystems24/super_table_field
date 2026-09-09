@@ -1,4 +1,4 @@
-// ============================================================
+﻿// ============================================================
 // features/super_table/presentation/widgets/super_cell.dart
 // ------------------------------------------------------------
 // The per-cell display renderer + type-specific inline editors for SuperTable
@@ -98,7 +98,7 @@ class SuperCellDisplay extends StatelessWidget {
     );
 
     // An explicit column formatter wins over the built-in type rendering and
-    // shows its returned string as plain text (display-only — see [SuperColumnFormatter]).
+    // shows its returned string as plain text (display-only â€” see [SuperColumnFormatter]).
     final fmt = col.formatter;
     if (fmt != null) {
       return Text(
@@ -159,7 +159,7 @@ class SuperCellDisplay extends StatelessWidget {
                       ? skin.danger(context)
                       : (n > 0 ? skin.success : skin.fg3))
                 : skin.fg1);
-        final sign = neg ? '−' : (col.colorSign && n > 0 ? '+' : '');
+        final sign = neg ? 'âˆ’' : (col.colorSign && n > 0 ? '+' : '');
         final prefix = col.prefix ?? (isCur ? r'$' : '');
         final txt =
             '$sign$prefix${SuperColumnLogic.fmtNum(n, col)}${col.suffix != null ? (isCur ? ' ${col.suffix}' : col.suffix) : ''}';
@@ -270,7 +270,7 @@ class SuperCellDisplay extends StatelessWidget {
         );
 
       case SuperColumnType.readonly:
-        final txt = v == null || '$v'.isEmpty ? '—' : '$v';
+        final txt = v == null || '$v'.isEmpty ? 'â€”' : '$v';
         return Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -291,7 +291,7 @@ class SuperCellDisplay extends StatelessWidget {
         final out = col.compute != null ? col.compute!(row) : v;
         final txt = col.format != null
             ? col.format!(out, row)
-            : (out == null || '$out'.isEmpty ? '—' : '$out');
+            : (out == null || '$out'.isEmpty ? 'â€”' : '$out');
         return Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -318,7 +318,7 @@ Color? _parseHex(String s) {
 }
 
 // ============================================================
-// Combo cell editor — embeds SuperAutoSuggestionsBox, with per-cell source +
+// Combo cell editor â€” embeds SuperAutoSuggestionsBox, with per-cell source +
 // controller (rebuildable on fingerPrint change), cached on the table
 // controller's combo registries.
 // ============================================================
@@ -463,7 +463,7 @@ class _SuperComboEditorState extends State<_SuperComboEditor> {
       }
     }
 
-    // Build a source: explicit sourceController ▸ static values ▸ empty.
+    // Build a source: explicit sourceController â–¸ static values â–¸ empty.
     // Typed as <dynamic> so any SuperComboColumn<T> source slots in.
     SuperAutoSuggestionsSource<dynamic> source;
     if (col != null && col.hasSourceController) {
@@ -482,7 +482,7 @@ class _SuperComboEditorState extends State<_SuperComboEditor> {
       ]);
     }
 
-    // Build a controller: explicit cellController ▸ default sharing our text.
+    // Build a controller: explicit cellController â–¸ default sharing our text.
     if (col != null && col.hasCellController) {
       _box = col.buildController(
         context,
@@ -542,7 +542,7 @@ class _SuperComboEditorState extends State<_SuperComboEditor> {
     final skin = SuperTableSkin.of(context);
     final col = _combo;
     final opts = widget.col.opts ?? const <String>[];
-    final l10n = context.superTableTranslations;
+    final l10n = context.superTableLocalization;
     // SuperAutoSuggestionsBox uses fieldHeight as a fixed field height. Leave one
     // physical pixel for the table cell border inside the tight row constraint.
     final fieldHeight = widget.height > 1 ? widget.height - 1 : widget.height;
@@ -628,7 +628,7 @@ class _SuperComboEditorState extends State<_SuperComboEditor> {
 }
 
 // ============================================================
-// Enumeration cell editor — embeds SuperSelectFormField with source/controller
+// Enumeration cell editor â€” embeds SuperSelectFormField with source/controller
 // resolution owned by SuperEnumerationColumn. Resources may be row-scoped and
 // are cached by the table controller against row.fingerPrint.
 // ============================================================
@@ -820,7 +820,7 @@ class _SuperEnumerationEditorState extends State<_SuperEnumerationEditor> {
             density: FieldDensity.compact,
             required: widget.col.required,
             searchable: col?.effectiveSearchable ?? false,
-            searchHint: col?.searchHint ?? 'Search…',
+            searchHint: col?.searchHint ?? 'Searchâ€¦',
             emptyLabel: col?.emptyLabel ?? 'No matches',
             searchAutofocus: col?.searchAutofocus ?? true,
             clearable: false,
@@ -1393,7 +1393,7 @@ class _SuperCellEditorState extends State<SuperCellEditor> {
     SuperColumnType.color => '#RRGGBB',
     _ =>
       (col.min != null || col.max != null)
-          ? '${col.min ?? '−∞'}…${col.max ?? '∞'}'
+          ? '${col.min ?? 'âˆ’âˆ‍'}â€¦${col.max ?? 'âˆ‍'}'
           : null,
   };
 
@@ -1451,7 +1451,7 @@ class _SuperCellEditorState extends State<SuperCellEditor> {
   }
 }
 
-// ── popup option list (enum / time) ──
+// â”€â”€ popup option list (enum / time) â”€â”€
 class _OptionList extends StatefulWidget {
   final List<String> options;
   final String selected;
@@ -1621,7 +1621,7 @@ class _PopRowState extends State<_PopRow> {
   }
 }
 
-// ── color swatch grid ──
+// â”€â”€ color swatch grid â”€â”€
 class _SwatchGrid extends StatelessWidget {
   final String value;
   final ValueChanged<String> onPick;
@@ -1665,7 +1665,7 @@ class _SwatchGrid extends StatelessWidget {
   }
 }
 
-// ── mini month calendar ──
+// â”€â”€ mini month calendar â”€â”€
 class _MiniCalendar extends StatefulWidget {
   final String value;
   final ValueChanged<String> onPick;
@@ -1710,7 +1710,7 @@ class _MiniCalendarState extends State<_MiniCalendar> {
   @override
   Widget build(BuildContext context) {
     final skin = SuperTableSkin.of(context);
-    final l10n = context.superTableTranslations;
+    final l10n = context.superTableLocalization;
     final months = [
       l10n.monthJan,
       l10n.monthFeb,

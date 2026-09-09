@@ -18,6 +18,6 @@
 library super_table_field;
 
 // ── Feature ─────────────────────────────────────────────────────────────────
-export 'localization/generated/l10n.dart' hide AppLocalizationDelegate;
+export 'localization/generated/l10n.dart';
 export 'localization/super_table_localizations.dart';
 export 'src/features/super_table/super_table.dart';

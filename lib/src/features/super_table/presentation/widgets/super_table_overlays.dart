@@ -1,16 +1,16 @@
-// ============================================================
+﻿// ============================================================
 // features/super_table/presentation/widgets/super_table_overlays.dart
 // ------------------------------------------------------------
 // Floating chrome for the SuperTable:
-//   • SuperMenuEntry / showSuperMenu — header + row context menus. Entries with
+//   â€¢ SuperMenuEntry / showSuperMenu â€” header + row context menus. Entries with
 //     `children` are **cascading submenus**: their branches open as a floating
 //     overlayCard beside the parent row and can nest arbitrarily deep (0.4.0).
-//   • showSuperConfirm     — the delete-row confirm dialog.
-//   • showSuperShortcuts   — the keyboard-shortcuts reference dialog.
-//   • showSuperAdvancedFilter — the cross-column advanced-filter editor (0.4.0).
-//   • showSuperValidationPanel — the table-wide validation summary with
+//   â€¢ showSuperConfirm     â€” the delete-row confirm dialog.
+//   â€¢ showSuperShortcuts   â€” the keyboard-shortcuts reference dialog.
+//   â€¢ showSuperAdvancedFilter â€” the cross-column advanced-filter editor (0.4.0).
+//   â€¢ showSuperValidationPanel â€” the table-wide validation summary with
 //     jump-to-cell (2.1.0).
-//   • SuperCellErrorBadge  — the per-cell validation badge with an overlay tip.
+//   â€¢ SuperCellErrorBadge  â€” the per-cell validation badge with an overlay tip.
 // Pure presentation; all behaviour is passed in as callbacks.
 // ============================================================
 
@@ -335,7 +335,7 @@ Future<bool> showSuperConfirm(
 }) async {
   final skin = SuperTableSkin.of(context);
   final effectiveConfirmLabel =
-      confirmLabel ?? context.superTableTranslations.delete;
+      confirmLabel ?? context.superTableLocalization.delete;
   final res = await showDialog<bool>(
     context: context,
     barrierColor: Colors.black.withValues(alpha: 0.5),
@@ -402,7 +402,7 @@ Future<bool> showSuperConfirm(
                 children: [
                   _DialogBtn(
                     skin: skin,
-                    label: context.superTableTranslations.cancel,
+                    label: context.superTableLocalization.cancel,
                     onTap: () => Navigator.pop(ctx, false),
                   ),
                   const SizedBox(width: 9),
@@ -562,7 +562,7 @@ class _AdvancedFilterPanelState extends State<_AdvancedFilterPanel> {
   @override
   Widget build(BuildContext context) {
     final s = widget.skin;
-    final l10n = context.superTableTranslations;
+    final l10n = context.superTableLocalization;
     return Container(
       width: 560,
       constraints: const BoxConstraints(maxHeight: 600),
@@ -808,7 +808,7 @@ class _AdvancedFilterPanelState extends State<_AdvancedFilterPanel> {
                 : SizedBox(
                     height: 34,
                     child: Center(
-                      child: Text('—', style: TextStyle(color: s.fg4)),
+                      child: Text('â€”', style: TextStyle(color: s.fg4)),
                     ),
                   ),
           ),
@@ -834,9 +834,9 @@ class _AdvancedFilterPanelState extends State<_AdvancedFilterPanel> {
     FilterOp.startsWith => 'starts with',
     FilterOp.endsWith => 'ends with',
     FilterOp.greaterThan => '> greater',
-    FilterOp.greaterOrEqual => '≥ at least',
+    FilterOp.greaterOrEqual => 'â‰¥ at least',
     FilterOp.lessThan => '< less',
-    FilterOp.lessOrEqual => '≤ at most',
+    FilterOp.lessOrEqual => 'â‰¤ at most',
     FilterOp.between => 'between',
     FilterOp.isEmpty => 'is empty',
     FilterOp.isNotEmpty => 'is not empty',
@@ -939,16 +939,16 @@ class _AdvancedFilterPanelState extends State<_AdvancedFilterPanel> {
 /// Keyboard-shortcuts reference dialog.
 Future<void> showSuperShortcuts(BuildContext context) {
   final skin = SuperTableSkin.of(context);
-  final l10n = context.superTableTranslations;
+  final l10n = context.superTableLocalization;
   final groups = <(String, List<(String, String)>)>[
     (
       l10n.navigate,
       [
-        ('↑ ↓ ← →', l10n.moveBetweenCells),
-        ('Tab / ⇧Tab', l10n.nextPreviousCell),
+        ('â†‘ â†“ â†گ â†’', l10n.moveBetweenCells),
+        ('Tab / â‡§Tab', l10n.nextPreviousCell),
         ('Home / End', l10n.firstLastColumn),
         ('F1', l10n.shortcuts),
-        ('⌘Home / ⌘End', l10n.firstLastCell),
+        ('âŒکHome / âŒکEnd', l10n.firstLastCell),
       ],
     ),
     (
@@ -956,23 +956,23 @@ Future<void> showSuperShortcuts(BuildContext context) {
       [
         ('Type', l10n.overwriteCell),
         ('Enter / F2', l10n.editOrOpenSelect),
-        ('Enter↓ · Tab→', l10n.commitAndMove),
+        ('Enterâ†“ آ· Tabâ†’', l10n.commitAndMove),
         ('Tab at end', l10n.appendNewRow),
-        ('⌫ / Delete', l10n.clearCell),
+        ('âŒ« / Delete', l10n.clearCell),
         ('Esc', l10n.cancelEditing),
       ],
     ),
     (
       l10n.rowsAndClipboard,
       [
-        ('⌘Enter', l10n.insertRowAfter),
-        ('⌘⇧Enter', l10n.insertRowBefore),
-        ('⌘D', l10n.duplicateRowFillDown),
-        ('⌘R', l10n.fillRightAcrossRange),
-        ('⌘⌫', l10n.deleteRow),
-        ('⌘C', l10n.copySelectionAsJson),
-        ('⌘X / ⌘V', l10n.cutPasteValidated),
-        ('⌘Z / ⌘⇧Z', l10n.undoRedo),
+        ('âŒکEnter', l10n.insertRowAfter),
+        ('âŒکâ‡§Enter', l10n.insertRowBefore),
+        ('âŒکD', l10n.duplicateRowFillDown),
+        ('âŒکR', l10n.fillRightAcrossRange),
+        ('âŒکâŒ«', l10n.deleteRow),
+        ('âŒکC', l10n.copySelectionAsJson),
+        ('âŒکX / âŒکV', l10n.cutPasteValidated),
+        ('âŒکZ / âŒکâ‡§Z', l10n.undoRedo),
       ],
     ),
   ];
@@ -1122,7 +1122,7 @@ class _Kbd extends StatelessWidget {
 }
 
 /// Validation-summary panel (2.1.0). Runs `controller.validateAll()` and
-/// lists every failing cell — row number, column, message — with jump-to-cell
+/// lists every failing cell â€” row number, column, message â€” with jump-to-cell
 /// on tap. Wire it to a *Validate* button or the footer's issue chip; gate
 /// *Post* / *Save* on `controller.isValid`.
 Future<void> showSuperValidationPanel<R>(
@@ -1130,7 +1130,7 @@ Future<void> showSuperValidationPanel<R>(
   SuperTableController<R> controller,
 ) {
   final skin = SuperTableSkin.of(context);
-  final l10n = context.superTableTranslations;
+  final l10n = context.superTableLocalization;
   final issues = controller.validateAll();
   return showDialog<void>(
     context: context,
@@ -1445,10 +1445,10 @@ class _SuperCellErrorBadgeState extends State<SuperCellErrorBadge> {
   }
 }
 
-/// Column manager (2.2.0) — drag to reorder, toggle visibility, pin to an edge.
+/// Column manager (2.2.0) â€” drag to reorder, toggle visibility, pin to an edge.
 /// Drives the controller's column-config API (`setManagedOrder` / `moveColumn`,
 /// `toggleColumnVisible` / `showColumn` / `hideColumn`, `setColumnPin`). Wire it
-/// to a *Columns* button, or reach it from any header menu (*Manage columns…*).
+/// to a *Columns* button, or reach it from any header menu (*Manage columnsâ€¦*).
 Future<void> showSuperColumnManager<R>(
   BuildContext context,
   SuperTableController<R> controller,
@@ -1496,7 +1496,7 @@ class _ColumnManagerPanelState<R> extends State<_ColumnManagerPanel<R>> {
   @override
   Widget build(BuildContext context) {
     final s = widget.skin;
-    final l10n = context.superTableTranslations;
+    final l10n = context.superTableLocalization;
     final cols = c.managedColumns;
     final shown = cols.where((col) => c.isColumnVisible(col.key)).length;
     return Container(
@@ -1747,7 +1747,7 @@ class _MgrIconToggle extends StatelessWidget {
   }
 }
 
-/// A three-way segmented control for a column's pin: start · none · end.
+/// A three-way segmented control for a column's pin: start آ· none آ· end.
 class _PinSegment extends StatelessWidget {
   final SuperTableSkin skin;
   final SuperPin pin;
@@ -1801,7 +1801,7 @@ class _PinSegment extends StatelessWidget {
             Directionality.of(context) == TextDirection.rtl
                 ? Icons.east_rounded
                 : Icons.west_rounded,
-            context.superTableTranslations.pinLeft,
+            context.superTableLocalization.pinLeft,
           ),
           seg(SuperPin.none, Icons.remove_rounded, 'Unpinned'),
           seg(
@@ -1809,7 +1809,7 @@ class _PinSegment extends StatelessWidget {
             Directionality.of(context) == TextDirection.rtl
                 ? Icons.west_rounded
                 : Icons.east_rounded,
-            context.superTableTranslations.pinRight,
+            context.superTableLocalization.pinRight,
           ),
         ],
       ),

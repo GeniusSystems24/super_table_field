@@ -9,7 +9,7 @@ description: >
   light/dark themes and LTR/RTL via SuperMaterialThemeData.
 
 # package version
-version: 3.1.0
+version: 3.1.1
 
 # package homepage, repository, and issue tracker
 homepage: https://geniussystems24.github.io/super_table_field
@@ -44,18 +44,10 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
 
-# ============================================================
-# 🌐 إعدادات التدويل (Internationalization)
-# ============================================================
-flutter_intl:
-  enabled: true
-  class_name: SuperTableTranslation
-  use_deferred_loading: true
-  arb_dir: lib/localization
-  output_dir: lib/localization/generated
-
 flutter:
   uses-material-design: true
+  # The following section is specific to Flutter.
+  generate: true # Add this line
   # Drop brand .ttf files under assets/fonts/ to match the design system exactly.
   # Families: Manrope (display) · Inter (body) · JetBrainsMono (mono) · NotoNaskhArabic
   #
@@ -80,3 +72,6 @@ flutter:
   #   - family: NotoNaskhArabic
   #     fonts:
   #       - asset: assets/fonts/NotoNaskhArabic-Regular.ttf
+
+
+include: l10n.yaml

@@ -1,22 +1,22 @@
 // ============================================================
 // features/super_table/presentation/controllers/super_table_controller.dart
 // ------------------------------------------------------------
-// The MVC controller for the unified SuperTable — generic over the row's
+// The MVC controller for the unified SuperTable â€” generic over the row's
 // backing type `R` (`SuperTableController<R>`). A thin View renders it and
 // forwards events here. It owns:
 //
-//   • column resolution     — visibility ▸ pins ▸ user reorder ▸ widths
-//   • the data pipeline      — search ▸ column/advanced filters ▸ sort ▸ group ▸ page
-//   • selection              — cursor + anchor range, discrete cells, whole rows
-//   • editing                — begin / commit / cancel, per-cell drafts, the
+//   â€¢ column resolution     â€” visibility â–¸ pins â–¸ user reorder â–¸ widths
+//   â€¢ the data pipeline      â€” search â–¸ column/advanced filters â–¸ sort â–¸ group â–¸ page
+//   â€¢ selection              â€” cursor + anchor range, discrete cells, whole rows
+//   â€¢ editing                â€” begin / commit / cancel, per-cell drafts, the
 //                              column `onChange` + `validator` pipeline
-//   • row ops                — add / insert (before/after focus) / duplicate / delete
-//   • clipboard              — copy/cut as JSON, paste (validated JSON or TSV)
-//   • history                — undo / redo snapshots (depth 200) capturing row
+//   â€¢ row ops                â€” add / insert (before/after focus) / duplicate / delete
+//   â€¢ clipboard              â€” copy/cut as JSON, paste (validated JSON or TSV)
+//   â€¢ history                â€” undo / redo snapshots (depth 200) capturing row
 //                              membership AND per-cell values, so cell edits
 //                              revert correctly (fixed in 2.1.0)
-//   • mode                   — readable ⇄ editable, switchable at runtime
-//   • combo registries       — the per-cell SuperAutoSuggestions source + controller,
+//   â€¢ mode                   â€” readable â‡„ editable, switchable at runtime
+//   â€¢ combo registries       â€” the per-cell SuperAutoSuggestions source + controller,
 //                              rebuilt when a row's fingerPrint changes
 //
 // Rows are [SuperRow]`<R>`: a host-owned `value` of type `R` + an editable
@@ -42,7 +42,6 @@ import '../../domain/entities/super_table_state.dart';
 import '../../domain/entities/super_validation.dart';
 import '../../domain/entities/super_view_state.dart';
 import '../../domain/usecases/super_column_logic.dart';
-import '../../../../../localization/generated/l10n.dart';
 import '../../../../../localization/super_table_localizations.dart';
 
 /// Host hook for raw key handling (readable + editable). Return `true` to mark
@@ -56,7 +55,7 @@ typedef SuperKeyHandler<R> =
     );
 
 /// One undo/redo history entry: the row list (membership + order, by
-/// reference) PLUS a per-cell value/error snapshot keyed by [SuperRow.id] —
+/// reference) PLUS a per-cell value/error snapshot keyed by [SuperRow.id] â€”
 /// cells are mutated in place during editing, so restoring membership alone
 /// cannot revert a cell edit. Also carries the change-tracking deleted-row
 /// log so undoing a delete removes its ghost entry from `changes.deleted`.
@@ -112,7 +111,7 @@ class SuperTableController<R> extends ChangeNotifier {
     if (trackChanges) _captureBaseline();
   }
 
-  // ── config ──
+  // â”€â”€ config â”€â”€
   SuperTableMode _mode;
   final bool addRowEnabled;
   SuperPagination _pagination;
@@ -130,7 +129,7 @@ class SuperTableController<R> extends ChangeNotifier {
 
   /// When true, the controller captures a per-cell baseline so [changes]
   /// returns the added/modified/deleted delta (see [SuperChangeSet]). Off by
-  /// default — there is no tracking overhead unless you opt in.
+  /// default â€” there is no tracking overhead unless you opt in.
   final bool trackChanges;
 
   /// Optional per-cell editability gate (1.0.0). Consulted in addition to the
@@ -140,19 +139,21 @@ class SuperTableController<R> extends ChangeNotifier {
 
   final R Function()? _emptyValue;
 
-  /// The live BuildContext of the mounted View — set by the View each build so
+  /// The live BuildContext of the mounted View â€” set by the View each build so
   /// the controller can invoke column `onChange` / `validator` (which take a
   /// context). Null before the View mounts.
   BuildContext? viewContext;
 
-  SuperTableTranslation get _l10n {
+  SuperTableLocalization get _l10n {
     final ctx = viewContext;
-    return ctx == null ? SuperTableTranslation() : ctx.superTableTranslations;
+    return ctx == null
+        ? superTableEnglishLocalizationFallback
+        : ctx.superTableLocalization;
   }
 
   /// Whether the render list should emit a [RenderItem.groupFooter] subtotal
   /// row after each expanded group (2.1.0). Set by the View each build from
-  /// `SuperTable(groupFooters:)` — like [viewContext], not a reactive setting.
+  /// `SuperTable(groupFooters:)` â€” like [viewContext], not a reactive setting.
   bool _groupFootersEnabled = false;
 
   bool get groupFootersEnabled => _groupFootersEnabled;
@@ -163,7 +164,7 @@ class SuperTableController<R> extends ChangeNotifier {
     _invalidatePipeline();
   }
 
-  // ── load-more paging state (host-driven) ──
+  // â”€â”€ load-more paging state (host-driven) â”€â”€
   bool _hasMore;
   bool _loadingMore;
   bool get hasMore => _hasMore;
@@ -175,7 +176,7 @@ class SuperTableController<R> extends ChangeNotifier {
   List<String>? _visibleKeys;
   SuperSelectionMode _selectionMode;
 
-  // ── selection / cursor state ──
+  // â”€â”€ selection / cursor state â”€â”€
   CellPos _sel = const CellPos(0, 0);
   CellPos _anchor = const CellPos(0, 0);
   final Set<String> _extraCells = {}; // discrete "r:c"
@@ -187,15 +188,15 @@ class SuperTableController<R> extends ChangeNotifier {
   bool get advanceOnEnter => _advanceOnEnter;
   void clearAdvanceOnEnter() => _advanceOnEnter = false;
 
-  // ── editing state ──
+  // â”€â”€ editing state â”€â”€
   CellPos? _editCell;
   String _draft = '';
   bool _committing = false;
 
-  // ── view config state ──
+  // â”€â”€ view config state â”€â”€
   SortSpec _sort = const SortSpec();
   final Map<String, Object?> _colFilters =
-      {}; // key → value (String contains, or option value)
+      {}; // key â†’ value (String contains, or option value)
   List<AdvancedFilterClause> _advanced = [];
   bool _advancedActive = false;
   final List<String> _groupKeys = [];
@@ -209,13 +210,13 @@ class SuperTableController<R> extends ChangeNotifier {
   /// source of truth.
   final Map<String, double> _layoutWidths = {};
 
-  /// Runtime pin overrides (2.2.0): columnKey → pin. Absent = use the column's
+  /// Runtime pin overrides (2.2.0): columnKey â†’ pin. Absent = use the column's
   /// declared [SuperColumn.pin]. Drives [pinOf] and the column-resolution pipe.
   final Map<String, SuperPin> _pinOverrides = {};
   late List<String> _order;
   int _page = 0;
 
-  // ── history ──
+  // â”€â”€ history â”€â”€
   final List<_HistoryEntry<R>> _undo = [];
   final List<_HistoryEntry<R>> _redo = [];
 
@@ -254,20 +255,20 @@ class SuperTableController<R> extends ChangeNotifier {
     _clampSelection();
   }
 
-  // ── change tracking (1.0.0) ──
+  // â”€â”€ change tracking (1.0.0) â”€â”€
   final List<({int index, SuperRow<R> row})> _deletedRows = [];
 
-  // ── enumeration per-cell registries (rebuilt on fingerPrint change) ──
+  // â”€â”€ enumeration per-cell registries (rebuilt on fingerPrint change) â”€â”€
   final Map<String, SuperSelectFieldController<dynamic>> _enumerationCtrls = {};
   final Map<String, List<SuperSelectSource<dynamic>>> _enumerationSources = {};
   final Map<String, Object?> _enumerationFingerPrints = {};
 
-  // ── combo per-cell registries (rebuilt on fingerPrint change) ──
+  // â”€â”€ combo per-cell registries (rebuilt on fingerPrint change) â”€â”€
   final Map<String, SuperAutoSuggestionsController<dynamic>> _comboCtrls = {};
   final Map<String, SuperAutoSuggestionsSource<dynamic>> _comboSources = {};
   final Map<String, Object?> _comboFingerPrints = {};
 
-  // ── v3 materialized-state caches ──────────────────────────────────────
+  // â”€â”€ v3 materialized-state caches â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // Reads from the rendering layer must be O(1). Derived data is rebuilt only
   // when a semantic mutation invalidates it, never because a getter was read.
   bool _columnCacheDirty = true;
@@ -391,12 +392,12 @@ class SuperTableController<R> extends ChangeNotifier {
     _columnCacheRebuildCount++;
   }
 
-  // ── reads ──
+  // â”€â”€ reads â”€â”€
   SuperTableMode get mode => _mode;
   List<SuperRow<R>> get rows => _rows;
   List<SuperColumn> get rawColumns => _rawColumns;
 
-  /// Every column that can ever render — all columns except the
+  /// Every column that can ever render â€” all columns except the
   /// [SuperColumn.hidden] ones.
   List<SuperColumn> get dataColumns {
     _ensureColumnCache();
@@ -448,7 +449,7 @@ class SuperTableController<R> extends ChangeNotifier {
       _selectionMode == SuperSelectionMode.multiCells ||
       _selectionMode == SuperSelectionMode.multiRows;
 
-  // ── filter state (programmatic get/set + JSON) ──
+  // â”€â”€ filter state (programmatic get/set + JSON) â”€â”€
   /// A structured snapshot of the whole filter state.
   SuperFilterState get filterState => SuperFilterState(
     search: _search,
@@ -478,10 +479,10 @@ class SuperTableController<R> extends ChangeNotifier {
   void applyFilterJson(Map<String, dynamic> json) =>
       applyFilterState(SuperFilterState.fromJson(json));
 
-  // ── saved views (2.1.0) ──────────────────────────────────
-  /// Snapshot everything the user personalises about this grid — column order,
+  // â”€â”€ saved views (2.1.0) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  /// Snapshot everything the user personalises about this grid â€” column order,
   /// width overrides, the visible-keys allow-list, sort, group-bys, collapsed
-  /// groups, and (by default) the whole filter state — as one
+  /// groups, and (by default) the whole filter state â€” as one
   /// [SuperViewState]. Persist `viewStateJson()` per user/screen and restore
   /// it later with [applyViewJson].
   SuperViewState viewState({bool includeFilters = true}) => SuperViewState(
@@ -596,7 +597,7 @@ class SuperTableController<R> extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ── change tracking (1.0.0) ────────────────────────────────────
+  // â”€â”€ change tracking (1.0.0) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   /// Whether any row was added, modified, or deleted since the last baseline.
   /// Always false unless [trackChanges] is enabled.
   bool get hasChanges {
@@ -705,10 +706,10 @@ class SuperTableController<R> extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ── per-cell / per-row revert (2.1.0) ──────────────────────
+  // â”€â”€ per-cell / per-row revert (2.1.0) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   /// Restore one cell of [row] to its change-tracking baseline (no-op unless
   /// [trackChanges] is on and the cell is dirty). Syncs the backing object,
-  /// records undo, and fires [onChange] — the row-menu *Revert cell* action.
+  /// records undo, and fires [onChange] â€” the row-menu *Revert cell* action.
   void revertCell(SuperRow<R> row, String columnKey) {
     if (!trackChanges) return;
     final cell = row.cells[columnKey];
@@ -721,7 +722,7 @@ class SuperTableController<R> extends ChangeNotifier {
   }
 
   /// Restore every dirty cell of [row] to its baseline. For an **added** row
-  /// (no baseline exists) the row itself is removed — reverting an addition.
+  /// (no baseline exists) the row itself is removed â€” reverting an addition.
   /// Records undo and fires [onChange].
   void revertRow(SuperRow<R> row) {
     if (!trackChanges) return;
@@ -750,9 +751,9 @@ class SuperTableController<R> extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ── selection statistics (1.0.0) ───────────────────────────────
+  // â”€â”€ selection statistics (1.0.0) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   /// A running sum / average / count / min / max over the numeric cells in the
-  /// current selection — the spreadsheet status-bar aggregate. Null when nothing
+  /// current selection â€” the spreadsheet status-bar aggregate. Null when nothing
   /// is selected.
   SuperSelectionStats? get selectionStats {
     final cells = selectedCells();
@@ -793,10 +794,10 @@ class SuperTableController<R> extends ChangeNotifier {
     );
   }
 
-  // ── validation summary (2.1.0) ───────────────────────────
+  // â”€â”€ validation summary (2.1.0) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   /// Run the FULL validation pass over **every row** (not just the current
   /// page): built-in type rules, the `unique:` constraint, then each column's
-  /// `validator`. Returns one [SuperValidationIssue] per failing cell — gate a
+  /// `validator`. Returns one [SuperValidationIssue] per failing cell â€” gate a
   /// *Post* / *Save* on [isValid] and feed the list to a summary panel with
   /// jump-to-cell (`selectCellAt(issue.cell!.r, issue.cell!.c)`).
   ///
@@ -849,7 +850,7 @@ class SuperTableController<R> extends ChangeNotifier {
               err = v(ctx, this, row, cell, value);
             } catch (_) {
               // A host validator with a narrower value type than the stored
-              // value — report it instead of crashing the pass.
+              // value â€” report it instead of crashing the pass.
               err = _l10n.columnInvalidValue(col.label);
             }
           }
@@ -890,7 +891,7 @@ class SuperTableController<R> extends ChangeNotifier {
   /// True when [validateAll] finds no issues (does not touch cell badges).
   bool get isValid => validateAll(markCells: false).isEmpty;
 
-  // ── export (1.0.0) ─────────────────────────────────────────────
+  // â”€â”€ export (1.0.0) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   String _csvEscape(String s, String delimiter) {
     if (s.contains(delimiter) ||
         s.contains('"') ||
@@ -963,10 +964,10 @@ class SuperTableController<R> extends ChangeNotifier {
     onNotify?.call(SuperNotifyKind.ok, _l10n.copiedRowsCsv(sortedRows.length));
   }
 
-  // ── programmatic aggregation (1.1.0) ───────────────────────────
+  // â”€â”€ programmatic aggregation (1.1.0) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   /// Resolve which columns to aggregate. Explicit [keys] are looked up in the
   /// **full** column set (so [SuperColumn.hidden] columns are eligible); when
-  /// null, every column that declares an aggregate (`agg != none`) is used —
+  /// null, every column that declares an aggregate (`agg != none`) is used â€”
   /// hidden columns included.
   List<SuperColumn> _aggColumns(Iterable<String>? keys) {
     if (keys != null) {
@@ -977,7 +978,7 @@ class SuperTableController<R> extends ChangeNotifier {
 
   /// Aggregate one column over a set of [rows] (defaults to the whole live,
   /// filtered + sorted view). Optionally override the column's declared [agg] /
-  /// [aggregator] — e.g. read a `sum` off a column that declares no aggregate.
+  /// [aggregator] â€” e.g. read a `sum` off a column that declares no aggregate.
   /// Works for [SuperColumn.hidden] columns too. Returns null for an unknown
   /// column or a no-op aggregate.
   num? aggregateColumn(
@@ -997,7 +998,7 @@ class SuperTableController<R> extends ChangeNotifier {
     );
   }
 
-  /// Grand totals over the entire data set: `columnKey → aggregate`. Honours the
+  /// Grand totals over the entire data set: `columnKey â†’ aggregate`. Honours the
   /// active filter (+ sort) by default and covers every column with an
   /// aggregate; pass [columns] to pick specific keys (hidden allowed), or
   /// [filtered] = false to total the raw, unfiltered rows. The programmatic
@@ -1014,11 +1015,11 @@ class SuperTableController<R> extends ChangeNotifier {
   }
 
   /// Bucket the rows by [groupColumnKey] and aggregate [valueColumnKey] within
-  /// each bucket — a single-level group-by computed **programmatically**,
+  /// each bucket â€” a single-level group-by computed **programmatically**,
   /// independent of the table's live grouping. Either column may be
   /// [SuperColumn.hidden]. Override the value column's reducer with [agg] /
   /// [aggregator]; pass [filtered] = false to bucket the raw rows. Returns
-  /// `groupValue → aggregate`, preserving first-seen group order.
+  /// `groupValue â†’ aggregate`, preserving first-seen group order.
   Map<String, num?> aggregateBy(
     String groupColumnKey,
     String valueColumnKey, {
@@ -1050,7 +1051,7 @@ class SuperTableController<R> extends ChangeNotifier {
   /// [groupBy] defaults to the table's live [groupKeys]; each level buckets its
   /// parent's rows, and every node carries an `aggregates` map for the requested
   /// [aggregateColumns] (default: all columns with an aggregate, **including
-  /// hidden** ones). Independent of collapse state — every group is included.
+  /// hidden** ones). Independent of collapse state â€” every group is included.
   /// Returns an empty list when there is nothing to group by.
   List<SuperGroupAggregate<R>> groupAggregates({
     Iterable<String>? groupBy,
@@ -1102,7 +1103,7 @@ class SuperTableController<R> extends ChangeNotifier {
     return rec(sortedRows, 0, '');
   }
 
-  // ── cell scaffolding ──
+  // â”€â”€ cell scaffolding â”€â”€
   Object? _defaultFor(SuperColumn col) {
     switch (col.type) {
       case SuperColumnType.checkbox:
@@ -1140,7 +1141,7 @@ class SuperTableController<R> extends ChangeNotifier {
     }
   }
 
-  // ── change tracking baseline helpers ──
+  // â”€â”€ change tracking baseline helpers â”€â”€
   /// Capture (or re-capture) the baseline for every current row: mark each cell,
   /// flag every row as persisted, and drop the deleted-row log.
   void _captureBaseline() {
@@ -1153,7 +1154,7 @@ class SuperTableController<R> extends ChangeNotifier {
     }
   }
 
-  /// Treat [rows] as freshly-persisted (pristine) data — used when the host
+  /// Treat [rows] as freshly-persisted (pristine) data â€” used when the host
   /// streams in server rows via [appendRows].
   void _baselineRows(Iterable<SuperRow<R>> rows) {
     for (final row in rows) {
@@ -1164,7 +1165,7 @@ class SuperTableController<R> extends ChangeNotifier {
     }
   }
 
-  // ── batched notifications (v3) ────────────────────────────────────────
+  // â”€â”€ batched notifications (v3) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   int _batchDepth = 0;
   bool _notificationPending = false;
 
@@ -1192,7 +1193,7 @@ class SuperTableController<R> extends ChangeNotifier {
     super.notifyListeners();
   }
 
-  // ── mode switching (controller-driven) ──
+  // â”€â”€ mode switching (controller-driven) â”€â”€
   /// Switch between readable and editable at runtime. Cancels any open editor.
   void setMode(SuperTableMode m) {
     if (_mode == m) return;
@@ -1220,7 +1221,7 @@ class SuperTableController<R> extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ── host updates / table actions ──
+  // â”€â”€ host updates / table actions â”€â”€
   void updateRows(List<SuperRow<R>> rows) {
     _rows = rows;
     _invalidateRows();
@@ -1306,13 +1307,13 @@ class SuperTableController<R> extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ── column config (2.2.0) ────────────────────────────────────
+  // â”€â”€ column config (2.2.0) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   /// The **effective** pin of [c]: a runtime override (see [setColumnPin]) if
   /// one is set, else the column's declared [SuperColumn.pin].
   SuperPin pinOf(SuperColumn c) => _pinOverrides[c.key] ?? c.pin;
 
-  /// Whether [key] is currently rendered: not a `hidden:` column and — if a
-  /// visible-keys allow-list is active — included in it.
+  /// Whether [key] is currently rendered: not a `hidden:` column and â€” if a
+  /// visible-keys allow-list is active â€” included in it.
   bool isColumnVisible(String key) {
     final col = colByKey(key);
     if (col == null || col.hidden) return false;
@@ -1320,7 +1321,7 @@ class SuperTableController<R> extends ChangeNotifier {
   }
 
   /// Reveal a column previously hidden via [hideColumn]. No-op for a `hidden:`
-  /// column (absolute — never renderable) or one already visible. The column
+  /// column (absolute â€” never renderable) or one already visible. The column
   /// returns to its natural order position.
   void showColumn(String key) {
     final col = colByKey(key);
@@ -1336,7 +1337,7 @@ class SuperTableController<R> extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Toggle one column's visibility ([showColumn] ⇄ [hideColumn]).
+  /// Toggle one column's visibility ([showColumn] â‡„ [hideColumn]).
   void toggleColumnVisible(String key) =>
       isColumnVisible(key) ? hideColumn(key) : showColumn(key);
 
@@ -1357,7 +1358,7 @@ class SuperTableController<R> extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Cycle a column's pin none → start → end → none (header-menu convenience).
+  /// Cycle a column's pin none â†’ start â†’ end â†’ none (header-menu convenience).
   void cycleColumnPin(String key) {
     final col = colByKey(key);
     if (col == null) return;
@@ -1387,7 +1388,7 @@ class SuperTableController<R> extends ChangeNotifier {
     return out;
   }
 
-  /// Replace the column order with [keys] — the column manager's drag result.
+  /// Replace the column order with [keys] â€” the column manager's drag result.
   /// Unknown keys are dropped; data columns missing from [keys] keep a natural
   /// tail so nothing disappears.
   void setManagedOrder(List<String> keys) {
@@ -1464,7 +1465,7 @@ class SuperTableController<R> extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ── advanced (cross-column) filter ──
+  // â”€â”€ advanced (cross-column) filter â”€â”€
   /// Replace the advanced filter clauses. When [active] (default true) it
   /// becomes the active filter and per-column filters are cleared + disabled.
   void setAdvancedFilter(
@@ -1515,9 +1516,9 @@ class SuperTableController<R> extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ── column resolution ──
-  /// The columns eligible to render: never the [SuperColumn.hidden] ones, and —
-  /// when a visible-key allow-list is set — only the keys it includes.
+  // â”€â”€ column resolution â”€â”€
+  /// The columns eligible to render: never the [SuperColumn.hidden] ones, and â€”
+  /// when a visible-key allow-list is set â€” only the keys it includes.
   List<SuperColumn> get _baseCols {
     _ensureColumnCache();
     return _baseColumnsCache;
@@ -1585,7 +1586,7 @@ class SuperTableController<R> extends ChangeNotifier {
   List<SuperColumn> get startPins => _startPins;
   List<SuperColumn> get endPins => _endPins;
 
-  // ── data pipeline ──
+  // â”€â”€ data pipeline â”€â”€
   List<SuperRow<R>> _computeFilteredRows() {
     final q = _search.trim().toLowerCase();
     final visibleColumns = cols;
@@ -1811,7 +1812,7 @@ class SuperTableController<R> extends ChangeNotifier {
     return _sortedCache;
   }
 
-  // ── sort ──
+  // â”€â”€ sort â”€â”€
   void sortBy(SuperColumn c, bool ascending) {
     if (c.sortable == false) return;
     _sort = SortSpec(key: c.key, ascending: ascending);
@@ -1826,9 +1827,9 @@ class SuperTableController<R> extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ── grouping ──
+  // â”€â”€ grouping â”€â”€
   /// Replace the current group-by set with [keys] in one call. Accepts hidden
-  /// column keys — the table renders a group header row for each group even
+  /// column keys â€” the table renders a group header row for each group even
   /// when the grouping column is never visible. Pass an empty list to clear all
   /// groups (equivalent to [clearGroups]). Resets the collapse state.
   void setGroupKeys(List<String> keys) {
@@ -1863,14 +1864,14 @@ class SuperTableController<R> extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ── pages ──
+  // â”€â”€ pages â”€â”€
   void setPage(int p) {
     _page = p.clamp(0, pageCount - 1);
     _invalidatePipeline();
     notifyListeners();
   }
 
-  // ── widths / reorder ──
+  // â”€â”€ widths / reorder â”€â”€
   void setWidth(String key, double w) {
     _widths[key] = w.clamp(60.0, 520.0).toDouble();
     notifyListeners();
@@ -1894,7 +1895,7 @@ class SuperTableController<R> extends ChangeNotifier {
 
   int slotOfKey(String key) => _order.indexOf(key);
 
-  // ── selection helpers ──
+  // â”€â”€ selection helpers â”€â”€
   void _clampSelection() {
     _ensurePipeline();
     final n = _dataView.length;
@@ -1922,7 +1923,7 @@ class SuperTableController<R> extends ChangeNotifier {
   Set<int> get rowBand => _rowBand;
 
   /// Select a whole row from the row-number gutter. Per 0.4.0, this does NOT
-  /// move the active edit cursor — it only lights the row band (cell modes) or
+  /// move the active edit cursor â€” it only lights the row band (cell modes) or
   /// updates the row selection (row modes).
   void selectGutterRow(int r, {bool shift = false, bool meta = false}) {
     if (rowMode) {
@@ -2019,7 +2020,7 @@ class SuperTableController<R> extends ChangeNotifier {
   int _min(int a, int b) => a < b ? a : b;
   int _max(int a, int b) => a > b ? a : b;
 
-  // ── programmatic selection API ──
+  // â”€â”€ programmatic selection API â”€â”€
   /// Select a single cell (and park the cursor there).
   void selectCellAt(int r, int c, {bool focus = true}) {
     _rowBand.clear();
@@ -2104,7 +2105,7 @@ class SuperTableController<R> extends ChangeNotifier {
     return parsed;
   }
 
-  // ── cursor movement ──
+  // â”€â”€ cursor movement â”€â”€
   void setCursor(CellPos t, {bool extend = false}) {
     _rowBand.clear();
     _advanceOnEnter = false;
@@ -2145,7 +2146,7 @@ class SuperTableController<R> extends ChangeNotifier {
     setCursor(CellPos(r, c), extend: extend);
   }
 
-  /// Tab: next cell → wrap → **append a new row and focus its first cell**
+  /// Tab: next cell â†’ wrap â†’ **append a new row and focus its first cell**
   /// (editable only). Fixes the prior behaviour that did not move focus.
   void tabMove({bool back = false}) {
     var c = _sel.c + (back ? -1 : 1);
@@ -2181,9 +2182,9 @@ class SuperTableController<R> extends ChangeNotifier {
     setCursor(CellPos(r, c));
   }
 
-  // ── history ──
+  // â”€â”€ history â”€â”€
   /// Commit [next] as the new row list. When [record] is true an undo entry is
-  /// pushed — [undoSnapshot] lets mutation sites that change cell values
+  /// pushed â€” [undoSnapshot] lets mutation sites that change cell values
   /// in place capture the state BEFORE the mutation (a snapshot taken here
   /// would already contain the new values and undo would be a no-op).
   void _applyRows(
@@ -2217,7 +2218,7 @@ class SuperTableController<R> extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ── editing ──
+  // â”€â”€ editing â”€â”€
   bool canEdit(SuperColumn? c) =>
       _mode == SuperTableMode.editable &&
       c != null &&
@@ -2433,7 +2434,7 @@ class SuperTableController<R> extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ── row ops ──
+  // â”€â”€ row ops â”€â”€
   void addRow() {
     if (!addRowEnabled) return;
     _applyRows([..._rows, _blankRow()]);
@@ -2524,7 +2525,7 @@ class SuperTableController<R> extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ── manual row reordering (1.0.0) ──
+  // â”€â”€ manual row reordering (1.0.0) â”€â”€
   /// Move the row at view index [fromView] so it lands at view index [toView].
   /// No-op while grouped. Records undo and fires [onChange].
   void moveRow(int fromView, int toView) {
@@ -2561,15 +2562,15 @@ class SuperTableController<R> extends ChangeNotifier {
     if (vr < view.length - 1) moveRow(vr, vr + 1);
   }
 
-  // ── fill down / fill right (2.1.0) ─────────────────────────
-  /// Excel-style **fill down** (⌘/Ctrl+D): copy the top row of the selected
+  // â”€â”€ fill down / fill right (2.1.0) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  /// Excel-style **fill down** (âŒک/Ctrl+D): copy the top row of the selected
   /// range into every row below it, column by column. With a single cell
   /// selected, copies the cell directly above into it. Editable cell modes
   /// only; respects [cellEditable] locks, validates each write, skips
   /// `onChange` (like paste), and records ONE undo step.
   void fillDown() => _fill(vertical: true);
 
-  /// Excel-style **fill right** (⌘/Ctrl+R): copy the leading column of the
+  /// Excel-style **fill right** (âŒک/Ctrl+R): copy the leading column of the
   /// selected range into the columns to its right, row by row (values are
   /// coerced to each target column's type; incompatible cells are skipped).
   /// With a single cell selected, copies the cell to its left.
@@ -2626,7 +2627,7 @@ class SuperTableController<R> extends ChangeNotifier {
           final col = theCols[cc];
           if (!canEditRow(col, row)) continue;
           final res = SuperColumnLogic.coercePaste(col, v, l10n: _l10n);
-          if (!res.ok) continue; // incompatible target type — skip the cell
+          if (!res.ok) continue; // incompatible target type â€” skip the cell
           writeInto(col, row, res.value);
         }
       }
@@ -2641,7 +2642,7 @@ class SuperTableController<R> extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ── clipboard ──
+  // â”€â”€ clipboard â”€â”€
   List<Map<String, Object?>>? _buildSelectionJson() {
     final cells = selectedCells();
     if (cells.isEmpty) return null;
@@ -2857,7 +2858,7 @@ class SuperTableController<R> extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ── enumeration per-cell registries ───────────────────────────
+  // â”€â”€ enumeration per-cell registries â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   String _enumerationKey(SuperRow row, String colKey) => '${row.id}:$colKey';
 
   /// Cached select sources for an enumeration cell.
@@ -2909,7 +2910,7 @@ class SuperTableController<R> extends ChangeNotifier {
     _enumerationFingerPrints.removeWhere((key, _) => key.startsWith(prefix));
   }
 
-  // ── combo per-cell registries ─────────────────────────────────
+  // â”€â”€ combo per-cell registries â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   String _comboKey(SuperRow row, String colKey) => '${row.id}:$colKey';
 
   /// The cached SuperAutoSuggestions source for a cell (built by the View; rebuilt
@@ -2958,7 +2959,7 @@ class SuperTableController<R> extends ChangeNotifier {
     _comboFingerPrints.remove(k);
   }
 
-  /// Drop EVERY cached combo resource of [row] — called when the row leaves
+  /// Drop EVERY cached combo resource of [row] â€” called when the row leaves
   /// the table (delete / clear / revert-added) so the registries don't grow
   /// unbounded in long editing sessions.
   void _pruneCombos(SuperRow<R> row) {

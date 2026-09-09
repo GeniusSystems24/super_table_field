@@ -19,6 +19,18 @@
   "loading": "Loading...",
   "deleteRowTitle": "Delete row?",
   "deleteRowBody": "Row {rowNumber} ({rowLabel}) will be permanently removed. This cannot be undone.",
+  "@deleteRowBody": {
+    "placeholders": {
+      "rowNumber": {
+        "type": "int",
+        "example": "2"
+      },
+      "rowLabel": {
+        "type": "String",
+        "example": "INV-002"
+      }
+    }
+  },
   "sortAscending": "Sort ascending",
   "sortDescending": "Sort descending",
   "clearSort": "Clear sort",
@@ -33,6 +45,18 @@
   "manageColumns": "Manage columns",
   "manageColumnsDescription": "Drag to reorder · toggle visibility · pin to an edge",
   "shownOfColumns": "{shown} of {total} shown",
+  "@shownOfColumns": {
+    "placeholders": {
+      "shown": {
+        "type": "int",
+        "example": "4"
+      },
+      "total": {
+        "type": "int",
+        "example": "10"
+      }
+    }
+  },
   "copyJson": "Copy JSON",
   "copyAsJson": "Copy as JSON",
   "shortcuts": "Shortcuts",
@@ -92,17 +116,129 @@
   "undoRedo": "Undo / redo",
   "allRowsValid": "All rows valid",
   "validationIssueCount": "{count} validation issue{pluralSuffix}",
+  "@validationIssueCount": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "5"
+      },
+      "pluralSuffix": {
+        "type": "String",
+        "example": "s"
+      }
+    }
+  },
   "allRowsValidBody": "Every cell passes the type rules, unique constraints and column validators.",
   "rowNumber": "Row {rowNumber}",
+  "@rowNumber": {
+    "placeholders": {
+      "rowNumber": {
+        "type": "int",
+        "example": "2"
+      }
+    }
+  },
   "issueCount": "{count} issue{pluralSuffix}",
+  "@issueCount": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "5"
+      },
+      "pluralSuffix": {
+        "type": "String",
+        "example": "s"
+      }
+    }
+  },
   "rowCount": "{count} row{pluralSuffix}",
+  "@rowCount": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "5"
+      },
+      "pluralSuffix": {
+        "type": "String",
+        "example": "s"
+      }
+    }
+  },
   "editableStatusHint": "{rowCount} · ↵ edit · Tab next (new row at end) · ⌘↵ insert after · ⌘C/V JSON · ⌘Z undo",
+  "@editableStatusHint": {
+    "placeholders": {
+      "rowCount": {
+        "type": "String",
+        "example": "5 rows"
+      }
+    }
+  },
   "readableStatusHint": "{rowCount} · ⇧+arrows to range-select · right-click header for options · ⌘C copy{expansionHint}",
+  "@readableStatusHint": {
+    "placeholders": {
+      "rowCount": {
+        "type": "String",
+        "example": "5 rows"
+      },
+      "expansionHint": {
+        "type": "String",
+        "example": " expand"
+      }
+    }
+  },
   "expandCollapseHint": " · ⌘⇧↓ expand · ⌘⇧↑ collapse",
   "selectedCount": "{count} selected",
+  "@selectedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "5"
+      }
+    }
+  },
   "pageRangeEmpty": "0 of 0",
   "pageRange": "{from}-{to} of {total}",
+  "@pageRange": {
+    "placeholders": {
+      "from": {
+        "type": "int",
+        "example": "1"
+      },
+      "to": {
+        "type": "int",
+        "example": "25"
+      },
+      "total": {
+        "type": "int",
+        "example": "10"
+      }
+    }
+  },
   "selectionStats": "Sum {sum} · Avg {average} · Min {min} · Max {max} · Count {count}",
+  "@selectionStats": {
+    "placeholders": {
+      "sum": {
+        "type": "String",
+        "example": "120.50"
+      },
+      "average": {
+        "type": "String",
+        "example": "24.10"
+      },
+      "min": {
+        "type": "String",
+        "example": "10"
+      },
+      "max": {
+        "type": "String",
+        "example": "50"
+      },
+      "count": {
+        "type": "int",
+        "example": "5"
+      }
+    }
+  },
   "typeValueHint": "Type a value...",
   "typeOrPickHint": "Type or pick...",
   "today": "Today",
@@ -126,31 +262,271 @@
   "weekdayFri": "Fr",
   "weekdaySat": "Sa",
   "copiedRowsCsv": "Copied {count} rows as CSV",
+  "@copiedRowsCsv": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "5"
+      }
+    }
+  },
   "filledCells": "Filled {count} cell{pluralSuffix}",
+  "@filledCells": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "5"
+      },
+      "pluralSuffix": {
+        "type": "String",
+        "example": "s"
+      }
+    }
+  },
   "copiedRowsJson": "Copied {count} row{pluralSuffix} as JSON",
+  "@copiedRowsJson": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "5"
+      },
+      "pluralSuffix": {
+        "type": "String",
+        "example": "s"
+      }
+    }
+  },
   "rowIsNotObject": "Row {rowNumber} is not an object",
+  "@rowIsNotObject": {
+    "placeholders": {
+      "rowNumber": {
+        "type": "int",
+        "example": "2"
+      }
+    }
+  },
   "rowError": "Row {rowNumber}: {error}",
+  "@rowError": {
+    "placeholders": {
+      "rowNumber": {
+        "type": "int",
+        "example": "2"
+      },
+      "error": {
+        "type": "String",
+        "example": "Invalid value"
+      }
+    }
+  },
   "unknownField": "Unknown field \"{field}\" - not a column in this table",
-  "pastedBlockTooWide": "Pasted block is wider than the table (column {columnNumber} doesn't exist)",
+  "@unknownField": {
+    "placeholders": {
+      "field": {
+        "type": "String",
+        "example": "email"
+      }
+    }
+  },
+  "pastedBlockTooWide": "Pasted block is wider than the table (column {columnNumber} doesn''t exist)",
+  "@pastedBlockTooWide": {
+    "placeholders": {
+      "columnNumber": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
   "cellError": "Cell {rowNumber}×{columnNumber}: {error}",
+  "@cellError": {
+    "placeholders": {
+      "rowNumber": {
+        "type": "int",
+        "example": "2"
+      },
+      "columnNumber": {
+        "type": "int",
+        "example": "3"
+      },
+      "error": {
+        "type": "String",
+        "example": "Invalid value"
+      }
+    }
+  },
   "pasteEditableOnly": "Paste is only allowed in Editable mode",
   "clipboardInvalidJson": "Clipboard is not valid JSON",
   "pasted": "Pasted",
   "columnMustBeUniqueDuplicate": "\"{column}\" must be unique - duplicates row {rowNumber}",
+  "@columnMustBeUniqueDuplicate": {
+    "placeholders": {
+      "column": {
+        "type": "String",
+        "example": "Amount"
+      },
+      "rowNumber": {
+        "type": "int",
+        "example": "2"
+      }
+    }
+  },
   "columnInvalidValue": "\"{column}\" has an invalid value",
+  "@columnInvalidValue": {
+    "placeholders": {
+      "column": {
+        "type": "String",
+        "example": "Amount"
+      }
+    }
+  },
   "columnMustBeUnique": "\"{column}\" must be unique",
+  "@columnMustBeUnique": {
+    "placeholders": {
+      "column": {
+        "type": "String",
+        "example": "Amount"
+      }
+    }
+  },
   "thisCell": "This cell",
   "isRequired": "{name} is required",
+  "@isRequired": {
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Amount"
+      }
+    }
+  },
   "mustBeNumber": "{name} must be a number",
+  "@mustBeNumber": {
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Amount"
+      }
+    }
+  },
   "mustBeDate": "{name} must be a date (YYYY-MM-DD)",
+  "@mustBeDate": {
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Amount"
+      }
+    }
+  },
   "mustBeTime": "{name} must be a time (HH:mm)",
+  "@mustBeTime": {
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Amount"
+      }
+    }
+  },
   "mustBeHexColor": "{name} must be a hex color (#RRGGBB)",
+  "@mustBeHexColor": {
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Amount"
+      }
+    }
+  },
   "isReadOnly": "\"{column}\" is read-only",
+  "@isReadOnly": {
+    "placeholders": {
+      "column": {
+        "type": "String",
+        "example": "Amount"
+      }
+    }
+  },
   "columnIsRequired": "\"{column}\" is required",
+  "@columnIsRequired": {
+    "placeholders": {
+      "column": {
+        "type": "String",
+        "example": "Amount"
+      }
+    }
+  },
   "expectsNumber": "\"{column}\" expects a number - got \"{value}\"",
+  "@expectsNumber": {
+    "placeholders": {
+      "column": {
+        "type": "String",
+        "example": "Amount"
+      },
+      "value": {
+        "type": "String",
+        "example": "abc"
+      }
+    }
+  },
   "expectsTrueFalse": "\"{column}\" expects true/false - got \"{value}\"",
+  "@expectsTrueFalse": {
+    "placeholders": {
+      "column": {
+        "type": "String",
+        "example": "Amount"
+      },
+      "value": {
+        "type": "String",
+        "example": "abc"
+      }
+    }
+  },
   "mustBeOneOf": "\"{column}\" must be one of: {options}",
+  "@mustBeOneOf": {
+    "placeholders": {
+      "column": {
+        "type": "String",
+        "example": "Amount"
+      },
+      "options": {
+        "type": "String",
+        "example": "A, B, C"
+      }
+    }
+  },
   "expectsDate": "\"{column}\" expects YYYY-MM-DD - got \"{value}\"",
+  "@expectsDate": {
+    "placeholders": {
+      "column": {
+        "type": "String",
+        "example": "Amount"
+      },
+      "value": {
+        "type": "String",
+        "example": "abc"
+      }
+    }
+  },
   "expectsTime": "\"{column}\" expects HH:mm - got \"{value}\"",
-  "expectsHexColor": "\"{column}\" expects #RRGGBB - got \"{value}\""
+  "@expectsTime": {
+    "placeholders": {
+      "column": {
+        "type": "String",
+        "example": "Amount"
+      },
+      "value": {
+        "type": "String",
+        "example": "abc"
+      }
+    }
+  },
+  "expectsHexColor": "\"{column}\" expects #RRGGBB - got \"{value}\"",
+  "@expectsHexColor": {
+    "placeholders": {
+      "column": {
+        "type": "String",
+        "example": "Amount"
+      },
+      "value": {
+        "type": "String",
+        "example": "abc"
+      }
+    }
+  }
 }

@@ -2,7 +2,7 @@
 // features/super_table/domain/usecases/super_column_logic.dart
 // ------------------------------------------------------------
 // The pure, framework-free logic behind every column type: number
-// parsing/formatting/clamping, semantic tone maps, value→text serialisation,
+// parsing/formatting/clamping, semantic tone maps, valueâ†’text serialisation,
 // enum/color display resolution, sort comparison, type validation, paste
 // coercion, aggregation, input masks, and **advanced-filter clause evaluation**.
 // The view and controller call these; nothing here imports Flutter widgets
@@ -11,7 +11,7 @@
 
 import 'package:flutter/widgets.dart' show Color;
 
-import '../../../../../localization/generated/l10n.dart';
+import '../../../../../localization/super_table_localizations.dart';
 import '../entities/super_column.dart';
 import '../entities/super_columns.dart';
 import '../entities/super_filter.dart';
@@ -28,7 +28,7 @@ class CoerceResult {
 
 /// Pure column-type logic shared across the SuperTable.
 abstract final class SuperColumnLogic {
-  // ── semantic tone maps (ported 1:1) ──
+  // â”€â”€ semantic tone maps (ported 1:1) â”€â”€
   static const Map<String, Color> typeTones = {
     'Asset': Color(0xFF4A7CFF),
     'Liability': Color(0xFFE0A23B),
@@ -78,7 +78,7 @@ abstract final class SuperColumnLogic {
     Color(0xFF8C92A4),
   ];
 
-  /// The pill tone for an enum display value: override ▸ status ▸ type ▸ palette.
+  /// The pill tone for an enum display value: override â–¸ status â–¸ type â–¸ palette.
   static Color? toneFor(SuperColumn col, String v) {
     if (col.tones != null && col.tones![v] != null) return col.tones![v];
     if (statusTones[v] != null) return statusTones[v];
@@ -90,7 +90,7 @@ abstract final class SuperColumnLogic {
     return null; // caller falls back to fg3
   }
 
-  // ── enum/combo display resolution ──
+  // â”€â”€ enum/combo display resolution â”€â”€
   /// Map a raw cell value to its display string for an enum/combo column.
   static String displayOf(SuperColumn col, Object? value) {
     if (col is SuperEnumerationColumn) return col.displayValue(value);
@@ -104,7 +104,7 @@ abstract final class SuperColumnLogic {
     return value == null ? '' : '$value';
   }
 
-  // ── number helpers ──
+  // â”€â”€ number helpers â”€â”€
   static num numVal(Object? v) {
     if (v is num) return v;
     final cleaned = '$v'.replaceAll(RegExp(r'[^0-9.\-]'), '');
@@ -153,7 +153,7 @@ abstract final class SuperColumnLogic {
     return r;
   }
 
-  // ── color helpers ──
+  // â”€â”€ color helpers â”€â”€
   /// Resolve a color column's cell value to a hex `#RRGGBB` string.
   static String colorHex(SuperColumn col, Object? v) {
     if (v is Color) {
@@ -183,7 +183,7 @@ abstract final class SuperColumnLogic {
     }
   }
 
-  // ── value → plain text (sort fallback, search, clipboard TSV) ──
+  // â”€â”€ value â†’ plain text (sort fallback, search, clipboard TSV) â”€â”€
   static String toText(SuperColumn col, Object? value, SuperRow row) {
     switch (col.type) {
       case SuperColumnType.computed:
@@ -204,7 +204,7 @@ abstract final class SuperColumnLogic {
     }
   }
 
-  /// The Arabic companion text for a column's [arKey] (cell ▸ map field).
+  /// The Arabic companion text for a column's [arKey] (cell â–¸ map field).
   static String arText(SuperColumn col, SuperRow row) {
     final ar = col.arKey;
     if (ar == null) return '';
@@ -215,7 +215,7 @@ abstract final class SuperColumnLogic {
     return '';
   }
 
-  // ── sort comparison ──
+  // â”€â”€ sort comparison â”€â”€
   static int compare(SuperColumn col, Object? a, Object? b) {
     switch (col.type) {
       case SuperColumnType.number:
@@ -234,14 +234,14 @@ abstract final class SuperColumnLogic {
     }
   }
 
-  // ── built-in type validation (editable mode; runs before column.validator) ──
+  // â”€â”€ built-in type validation (editable mode; runs before column.validator) â”€â”€
   static String? validateCell(
     SuperColumn col,
     Object? v, {
-    SuperTableTranslation? l10n,
+    SuperTableLocalization? l10n,
   }) {
     final s = (v == null ? '' : '$v').trim();
-    final strings = l10n ?? SuperTableTranslation();
+    final strings = l10n ?? superTableEnglishLocalizationFallback;
     final name = col.label.isNotEmpty ? '"${col.label}"' : strings.thisCell;
     if (col.required && s.isEmpty) return strings.isRequired(name);
     if (col.type.isNumeric &&
@@ -267,13 +267,13 @@ abstract final class SuperColumnLogic {
     return null;
   }
 
-  // ── paste coercion ──
+  // â”€â”€ paste coercion â”€â”€
   static CoerceResult coercePaste(
     SuperColumn col,
     Object? raw, {
-    SuperTableTranslation? l10n,
+    SuperTableLocalization? l10n,
   }) {
-    final strings = l10n ?? SuperTableTranslation();
+    final strings = l10n ?? superTableEnglishLocalizationFallback;
     final t = col.type;
     if (t == SuperColumnType.computed || t == SuperColumnType.readonly) {
       return CoerceResult.fail(strings.isReadOnly(col.label));
@@ -327,10 +327,10 @@ abstract final class SuperColumnLogic {
     return CoerceResult.ok(s);
   }
 
-  // ── aggregation ──
+  // â”€â”€ aggregation â”€â”€
   /// Aggregate [col] over [rows]. By default the column's own [SuperColumn.agg]
   /// (and [SuperColumn.aggregator] for [SuperAgg.custom]) drive the result; pass
-  /// [agg] / [aggregator] to override them programmatically — e.g. read a `sum`
+  /// [agg] / [aggregator] to override them programmatically â€” e.g. read a `sum`
   /// off a column that declares no aggregate, or apply a one-off custom reducer.
   static num? aggregate(
     SuperColumn col,
@@ -362,7 +362,7 @@ abstract final class SuperColumnLogic {
     }
   }
 
-  // ── advanced-filter clause evaluation ──
+  // â”€â”€ advanced-filter clause evaluation â”€â”€
   /// Evaluate one [AdvancedFilterClause] against [row] for column [col].
   static bool matchesClause(
     SuperColumn col,
@@ -401,7 +401,7 @@ abstract final class SuperColumnLogic {
     }
   }
 
-  // ── input masks ──
+  // â”€â”€ input masks â”€â”€
   static String maskDate(String s) {
     final d = s.replaceAll(RegExp(r'[^\d]'), '');
     final dd = d.length > 8 ? d.substring(0, 8) : d;

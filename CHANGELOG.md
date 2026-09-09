@@ -3,6 +3,25 @@
 All notable changes to **super_table_field** are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/); versioning is [SemVer](https://semver.org/).
 
+## [3.1.1] - 2026-09-09
+
+### Changed
+
+- Removed the `SuperTableLocalizations` wrapper from `lib/localization/super_table_localizations.dart`.
+- Standardized public localization setup on the generated `SuperTableLocalization` API:
+  `SuperTableLocalization.localizationsDelegates`,
+  `SuperTableLocalization.supportedLocales`, and
+  `context.superTableLocalization`.
+- Added ARB placeholder metadata for every localized message that uses
+  `{placeholder}` values, producing typed generated localization methods.
+
+### Fixed
+
+- Fixed Flutter ARB escaping for the English pasted-block validation message
+  when `use-escaping: true` is enabled.
+- Kept package-owned English fallback behavior through
+  `context.superTableLocalization` without exposing the removed wrapper.
+
 
 ## [3.1.0] - 2026-08-27
 
