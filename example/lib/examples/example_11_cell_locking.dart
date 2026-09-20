@@ -12,6 +12,7 @@
 import 'package:flutter/material.dart';
 import 'package:super_table_field/super_table_field.dart';
 import 'package:super_core/super_core.dart';
+import 'package:super_table_field_example/localizations/example_l10n.dart';
 
 class CellLockingExample extends StatefulWidget {
   const CellLockingExample({super.key});
@@ -39,17 +40,17 @@ class _CellLockingExampleState extends State<CellLockingExample> {
       cellEditable: (col, row) =>
           row['status'] == 'Draft' || col.key == 'status',
       columns: [
-        SuperTextColumn(key: 'ref', label: 'Reference', width: 150, mono: true),
-        SuperTextColumn(key: 'memo', label: 'Memo', width: 240),
+        SuperTextColumn(key: 'ref', label: ExampleL10n.current.reference, width: 150, mono: true),
+        SuperTextColumn(key: 'memo', label: ExampleL10n.current.memo, width: 240),
         SuperCurrencyColumn(
           key: 'amount',
-          label: 'Amount',
+          label: ExampleL10n.current.amount,
           width: 140,
           agg: SuperAgg.sum,
         ),
         SuperEnumerationColumn<String>(
           key: 'status',
-          label: 'Status',
+          label: ExampleL10n.current.status,
           width: 130,
           values: const ['Draft', 'Posted'],
         ),
@@ -101,7 +102,7 @@ class _CellLockingExampleState extends State<CellLockingExample> {
     return Scaffold(
       backgroundColor: t.bg,
       appBar: AppBar(
-        title: const Text('Cell locking'),
+        title: Text(ExampleL10n.current.cellLocking),
         backgroundColor: t.surface,
       ),
       body: Padding(
@@ -112,8 +113,7 @@ class _CellLockingExampleState extends State<CellLockingExample> {
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: Text(
-                'Posted rows are locked. Double-click their cells — nothing happens. '
-                'Change a row’s Status to Draft to unlock its other cells.',
+                ExampleL10n.current.postedRowsAreLockedDoubleClickTheirCellsNothingHappensChangeARow5099657,
                 style: TextStyle(color: t.fg3),
               ),
             ),

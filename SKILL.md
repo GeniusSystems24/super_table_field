@@ -45,7 +45,7 @@ come for free.
 
 ```yaml
 dependencies:
-  super_table_field: ^3.1.1
+  super_table_field: ^3.2.0
 ```
 
 ```dart
@@ -213,10 +213,13 @@ builders — `sourceController` / `cellController` — which are re-invoked when
 cell takes edit-focus **and** the row's `fingerPrint` changed (so suggestions can
 depend on the rest of the row). Reach a cell's live box via
 `controller.comboControllerFor(row, key)` / `comboSourceFor(row, key)`.
-With `super_auto_suggestion_box 1.2.0`, `source` is a widget concern: keep
+With `super_auto_suggestion_box 1.6.0`, `source` remains a widget concern: keep
 row-dependent data in `sourceController` and return only controller state from
 `cellController`. The table passes the resolved source to
 `SuperAutoSuggestionsBox` and keeps `suggestionBuilder` on the widget boundary.
+Suggestion builders use `SuperAutoSuggestionBuilder<T>` and receive
+`(context, items, index, element)`, so inherited presentation values may be read
+from the active `BuildContext`.
 
 Keyboard model inside the editor:
 
@@ -500,7 +503,7 @@ box.text.addListener(() {
 SuperAutoSuggestionsBox<String>(
   controller: box,
   source: source,
-  suggestionBuilder: (items, index, value) => SuperAutoSuggestionsItem(
+  suggestionBuilder: (context, items, index, value) => SuperAutoSuggestionsItem(
     value: value,
     titleText: value,
   ),
@@ -513,7 +516,7 @@ SuperAutoSuggestionsBox<String>(
 );
 ```
 
-In `super_auto_suggestion_box 1.2.0`, do not generate `onChanged`, `onSelected`,
+In `super_auto_suggestion_box 1.6.0`, do not generate `onChanged`, `onSelected`,
 `onSubmitted`, `onFieldSubmitted`, `onEditingComplete`, `onSave`, or
 `onValidity` arguments on the suggestion box. Query text comes from
 `controller.text`; selection comes from `onSelectionChanged` or controller
@@ -529,8 +532,9 @@ in behind a *loading more* indicator (`controller.isLoadingMore`). Use `.async`
 for purely-remote search.
 
 More behaviour to know:
-- **Advanced search**: `advancedSearch: true` opens a modal search surface on
-  `Ctrl`/`⌘`+`F` (override with `advancedSearchBuilder`).
+- **Advanced search**: use `mode: SuperAutoSuggestionsMode.both` for the text
+  box plus Advanced Search View, or `SuperAutoSuggestionsMode.advanceView` for
+  the larger search surface only (override it with `advancedSearchBuilder`).
 - **Restore on blur**: leaving without picking reverts unconfirmed typing to the
   last committed value (unless none); disable with `restoreOnBlur: false`.
 - **Caret-anchored query**: matching uses text from the start to the caret

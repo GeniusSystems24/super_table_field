@@ -12,6 +12,7 @@
 import 'package:flutter/material.dart';
 import 'package:super_form_field/super_form_field.dart';
 import 'package:super_table_field/super_table_field.dart';
+import 'package:super_table_field_example/localizations/example_l10n.dart';
 
 typedef _Row = Map<String, dynamic>;
 
@@ -41,10 +42,10 @@ class _EnumerationSelectExampleState extends State<EnumerationSelectExample> {
           'status': 'Draft',
         },
         columns: [
-          SuperTextColumn(key: 'sku', label: 'SKU', width: 140, mono: true),
+          SuperTextColumn(key: 'sku', label: ExampleL10n.current.sKU, width: 140, mono: true),
           SuperEnumerationColumn<String>(
             key: 'warehouse',
-            label: 'Warehouse',
+            label: ExampleL10n.current.warehouse,
             width: 150,
             values: const ['Riyadh', 'Jeddah', 'Dammam'],
             searchable: true,
@@ -59,7 +60,7 @@ class _EnumerationSelectExampleState extends State<EnumerationSelectExample> {
           ),
           SuperEnumerationColumn<String>(
             key: 'bin',
-            label: 'Bin',
+            label: ExampleL10n.current.bin,
             width: 140,
             searchable: false,
             searchHint: 'Search bins…',
@@ -74,12 +75,12 @@ class _EnumerationSelectExampleState extends State<EnumerationSelectExample> {
             optionBuilder: (items, index, bin) => SuperOption<String>(
               value: bin,
               label: bin,
-              description: 'Bin ${index + 1} of ${items.length}',
+              description: ExampleL10n.current.binOf(index + 1, items.length),
             ),
           ),
           SuperEnumerationColumn<String>(
             key: 'status',
-            label: 'Status',
+            label: ExampleL10n.current.status,
             width: 160,
             searchable: false,
             sources: const [
@@ -91,9 +92,9 @@ class _EnumerationSelectExampleState extends State<EnumerationSelectExample> {
               value: status,
               label: status,
               description: switch (status) {
-                'Draft' => 'Still editable',
-                'Posted' => 'Committed transaction',
-                _ => 'No longer active',
+                'Draft' => ExampleL10n.current.stillEditable,
+                'Posted' => ExampleL10n.current.committedTransaction,
+                _ => ExampleL10n.current.noLongerActive,
               },
             ),
           ),
@@ -129,20 +130,19 @@ class _EnumerationSelectExampleState extends State<EnumerationSelectExample> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Enumeration select')),
+      appBar: AppBar(title: Text(ExampleL10n.current.enumerationSelect)),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Double-click an enumeration cell to edit it with '
-              'SuperSelectFormField.',
+              ExampleL10n.current.doubleClickAnEnumerationCellToEditItWithSuperSelectFormField,
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             const SizedBox(height: 12),
-            const Text(
-              'Changing Warehouse rebuilds the Bin sources for that row.',
+            Text(
+              ExampleL10n.current.changingWarehouseRebuildsTheBinSourcesForThatRow,
             ),
             const SizedBox(height: 16),
             Expanded(child: SuperTable<_Row>(controller: _controller)),

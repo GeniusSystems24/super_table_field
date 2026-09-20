@@ -14,6 +14,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:super_table_field/super_table_field.dart';
 import 'package:super_core/super_core.dart';
+import 'package:super_table_field_example/localizations/example_l10n.dart';
 
 class ExportExample extends StatefulWidget {
   const ExportExample({super.key});
@@ -32,21 +33,21 @@ class _ExportExampleState extends State<ExportExample> {
     _c = SuperTableController<Map<String, dynamic>>(
       mode: SuperTableMode.readable,
       columns: [
-        SuperTextColumn(key: 'ref', label: 'Reference', width: 150, mono: true),
+        SuperTextColumn(key: 'ref', label: ExampleL10n.current.reference, width: 150, mono: true),
         SuperEnumerationColumn<String>(
           key: 'type',
-          label: 'Type',
+          label: ExampleL10n.current.type,
           width: 120,
           values: const ['Debit', 'Credit'],
         ),
-        SuperTextColumn(key: 'memo', label: 'Memo', width: 240),
+        SuperTextColumn(key: 'memo', label: ExampleL10n.current.memo, width: 240),
         SuperCurrencyColumn(
           key: 'amount',
-          label: 'Amount',
+          label: ExampleL10n.current.amount,
           width: 140,
           agg: SuperAgg.sum,
         ),
-        SuperDateColumn(key: 'date', label: 'Date', width: 140),
+        SuperDateColumn(key: 'date', label: ExampleL10n.current.date, width: 140),
       ],
       rows: [
         SuperRow.map({
@@ -104,7 +105,7 @@ class _ExportExampleState extends State<ExportExample> {
     final t = context.superTheme;
     return Scaffold(
       backgroundColor: t.bg,
-      appBar: AppBar(title: const Text('Export'), backgroundColor: t.surface),
+      appBar: AppBar(title: Text(ExampleL10n.current.export), backgroundColor: t.surface),
       body: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -122,7 +123,7 @@ class _ExportExampleState extends State<ExportExample> {
                     decoration: InputDecoration(
                       isDense: true,
                       prefixIcon: const Icon(Icons.search_rounded, size: 18),
-                      hintText: 'Search (export reflects the filtered view)…',
+                      hintText: ExampleL10n.current.searchExportReflectsTheFilteredView,
                       hintStyle: TextStyle(color: t.fg4),
                       enabledBorder: OutlineInputBorder(
                         borderSide: BorderSide(color: t.border),
@@ -135,10 +136,10 @@ class _ExportExampleState extends State<ExportExample> {
                 ),
                 const SizedBox(width: 12),
                 SegmentedButton<String>(
-                  segments: const [
-                    ButtonSegment(value: 'CSV', label: Text('CSV')),
-                    ButtonSegment(value: 'TSV', label: Text('TSV')),
-                    ButtonSegment(value: 'JSON', label: Text('JSON')),
+                  segments: [
+                    ButtonSegment(value: 'CSV', label: Text(ExampleL10n.current.cSV)),
+                    ButtonSegment(value: 'TSV', label: Text(ExampleL10n.current.tSV)),
+                    ButtonSegment(value: 'JSON', label: Text(ExampleL10n.current.jSON)),
                   ],
                   selected: {_format},
                   onSelectionChanged: (s) {
@@ -157,7 +158,7 @@ class _ExportExampleState extends State<ExportExample> {
             Row(
               children: [
                 Text(
-                  '$_format output',
+                  ExampleL10n.current.output(_format),
                   style: TextStyle(fontWeight: FontWeight.w700, color: t.fg1),
                 ),
                 const Spacer(),
@@ -165,11 +166,11 @@ class _ExportExampleState extends State<ExportExample> {
                   onPressed: () {
                     _c.copyCsvToClipboard();
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('CSV copied to clipboard')),
+                      SnackBar(content: Text(ExampleL10n.current.cSVCopiedToClipboard)),
                     );
                   },
                   icon: const Icon(Icons.copy_rounded, size: 16),
-                  label: const Text('Copy CSV'),
+                  label: Text(ExampleL10n.current.copyCSV),
                 ),
               ],
             ),

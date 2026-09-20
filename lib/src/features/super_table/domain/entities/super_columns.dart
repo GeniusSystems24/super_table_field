@@ -363,8 +363,9 @@ class SuperComboColumn<T> extends SuperColumn<T> {
   // static values (optional shorthand source)
   final List<T> values;
   final String Function(T value) display;
-  final AutoSuggestionBuilder<T>? suggestionBuilder;
+  final SuperAutoSuggestionBuilder<T>? suggestionBuilder;
   final SuperAutoSuggestionsItem<dynamic> Function(
+    BuildContext context,
     List<dynamic> items,
     int index,
     dynamic value,
@@ -478,7 +479,7 @@ class SuperComboColumn<T> extends SuperColumn<T> {
     super.read,
     super.write,
   }) : display = display ?? ((T v) => '$v'),
-       _suggestionBuilderAny = ((items, index, value) {
+       _suggestionBuilderAny = ((context, items, index, value) {
          final typedValue = value as T;
          final typedItems = List<T>.generate(
            items.length,
@@ -487,7 +488,7 @@ class SuperComboColumn<T> extends SuperColumn<T> {
          );
          final builder = suggestionBuilder;
          if (builder != null) {
-           return builder(typedItems, index, typedValue);
+           return builder(context, typedItems, index, typedValue);
          }
          final label = (display ?? ((T v) => '$v'))(typedValue);
          return SuperAutoSuggestionsItem<T>(
@@ -541,10 +542,11 @@ class SuperComboColumn<T> extends SuperColumn<T> {
 
   /// Builds the suggestion metadata for a raw combo [value].
   SuperAutoSuggestionsItem<dynamic> buildSuggestion(
+    BuildContext context,
     List<dynamic> items,
     int index,
     dynamic value,
-  ) => _suggestionBuilderAny(items, index, value);
+  ) => _suggestionBuilderAny(context, items, index, value);
 
   /// Builds a custom suggestion row from raw editor values.
   Widget buildItem(

@@ -15,6 +15,7 @@
 import 'package:flutter/material.dart';
 import 'package:super_table_field/super_table_field.dart';
 import 'package:super_core/super_core.dart';
+import 'package:super_table_field_example/localizations/example_l10n.dart';
 
 class AggregationsExample extends StatefulWidget {
   const AggregationsExample({super.key});
@@ -43,44 +44,44 @@ class _AggregationsExampleState extends State<AggregationsExample> {
     _c = SuperTableController<Map<String, dynamic>>(
       mode: SuperTableMode.readable,
       columns: [
-        SuperTextColumn(key: 'sku', label: 'SKU', width: 130, mono: true),
+        SuperTextColumn(key: 'sku', label: ExampleL10n.current.sKU, width: 130, mono: true),
         SuperEnumerationColumn<String>(
           key: 'category',
-          label: 'Category',
+          label: ExampleL10n.current.category,
           width: 150,
           values: const ['Raw Material', 'Finished Good', 'Consumable'],
         ),
         SuperNumberColumn<int>(
           key: 'qty',
-          label: 'Qty',
+          label: ExampleL10n.current.qty,
           width: 100,
           agg: SuperAgg.sum,
         ),
         // min unit cost across the group / table.
         SuperCurrencyColumn(
           key: 'cost',
-          label: 'Unit Cost',
+          label: ExampleL10n.current.unitCost,
           width: 140,
           agg: SuperAgg.min,
-          aggLabel: 'MIN COST',
+          aggLabel: ExampleL10n.current.mINCOST,
         ),
         // max unit cost — a computed mirror of `cost` so it can carry its own agg.
         SuperComputedColumn<num>(
           key: 'cost_hi',
-          label: 'Cost (max)',
+          label: ExampleL10n.current.costMax,
           width: 140,
           agg: SuperAgg.max,
-          aggLabel: 'MAX COST',
+          aggLabel: ExampleL10n.current.mAXCOST,
           compute: (row) => (row['cost'] as num?) ?? 0,
           format: (v, row) => '\$${(v as num).toStringAsFixed(2)}',
         ),
         // custom: quantity-weighted average unit cost.
         SuperComputedColumn<num>(
           key: 'wac',
-          label: 'WAC',
+          label: ExampleL10n.current.wAC,
           width: 150,
           agg: SuperAgg.custom,
-          aggLabel: 'WTD AVG',
+          aggLabel: ExampleL10n.current.wTDAVG,
           aggregator: _weightedAvgCost,
           compute: (row) => (row['cost'] as num?) ?? 0,
           format: (v, row) => '\$${(v as num).toStringAsFixed(2)}',
@@ -139,7 +140,7 @@ class _AggregationsExampleState extends State<AggregationsExample> {
     return Scaffold(
       backgroundColor: t.bg,
       appBar: AppBar(
-        title: const Text('Aggregations'),
+        title: Text(ExampleL10n.current.aggregations),
         backgroundColor: t.surface,
       ),
       body: Padding(
@@ -150,8 +151,7 @@ class _AggregationsExampleState extends State<AggregationsExample> {
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: Text(
-                'The totals row shows Qty (sum), the cost min/max, and a quantity-weighted average (custom aggregator). '
-                'Right-click a row → Group by → Category to see them roll up per group.',
+                ExampleL10n.current.theTotalsRowShowsQtySumTheCostMinMaxAndAQuantityWeightedAverageC039559c,
                 style: TextStyle(color: t.fg3),
               ),
             ),
@@ -160,7 +160,7 @@ class _AggregationsExampleState extends State<AggregationsExample> {
                 OutlinedButton.icon(
                   onPressed: () => _c.toggleGroup('category'),
                   icon: const Icon(Icons.workspaces_outline, size: 16),
-                  label: const Text('Toggle group by Category'),
+                  label: Text(ExampleL10n.current.toggleGroupByCategory),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: t.fg1,
                     side: BorderSide(color: t.borderStrong),

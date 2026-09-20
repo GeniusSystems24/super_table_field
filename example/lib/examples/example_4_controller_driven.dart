@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:super_table_field/super_table_field.dart';
 import 'package:super_form_field/super_form_field.dart';
 import 'package:super_core/super_core.dart';
+import 'package:super_table_field_example/localizations/example_l10n.dart';
 
 class ControllerDrivenExample extends StatefulWidget {
   const ControllerDrivenExample({super.key});
@@ -44,17 +45,17 @@ class _ControllerDrivenExampleState extends State<ControllerDrivenExample> {
       pagination: SuperPagination.loadMore,
       hasMore: true,
       columns: [
-        SuperTextColumn(key: 'id', label: 'Reference', width: 150, mono: true),
+        SuperTextColumn(key: 'id', label: ExampleL10n.current.reference, width: 150, mono: true),
         SuperEnumerationColumn<String>(
           key: 'type',
-          label: 'Type',
+          label: ExampleL10n.current.type,
           width: 120,
           values: const ['Debit', 'Credit'],
         ),
-        SuperCurrencyColumn(key: 'amount', label: 'Amount', width: 140),
+        SuperCurrencyColumn(key: 'amount', label: ExampleL10n.current.amount, width: 140),
         SuperEnumerationColumn<String>(
           key: 'status',
-          label: 'Status',
+          label: ExampleL10n.current.status,
           width: 130,
           sources: const [
             SuperSelectListSource<String>(items: ['Posted', 'Pending', 'Void']),
@@ -63,7 +64,7 @@ class _ControllerDrivenExampleState extends State<ControllerDrivenExample> {
           optionBuilder: (items, index, status) => SuperOption<String>(
             value: status,
             label: status,
-            description: index == 0 ? 'Finalized transaction' : null,
+            description: index == 0 ? ExampleL10n.current.finalizedTransaction : null,
           ),
         ),
       ],
@@ -88,7 +89,7 @@ class _ControllerDrivenExampleState extends State<ControllerDrivenExample> {
     final json = _c.filterStateJson();
     ScaffoldMessenger.of(
       context,
-    ).showSnackBar(SnackBar(content: Text('filterState: $json')));
+    ).showSnackBar(SnackBar(content: Text(ExampleL10n.current.filterState(json))));
   }
 
   @override
@@ -97,7 +98,7 @@ class _ControllerDrivenExampleState extends State<ControllerDrivenExample> {
     return Scaffold(
       backgroundColor: t.bg,
       appBar: AppBar(
-        title: const Text('Controller-driven'),
+        title: Text(ExampleL10n.current.controllerDriven),
         backgroundColor: t.surface,
       ),
       body: Padding(
@@ -109,14 +110,14 @@ class _ControllerDrivenExampleState extends State<ControllerDrivenExample> {
               spacing: 8,
               runSpacing: 8,
               children: [
-                _btn('Toggle mode', Icons.swap_horiz_rounded, _c.toggleMode),
+                _btn(ExampleL10n.current.toggleMode, Icons.swap_horiz_rounded, _c.toggleMode),
                 _btn(
-                  'Filter: Posted',
+                  ExampleL10n.current.filterPosted,
                   Icons.filter_alt_outlined,
                   () => _c.setColumnFilter('status', 'Posted'),
                 ),
                 _btn(
-                  'Advanced: amount ≥ 500',
+                  ExampleL10n.current.advancedAmountGreaterEqual500,
                   Icons.tune_rounded,
                   () => _c.setAdvancedFilter([
                     const AdvancedFilterClause(
@@ -126,23 +127,23 @@ class _ControllerDrivenExampleState extends State<ControllerDrivenExample> {
                     ),
                   ]),
                 ),
-                _btn('Clear filters', Icons.filter_alt_off_outlined, () {
+                _btn(ExampleL10n.current.clearFilters, Icons.filter_alt_off_outlined, () {
                   _c.clearColumnFilters();
                   _c.clearAdvancedFilter();
                 }),
                 _btn(
-                  'Select rows 0–2',
+                  ExampleL10n.current.selectRowsZeroTwo,
                   Icons.checklist_rounded,
                   () => _c.selectRowsAt([0, 1, 2]),
                 ),
                 _btn(
-                  'Clear selection',
+                  ExampleL10n.current.clearSelection,
                   Icons.deselect_rounded,
                   _c.clearSelection,
                 ),
-                _btn('Load more', Icons.arrow_downward_rounded, _c.loadMore),
-                _btn('Filter JSON', Icons.data_object_rounded, _showFilterJson),
-                _btn('Clear table', Icons.delete_sweep_outlined, _c.clearTable),
+                _btn(ExampleL10n.current.loadMore, Icons.arrow_downward_rounded, _c.loadMore),
+                _btn(ExampleL10n.current.filterJSON, Icons.data_object_rounded, _showFilterJson),
+                _btn(ExampleL10n.current.clearTable, Icons.delete_sweep_outlined, _c.clearTable),
               ],
             ),
             const SizedBox(height: 16),

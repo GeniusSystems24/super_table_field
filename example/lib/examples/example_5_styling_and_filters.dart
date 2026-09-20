@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:super_table_field/super_table_field.dart';
 import 'package:super_core/super_core.dart';
+import 'package:super_table_field_example/localizations/example_l10n.dart';
 
 class StylingAndFiltersExample extends StatefulWidget {
   const StylingAndFiltersExample({super.key});
@@ -25,23 +26,23 @@ class _StylingAndFiltersExampleState extends State<StylingAndFiltersExample> {
       SuperTableController<Map<String, dynamic>>(
         mode: SuperTableMode.readable,
         columns: [
-          SuperTextColumn(key: 'task', label: 'Task', width: 220),
+          SuperTextColumn(key: 'task', label: ExampleL10n.current.task, width: 220),
           SuperEnumerationColumn<String>(
             key: 'priority',
-            label: 'Priority',
+            label: ExampleL10n.current.priority,
             width: 130,
             values: const ['Low', 'Medium', 'High', 'Critical'],
             // FilterItem lets the dropdown label differ from the matched value.
-            filterItems: const [
-              FilterItem('🟢 Low', 'Low'),
-              FilterItem('🟡 Medium', 'Medium'),
-              FilterItem('🟠 High', 'High'),
-              FilterItem('🔴 Critical', 'Critical'),
+            filterItems: [
+              FilterItem(ExampleL10n.current.low, 'Low'),
+              FilterItem(ExampleL10n.current.medium, 'Medium'),
+              FilterItem(ExampleL10n.current.high, 'High'),
+              FilterItem(ExampleL10n.current.critical, 'Critical'),
             ],
           ),
           SuperNumberColumn<int>(
             key: 'progress',
-            label: 'Progress',
+            label: ExampleL10n.current.progress,
             width: 120,
             // Conditional CELL styles: red text when stalled, green when done.
             styles: {
@@ -57,12 +58,12 @@ class _StylingAndFiltersExampleState extends State<StylingAndFiltersExample> {
           ),
           SuperCurrencyColumn(
             key: 'budget',
-            label: 'Budget',
+            label: ExampleL10n.current.budget,
             width: 140,
-            filterItems: const [
-              FilterItem('Under \$5k', 5000),
-              FilterItem('\$5k–\$20k', 20000),
-              FilterItem('Over \$20k', 100000),
+            filterItems: [
+              FilterItem(ExampleL10n.current.under5k, 5000),
+              FilterItem(ExampleL10n.current.message5k20k, 20000),
+              FilterItem(ExampleL10n.current.over20k, 100000),
             ],
           ),
         ],
@@ -123,7 +124,7 @@ class _StylingAndFiltersExampleState extends State<StylingAndFiltersExample> {
     return Scaffold(
       backgroundColor: t.bg,
       appBar: AppBar(
-        title: const Text('Styling & filters'),
+        title: Text(ExampleL10n.current.stylingAndFilters),
         backgroundColor: t.surface,
       ),
       body: Padding(
@@ -134,7 +135,7 @@ class _StylingAndFiltersExampleState extends State<StylingAndFiltersExample> {
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: Text(
-                'Use the column filter row, the advanced-filter button (gutter header), or press "R" to reset.',
+                ExampleL10n.current.useTheColumnFilterRowTheAdvancedFilterButtonGutterHeaderOrPressRToReset,
                 style: TextStyle(color: t.fg3),
               ),
             ),

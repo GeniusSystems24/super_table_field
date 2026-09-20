@@ -17,6 +17,7 @@
 import 'package:flutter/material.dart';
 import 'package:super_table_field/super_table_field.dart';
 import 'package:super_core/super_core.dart';
+import 'package:super_table_field_example/localizations/example_l10n.dart';
 
 class InteractionEventsExample extends StatefulWidget {
   const InteractionEventsExample({super.key});
@@ -38,11 +39,11 @@ class _InteractionEventsExampleState extends State<InteractionEventsExample> {
       mode: SuperTableMode.readable,
       selectionMode: SuperSelectionMode.multiCells,
       columns: [
-        SuperTextColumn(key: 'no', label: 'Order #', width: 120, mono: true),
-        SuperTextColumn(key: 'customer', label: 'Customer', width: 210),
+        SuperTextColumn(key: 'no', label: ExampleL10n.current.orderNumber, width: 120, mono: true),
+        SuperTextColumn(key: 'customer', label: ExampleL10n.current.customer, width: 210),
         SuperEnumerationColumn<String>(
           key: 'status',
-          label: 'Status',
+          label: ExampleL10n.current.status,
           width: 130,
           values: const ['Paid', 'Pending', 'Overdue'],
           tones: {
@@ -51,14 +52,14 @@ class _InteractionEventsExampleState extends State<InteractionEventsExample> {
             'Overdue': const Color(0xFFEF4444),
           },
         ),
-        SuperTextColumn(key: 'region', label: 'Region', width: 130),
+        SuperTextColumn(key: 'region', label: ExampleL10n.current.region, width: 130),
         SuperCurrencyColumn(
           key: 'total',
-          label: 'Total',
+          label: ExampleL10n.current.total,
           width: 130,
           agg: SuperAgg.sum,
         ),
-        SuperDateColumn(key: 'due', label: 'Due', width: 130),
+        SuperDateColumn(key: 'due', label: ExampleL10n.current.due, width: 130),
       ],
       rows: [
         SuperRow.map({
@@ -135,7 +136,7 @@ class _InteractionEventsExampleState extends State<InteractionEventsExample> {
     return Scaffold(
       backgroundColor: t.bg,
       appBar: AppBar(
-        title: const Text('Interaction events'),
+        title: Text(ExampleL10n.current.interactionEvents),
         backgroundColor: t.surface,
       ),
       body: Padding(
@@ -146,9 +147,7 @@ class _InteractionEventsExampleState extends State<InteractionEventsExample> {
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: Text(
-                'Double-click a row (or select + Enter) to open it. Click cells, right-click, drag a '
-                'range, or sort a column — every gesture flows through SuperInteractions into the '
-                'panel on the right. The grid still behaves exactly as normal.',
+                ExampleL10n.current.doubleClickARowOrSelectPlusEnterToOpenItClickCellsRightClickDrag4ff3c2c,
                 style: TextStyle(color: t.fg3),
               ),
             ),
@@ -157,7 +156,7 @@ class _InteractionEventsExampleState extends State<InteractionEventsExample> {
                 OutlinedButton.icon(
                   onPressed: () => _c.sortBy(_c.colByKey('total')!, false),
                   icon: const Icon(Icons.sort_rounded, size: 16),
-                  label: const Text('Sort by total ↓ (programmatic)'),
+                  label: Text(ExampleL10n.current.sortByTotalProgrammatic),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: t.fg1,
                     side: BorderSide(color: t.borderStrong),
@@ -167,7 +166,7 @@ class _InteractionEventsExampleState extends State<InteractionEventsExample> {
                 OutlinedButton.icon(
                   onPressed: () => _c.clearSort(),
                   icon: const Icon(Icons.clear_rounded, size: 16),
-                  label: const Text('Clear sort'),
+                  label: Text(ExampleL10n.current.clearSort),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: t.fg1,
                     side: BorderSide(color: t.borderStrong),
@@ -241,7 +240,7 @@ class _InteractionEventsExampleState extends State<InteractionEventsExample> {
           const SizedBox(height: 14),
         ],
         Text(
-          'EVENT LOG',
+          ExampleL10n.current.eVENTLOG,
           style: TextStyle(
             fontSize: 10.5,
             fontWeight: FontWeight.w700,
@@ -261,7 +260,7 @@ class _InteractionEventsExampleState extends State<InteractionEventsExample> {
             child: _log.isEmpty
                 ? Center(
                     child: Text(
-                      'Interact with the grid…',
+                      ExampleL10n.current.interactWithTheGrid,
                       style: TextStyle(color: t.fg4, fontSize: 12.5),
                     ),
                   )
@@ -334,7 +333,7 @@ class _DetailCard extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'Order ${order['no']}',
+                  ExampleL10n.current.order(order['no']),
                   style: TextStyle(
                     fontFamily: context.superTextTheme.h1.fontFamily,
                     fontWeight: FontWeight.w800,

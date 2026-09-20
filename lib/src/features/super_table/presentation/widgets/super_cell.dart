@@ -564,7 +564,9 @@ class _SuperComboEditorState extends State<_SuperComboEditor> {
             fieldHeight: fieldHeight,
             maxVisibleRows: col?.maxVisibleRows ?? 7,
             highlightMatches: col?.highlightMatch ?? true,
-            advancedSearch: col?.advancedSearch ?? false,
+            mode: (col?.advancedSearch ?? false)
+                ? SuperAutoSuggestionsMode.both
+                : SuperAutoSuggestionsMode.textBox,
             advancedSearchBuilder: col == null || !col.hasAdvancedSearchBuilder
                 ? null
                 : col.buildAdvancedSearch,
@@ -574,7 +576,9 @@ class _SuperComboEditorState extends State<_SuperComboEditor> {
                 : _itemBuilder,
             loadingBuilder: col?.loadingBuilder,
             emptyBuilder: col?.emptyBuilder,
-            leading: col?.leading,
+            decoration: col?.leading == null
+                ? null
+                : InputDecoration(prefixIcon: col!.leading),
             hintText:
                 col?.hintText ??
                 (opts.isEmpty ? l10n.typeValueHint : l10n.typeOrPickHint),
@@ -605,13 +609,14 @@ class _SuperComboEditorState extends State<_SuperComboEditor> {
   }
 
   SuperAutoSuggestionsItem<dynamic> _suggestionFor(
+    BuildContext context,
     List<dynamic> items,
     int index,
     dynamic value,
   ) {
     final col = _combo;
     if (col != null) {
-      return col.buildSuggestion(items, index, value);
+      return col.buildSuggestion(context, items, index, value);
     }
     final label = SuperColumnLogic.displayOf(widget.col, value);
     return SuperAutoSuggestionsItem<dynamic>(value: value, titleText: label);

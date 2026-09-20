@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:super_table_field/super_table_field.dart';
 import 'package:super_core/super_core.dart';
+import 'package:super_table_field_example/localizations/example_l10n.dart';
 
 class TableStylesExample extends StatefulWidget {
   const TableStylesExample({super.key});
@@ -23,39 +24,39 @@ class _TableStylesExampleState extends State<TableStylesExample> {
       columns: [
         SuperTextColumn(
           key: 'account',
-          label: 'Account',
+          label: ExampleL10n.current.account,
           width: 170,
           mono: true,
         ),
-        SuperTextColumn(key: 'name', label: 'Name', width: 220),
-        SuperTextColumn(key: 'segment', label: 'Segment', width: 150),
+        SuperTextColumn(key: 'name', label: ExampleL10n.current.name, width: 220),
+        SuperTextColumn(key: 'segment', label: ExampleL10n.current.segment, width: 150),
         SuperCurrencyColumn(
           key: 'opening',
-          label: 'Opening',
+          label: ExampleL10n.current.opening,
           width: 130,
           agg: SuperAgg.sum,
         ),
         SuperCurrencyColumn(
           key: 'debit',
-          label: 'Debit',
+          label: ExampleL10n.current.debit,
           width: 130,
           agg: SuperAgg.sum,
         ),
         SuperCurrencyColumn(
           key: 'credit',
-          label: 'Credit',
+          label: ExampleL10n.current.credit,
           width: 130,
           agg: SuperAgg.sum,
         ),
         SuperCurrencyColumn(
           key: 'closing',
-          label: 'Closing',
+          label: ExampleL10n.current.closing,
           width: 140,
           agg: SuperAgg.sum,
         ),
         SuperEnumerationColumn<String>(
           key: 'status',
-          label: 'Status',
+          label: ExampleL10n.current.status,
           width: 120,
           values: const ['Open', 'Review', 'Posted'],
         ),
@@ -142,7 +143,7 @@ class _TableStylesExampleState extends State<TableStylesExample> {
     return Scaffold(
       backgroundColor: t.bg,
       appBar: AppBar(
-        title: const Text('Table styles'),
+        title: Text(ExampleL10n.current.tableStyles),
         backgroundColor: t.surface,
       ),
       body: ListView.separated(

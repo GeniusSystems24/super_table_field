@@ -3,6 +3,20 @@
 All notable changes to **super_table_field** are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/); versioning is [SemVer](https://semver.org/).
 
+## [3.2.0] - 2026-09-21
+
+### Changed
+
+- Raised `super_auto_suggestion_box` to `>=1.6.0 <2.0.0`.
+- Migrated combo suggestion metadata builders from `AutoSuggestionBuilder<T>` to
+  `SuperAutoSuggestionBuilder<T>`, including the new leading `BuildContext`
+  parameter for named and inline builders.
+- Adapted the embedded `SuperAutoSuggestionsBox` integration to the 1.6.0 API:
+  table-level `advancedSearch` is translated to `SuperAutoSuggestionsMode` and
+  table-level `leading` is translated to `InputDecoration.prefixIcon`.
+- Updated the editable-journal example, combo tests, README, and SKILL guidance
+  for the 1.6.0 migration.
+
 ## [3.1.1] - 2026-09-09
 
 ### Changed

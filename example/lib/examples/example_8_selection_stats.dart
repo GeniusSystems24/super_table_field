@@ -11,6 +11,7 @@
 import 'package:flutter/material.dart';
 import 'package:super_table_field/super_table_field.dart';
 import 'package:super_core/super_core.dart';
+import 'package:super_table_field_example/localizations/example_l10n.dart';
 
 class SelectionStatsExample extends StatefulWidget {
   const SelectionStatsExample({super.key});
@@ -30,14 +31,14 @@ class _SelectionStatsExampleState extends State<SelectionStatsExample> {
       columns: [
         SuperTextColumn(
           key: 'account',
-          label: 'Account',
+          label: ExampleL10n.current.account,
           width: 200,
           mono: true,
         ),
-        SuperCurrencyColumn(key: 'q1', label: 'Q1', width: 130),
-        SuperCurrencyColumn(key: 'q2', label: 'Q2', width: 130),
-        SuperCurrencyColumn(key: 'q3', label: 'Q3', width: 130),
-        SuperCurrencyColumn(key: 'q4', label: 'Q4', width: 130),
+        SuperCurrencyColumn(key: 'q1', label: ExampleL10n.current.q1, width: 130),
+        SuperCurrencyColumn(key: 'q2', label: ExampleL10n.current.q2, width: 130),
+        SuperCurrencyColumn(key: 'q3', label: ExampleL10n.current.q3, width: 130),
+        SuperCurrencyColumn(key: 'q4', label: ExampleL10n.current.q4, width: 130),
       ],
       rows: [
         SuperRow.map({
@@ -95,7 +96,7 @@ class _SelectionStatsExampleState extends State<SelectionStatsExample> {
     return Scaffold(
       backgroundColor: t.bg,
       appBar: AppBar(
-        title: const Text('Selection statistics'),
+        title: Text(ExampleL10n.current.selectionStatistics),
         backgroundColor: t.surface,
       ),
       body: Padding(
@@ -106,7 +107,7 @@ class _SelectionStatsExampleState extends State<SelectionStatsExample> {
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: Text(
-                'Shift-drag a block of the quarterly numbers — the live Sum / Avg / Min / Max appears in the summary below.',
+                ExampleL10n.current.shiftDragABlockOfTheQuarterlyNumbersTheLiveSumAvgMinMaxAppearsIn8285e43,
                 style: TextStyle(color: t.fg3),
               ),
             ),
@@ -121,18 +122,18 @@ class _SelectionStatsExampleState extends State<SelectionStatsExample> {
               ),
               child: (stats == null || !stats.hasAggregate)
                   ? Text(
-                      'Select two or more numeric cells to see statistics.',
+                      ExampleL10n.current.selectTwoOrMoreNumericCellsToSeeStatistics,
                       style: TextStyle(color: t.fg3),
                     )
                   : Wrap(
                       spacing: 28,
                       runSpacing: 10,
                       children: [
-                        _stat('SUM', money(stats.sum), t),
-                        _stat('AVERAGE', money(stats.average), t),
-                        _stat('MIN', money(stats.min!), t),
-                        _stat('MAX', money(stats.max!), t),
-                        _stat('COUNT', '${stats.numericCount}', t),
+                        _stat(ExampleL10n.current.sUM, money(stats.sum), t),
+                        _stat(ExampleL10n.current.aVERAGE, money(stats.average), t),
+                        _stat(ExampleL10n.current.mIN, money(stats.min!), t),
+                        _stat(ExampleL10n.current.mAX, money(stats.max!), t),
+                        _stat(ExampleL10n.current.cOUNT, '${stats.numericCount}', t),
                       ],
                     ),
             ),

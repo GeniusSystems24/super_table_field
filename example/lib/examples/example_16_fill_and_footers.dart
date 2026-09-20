@@ -16,6 +16,7 @@
 import 'package:flutter/material.dart';
 import 'package:super_table_field/super_table_field.dart';
 import 'package:super_core/super_core.dart';
+import 'package:super_table_field_example/localizations/example_l10n.dart';
 
 class FillAndFootersExample extends StatefulWidget {
   const FillAndFootersExample({super.key});
@@ -44,23 +45,23 @@ class _FillAndFootersExampleState extends State<FillAndFootersExample> {
       columns: [
         SuperEnumerationColumn(
           key: 'warehouse',
-          label: 'Warehouse',
+          label: ExampleL10n.current.warehouse,
           width: 140,
           values: const ['Main', 'North', 'Overflow'],
           groupable: true,
         ),
-        SuperTextColumn(key: 'item', label: 'Item', width: 220),
-        SuperTextColumn(key: 'bin', label: 'Bin', width: 100, mono: true),
+        SuperTextColumn(key: 'item', label: ExampleL10n.current.item, width: 220),
+        SuperTextColumn(key: 'bin', label: ExampleL10n.current.bin, width: 100, mono: true),
         SuperNumberColumn<int>(
           key: 'qty',
-          label: 'Qty',
+          label: ExampleL10n.current.qty,
           width: 100,
           min: 0,
           agg: SuperAgg.sum,
         ),
         SuperCurrencyColumn(
           key: 'value',
-          label: 'Stock value',
+          label: ExampleL10n.current.stockValuefdb1ac,
           width: 150,
           agg: SuperAgg.sum,
         ),
@@ -120,7 +121,7 @@ class _FillAndFootersExampleState extends State<FillAndFootersExample> {
     return Scaffold(
       backgroundColor: t.bg,
       appBar: AppBar(
-        title: const Text('Fill down/right · group footers'),
+        title: Text(ExampleL10n.current.fillDownRightGroupFooters),
         backgroundColor: t.surface,
       ),
       body: Padding(
@@ -132,11 +133,8 @@ class _FillAndFootersExampleState extends State<FillAndFootersExample> {
               padding: const EdgeInsets.only(bottom: 12),
               child: Text(
                 _editable
-                    ? 'Editable: select a range spanning rows, press ⌘/Ctrl+D to fill down '
-                          '(⌘/Ctrl+R fills right). Edit a cell, then right-click the row → Revert '
-                          'cell / Revert row. Switch to readable for group footers.'
-                    : 'Readable: grouped by Warehouse with groupFooters on — each group closes '
-                          'with a Σ subtotal row. Collapse groups from their headers.',
+                    ? ExampleL10n.current.editableSelectARangeSpanningRowsPressCommandCtrlPlusDToFillDownC05fc021
+                    : ExampleL10n.current.readableGroupedByWarehouseWithGroupFootersOnEachGroupClosesWithAb03b87f,
                 style: TextStyle(color: t.fg3),
               ),
             ),
@@ -157,7 +155,7 @@ class _FillAndFootersExampleState extends State<FillAndFootersExample> {
                     size: 16,
                   ),
                   label: Text(
-                    _editable ? 'Readable + grouped' : 'Back to editable',
+                    _editable ? ExampleL10n.current.readablePlusGrouped : ExampleL10n.current.backToEditable,
                   ),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: t.fg1,
@@ -169,7 +167,7 @@ class _FillAndFootersExampleState extends State<FillAndFootersExample> {
                   OutlinedButton.icon(
                     onPressed: _c.fillDown,
                     icon: const Icon(Icons.south_rounded, size: 16),
-                    label: const Text('Fill down'),
+                    label: Text(ExampleL10n.current.fillDown),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: t.fg1,
                       side: BorderSide(color: t.borderStrong),
@@ -179,7 +177,7 @@ class _FillAndFootersExampleState extends State<FillAndFootersExample> {
                   OutlinedButton.icon(
                     onPressed: _c.fillRight,
                     icon: const Icon(Icons.east_rounded, size: 16),
-                    label: const Text('Fill right'),
+                    label: Text(ExampleL10n.current.fillRight),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: t.fg1,
                       side: BorderSide(color: t.borderStrong),
@@ -189,7 +187,7 @@ class _FillAndFootersExampleState extends State<FillAndFootersExample> {
                   OutlinedButton.icon(
                     onPressed: _c.canUndo ? _c.undo : null,
                     icon: const Icon(Icons.undo_rounded, size: 16),
-                    label: const Text('Undo'),
+                    label: Text(ExampleL10n.current.undo),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: t.fg1,
                       side: BorderSide(color: t.borderStrong),

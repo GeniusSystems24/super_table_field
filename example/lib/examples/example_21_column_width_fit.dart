@@ -15,6 +15,7 @@
 import 'package:flutter/material.dart';
 import 'package:super_table_field/super_table_field.dart';
 import 'package:super_core/super_core.dart';
+import 'package:super_table_field_example/localizations/example_l10n.dart';
 
 typedef _Row = Map<String, dynamic>;
 
@@ -55,20 +56,20 @@ class _ColumnWidthFitExampleState extends State<ColumnWidthFitExample> {
       columns: [
         SuperTextColumn(
           key: 'code',
-          label: 'Code · 110 px',
+          label: ExampleL10n.current.code110Px,
           width: 110,
           widthFit: SuperColumnWidthFit.none,
           mono: true,
         ),
         SuperTextColumn(
           key: 'name',
-          label: 'Name · 220 px',
+          label: ExampleL10n.current.name220Px,
           width: 220,
           widthFit: SuperColumnWidthFit.none,
         ),
         SuperTextColumn(
           key: 'status',
-          label: 'Status · 140 px',
+          label: ExampleL10n.current.status140Px,
           width: 140,
           widthFit: SuperColumnWidthFit.none,
         ),
@@ -87,26 +88,26 @@ class _ColumnWidthFitExampleState extends State<ColumnWidthFitExample> {
       columns: [
         SuperTextColumn(
           key: 'code',
-          label: 'Fixed · 120 px',
+          label: ExampleL10n.current.fixed120Px,
           width: 120,
           widthFit: SuperColumnWidthFit.none,
           mono: true,
         ),
         SuperTextColumn(
           key: 'region',
-          label: 'Auto A · declared 80',
+          label: ExampleL10n.current.autoADeclared80,
           width: 80,
           widthFit: SuperColumnWidthFit.auto,
         ),
         SuperTextColumn(
           key: 'owner',
-          label: 'Auto B · declared 220',
+          label: ExampleL10n.current.autoBDeclared220,
           width: 220,
           widthFit: SuperColumnWidthFit.auto,
         ),
         SuperTextColumn(
           key: 'status',
-          label: 'Auto C · declared 100',
+          label: ExampleL10n.current.autoCDeclared100,
           width: 100,
           widthFit: SuperColumnWidthFit.auto,
         ),
@@ -140,20 +141,20 @@ class _ColumnWidthFitExampleState extends State<ColumnWidthFitExample> {
       columns: [
         SuperTextColumn(
           key: 'code',
-          label: 'Code · maxCell',
+          label: ExampleL10n.current.codeMaxCell,
           width: 90,
           widthFit: SuperColumnWidthFit.maxCell,
           mono: true,
         ),
         SuperTextColumn(
           key: 'description',
-          label: 'Description · maxCell',
+          label: ExampleL10n.current.descriptionMaxCell,
           width: 120,
           widthFit: SuperColumnWidthFit.maxCell,
         ),
         SuperTextColumn(
           key: 'note',
-          label: 'Note · maxCell',
+          label: ExampleL10n.current.noteMaxCell,
           width: 100,
           widthFit: SuperColumnWidthFit.maxCell,
         ),
@@ -176,20 +177,20 @@ class _ColumnWidthFitExampleState extends State<ColumnWidthFitExample> {
       columns: [
         SuperTextColumn(
           key: 'code',
-          label: 'Fixed · 120 px',
+          label: ExampleL10n.current.fixed120Px,
           width: 120,
           widthFit: SuperColumnWidthFit.none,
           mono: true,
         ),
         SuperTextColumn(
           key: 'name',
-          label: 'Fit A · base 150',
+          label: ExampleL10n.current.fitABase150,
           width: 150,
           widthFit: SuperColumnWidthFit.fit,
         ),
         SuperTextColumn(
           key: 'notes',
-          label: 'Fit B · base 150',
+          label: ExampleL10n.current.fitBBase150,
           width: 150,
           widthFit: SuperColumnWidthFit.fit,
         ),
@@ -229,37 +230,35 @@ class _ColumnWidthFitExampleState extends State<ColumnWidthFitExample> {
       appBar: AppBar(
         backgroundColor: theme.surface,
         foregroundColor: theme.fg1,
-        title: const Text('Column width fit'),
+        title: Text(ExampleL10n.current.columnWidthFit),
       ),
       body: SafeArea(
         child: ListView(
           padding: EdgeInsets.all(spacing.space6),
           children: [
             Text(
-              'SUPER COLUMN WIDTH FIT · 2.8.0',
+              ExampleL10n.current.sUPERCOLUMNWIDTHFITTwoEightZero,
               style: context.superTextTheme.eyebrow.copyWith(
                 color: colorScheme.primary,
               ),
             ),
             SizedBox(height: spacing.space2),
             Text(
-              'Four ways to size table columns',
+              ExampleL10n.current.fourWaysToSizeTableColumns,
               style: context.superTextTheme.h1.copyWith(color: theme.fg1),
             ),
             SizedBox(height: spacing.space2),
             Text(
-              'Resize this window while viewing the Auto and Fit sections. '
-              'The tables resolve their widths from the live horizontal viewport.',
+              ExampleL10n.current.resizeThisWindowWhileViewingTheAutoAndFitSectionsTheTablesResolvf66f1f9,
               style: context.superTextTheme.body.copyWith(color: theme.fg3),
             ),
             SizedBox(height: spacing.space6),
             _modeCard(
               context,
-              mode: 'SuperColumnWidthFit.none',
-              title: '1 · None — fixed width',
+              mode: ExampleL10n.current.superColumnWidthFitNone,
+              title: ExampleL10n.current.oneNoneFixedWidth,
               description:
-                  'Uses the column width exactly as declared. If width is not '
-                  'specified, the typed column keeps its existing default width.',
+                  ExampleL10n.current.usesTheColumnWidthExactlyAsDeclaredIfWidthIsNotSpecifiedTheTyped1d19a8c,
               rules: const [
                 'Declared width is authoritative.',
                 'Does not consume or share spare viewport width.',
@@ -270,11 +269,10 @@ class _ColumnWidthFitExampleState extends State<ColumnWidthFitExample> {
             SizedBox(height: spacing.space6),
             _modeCard(
               context,
-              mode: 'SuperColumnWidthFit.auto',
-              title: '2 · Auto — equal responsive width',
+              mode: ExampleL10n.current.superColumnWidthFitAuto,
+              title: ExampleL10n.current.twoAutoEqualResponsiveWidth,
               description:
-                  'All auto columns receive the same width from the horizontal '
-                  'space left after fixed, intrinsic and fit-base widths are reserved.',
+                  ExampleL10n.current.allAutoColumnsReceiveTheSameWidthFromTheHorizontalSpaceLeftAfterc1a55d1,
               rules: const [
                 'Every auto column receives the same resolved width.',
                 'Declared widths do not control the final auto share.',
@@ -285,11 +283,10 @@ class _ColumnWidthFitExampleState extends State<ColumnWidthFitExample> {
             SizedBox(height: spacing.space6),
             _modeCard(
               context,
-              mode: 'SuperColumnWidthFit.maxCell',
-              title: '3 · Max cell — intrinsic content width',
+              mode: ExampleL10n.current.superColumnWidthFitMaxCell,
+              title: ExampleL10n.current.threeMaxCellIntrinsicContentWidth,
               description:
-                  'Measures rendered row text and uses the widest visible cell '
-                  'content plus normal horizontal cell padding.',
+                  ExampleL10n.current.measuresRenderedRowTextAndUsesTheWidestVisibleCellContentPlusNor8947460,
               rules: const [
                 'A longer cell makes that column wider.',
                 'Each maxCell column is measured independently.',
@@ -300,11 +297,10 @@ class _ColumnWidthFitExampleState extends State<ColumnWidthFitExample> {
             SizedBox(height: spacing.space6),
             _modeCard(
               context,
-              mode: 'SuperColumnWidthFit.fit',
-              title: '4 · Fit — fill otherwise-empty space',
+              mode: ExampleL10n.current.superColumnWidthFitFit,
+              title: ExampleL10n.current.fourFitFillOtherwiseEmptySpace,
               description:
-                  'Starts from the declared base width. Any viewport width still '
-                  'unused after all columns resolve is divided equally between fit columns.',
+                  ExampleL10n.current.startsFromTheDeclaredBaseWidthAnyViewportWidthStillUnusedAfterAl2e61e70,
               rules: const [
                 'The declared width is the minimum/base width.',
                 'Multiple fit columns share only the remaining empty space.',
@@ -442,16 +438,14 @@ class _ColumnWidthFitExampleState extends State<ColumnWidthFitExample> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Manual width override',
+                  ExampleL10n.current.manualWidthOverride,
                   style: context.superTextTheme.heading.copyWith(
                     color: theme.fg1,
                   ),
                 ),
                 SizedBox(height: spacing.space1),
                 Text(
-                  'controller.setWidth(key, px) always wins over widthFit. '
-                  'Call controller.resetWidth(key) to remove the manual override '
-                  'and return to the declared width-fit behavior.',
+                  ExampleL10n.current.controllerSetWidthKeyPxAlwaysWinsOverWidthFitCallControllerReset0192e51,
                   style: context.superTextTheme.body.copyWith(color: theme.fg2),
                 ),
               ],

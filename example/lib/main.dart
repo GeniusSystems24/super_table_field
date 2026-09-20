@@ -10,9 +10,13 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:super_auto_suggestion_box/super_auto_suggestion_box.dart'
+    show SuperAutoSuggestionLocalization;
 import 'package:super_form_field/super_form_field.dart';
 import 'package:super_table_field/super_table_field.dart';
 import 'package:super_core/super_core.dart';
+import 'package:super_table_field_example/localizations/example_l10n.dart';
+import 'package:super_table_field_example/localizations/generated/l10n.dart';
 
 import 'examples/example_1_readonly_report.dart';
 import 'examples/example_2_editable_journal.dart';
@@ -67,7 +71,8 @@ class _ExampleAppState extends State<ExampleApp> {
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Super Table Field',
+      onGenerateTitle: (context) =>
+          SuperTableExampleLocalization.of(context).appTitle,
       themeMode: _mode,
       theme: SuperMaterialThemeData.light(
         textTheme: typography,
@@ -86,11 +91,15 @@ class _ExampleAppState extends State<ExampleApp> {
         GlobalCupertinoLocalizations.delegate,
         SuperTableLocalization.delegate,
         SuperFormTranslation.delegate,
+        SuperAutoSuggestionLocalization.delegate,
+        SuperTableExampleLocalization.delegate,
       ],
-      supportedLocales: SuperTableLocalization.supportedLocales,
-
-      // builder: (context, child) =>
-      //     Directionality(textDirection: _dir, child: child!),
+      supportedLocales: SuperTableExampleLocalization.supportedLocales,
+      builder: (context, child) {
+        ExampleL10n.bind(context);
+        // return Directionality(textDirection: _dir, child: child!);
+        return child!;
+      },
       home: _Launcher(
         mode: _mode,
         dir: _dir,
@@ -124,146 +133,152 @@ class _Launcher extends StatelessWidget {
 
   static final List<_Demo> _demos = [
     _Demo(
-      'Super Table',
-      'Editable/readable grid · typed columns · combo ⇒ SuperAutoSuggestionsBox',
+      ExampleL10n.current.superTable,
+      ExampleL10n.current.superTableDescription,
       Icons.grid_on_outlined,
       (_) => const SuperTableDemo(),
     ),
     _Demo(
-      '1 · Read-only report',
-      'Readable mode · typed model · conditional row styling',
+      ExampleL10n.current.oneReadOnlyReport,
+      ExampleL10n.current.readOnlyReportDescription,
       Icons.assessment_outlined,
       (_) => const ReadonlyReportExample(),
     ),
     _Demo(
-      '2 · Editable journal',
-      'validator + onChange · Ctrl+Enter insert · live balance',
+      ExampleL10n.current.twoEditableJournal,
+      ExampleL10n.current.validatorPlusOnChangeCtrlPlusEnterInsertLiveBalance,
       Icons.edit_note_outlined,
       (_) => const EditableJournalExample(),
     ),
     _Demo(
-      '3 · Async combo',
-      'SuperComboColumn sourceController · fingerPrint rebuild',
+      ExampleL10n.current.threeAsyncCombo,
+      ExampleL10n.current.asyncComboDescription,
       Icons.cloud_sync_outlined,
       (_) => const AsyncComboExample(),
     ),
     _Demo(
-      '4 · Controller-driven',
-      'setMode · onLoadMore · programmatic filters + selection',
+      ExampleL10n.current.fourControllerDriven,
+      ExampleL10n.current.controllerDrivenDescription,
       Icons.tune_outlined,
       (_) => const ControllerDrivenExample(),
     ),
     _Demo(
-      '5 · Styling & filters',
-      'Cell/row styles · FilterItem dropdowns · onKey',
+      ExampleL10n.current.fiveStylingAndFilters,
+      ExampleL10n.current.stylingAndFiltersDescription,
       Icons.palette_outlined,
       (_) => const StylingAndFiltersExample(),
     ),
     _Demo(
-      '6 · Playground',
-      'Full toolbar · mode/search/select/paging/totals/filters',
+      ExampleL10n.current.sixPlayground,
+      ExampleL10n.current.playgroundDescription,
       Icons.dashboard_customize_outlined,
       (_) => const PlaygroundExample(),
     ),
     _Demo(
-      '7 · Change tracking',
-      'trackChanges · dirty cells · changes delta · save/revert',
+      ExampleL10n.current.sevenChangeTracking,
+      ExampleL10n.current.changeTrackingDescription,
       Icons.fact_check_outlined,
       (_) => const ChangeTrackingExample(),
     ),
     _Demo(
-      '8 · Selection statistics',
-      'multiCells · selectionStats · custom Sum/Avg/Min/Max summary',
+      ExampleL10n.current.eightSelectionStatistics,
+      ExampleL10n.current.selectionStatisticsDescription,
       Icons.functions_outlined,
       (_) => const SelectionStatsExample(),
     ),
     _Demo(
-      '9 · Export',
-      'toCsv / toTsv / toJsonRows · respects filter + sort',
+      ExampleL10n.current.nineExport,
+      ExampleL10n.current.exportDescription,
       Icons.file_download_outlined,
       (_) => const ExportExample(),
     ),
     _Demo(
-      '10 · Aggregations',
-      'min / max / custom aggregator · weighted average · aggLabel',
+      ExampleL10n.current.tenAggregations,
+      ExampleL10n.current.aggregationsDescription,
       Icons.summarize_outlined,
       (_) => const AggregationsExample(),
     ),
     _Demo(
-      '11 · Cell locking',
-      'cellEditable · lock posted rows · read-only cells',
+      ExampleL10n.current.elevenCellLocking,
+      ExampleL10n.current.cellLockingDescription,
       Icons.lock_outline,
       (_) => const CellLockingExample(),
     ),
     _Demo(
-      '12 · Row reordering',
-      'moveRowUp / moveRowDown / moveRow · undo',
+      ExampleL10n.current.twelveRowReordering,
+      ExampleL10n.current.rowReorderingDescription,
       Icons.swap_vert_outlined,
       (_) => const RowReorderExample(),
     ),
     _Demo(
-      '13 · Group aggregates · Hidden columns',
-      'groupAggregates / aggregateBy / grandTotals · filter+group-only columns',
+      ExampleL10n.current.thirteenGroupAggregatesHiddenColumns,
+      ExampleL10n.current.groupAggregatesDescription,
       Icons.account_tree_outlined,
       (_) => const GroupAggregatesExample(),
     ),
     _Demo(
-      '14 · Expandable rows',
-      'SuperRowExpansion · multi & single mode · per-row heights · animated panels',
+      ExampleL10n.current.fourteenExpandableRows,
+      ExampleL10n.current.expandableRowsDescription,
       Icons.unfold_more_outlined,
       (_) => const ExpandableRowsExample(),
     ),
     _Demo(
-      '15 · Validation · saved views',
-      'validateAll + unique · isValid gate · viewStateJson / applyViewJson',
+      ExampleL10n.current.fifteenValidationSavedViews,
+      ExampleL10n.current.validationAndSavedViewsDescription,
       Icons.rule_outlined,
       (_) => const ValidationViewsExample(),
     ),
     _Demo(
-      '16 · Fill · group footers · revert',
-      '⌘D/⌘R fill · Σ subtotal rows · revert cell/row',
+      ExampleL10n.current.sixteenFillGroupFootersRevert,
+      ExampleL10n.current.fillAndGroupFootersDescription,
       Icons.south_outlined,
       (_) => const FillAndFootersExample(),
     ),
     _Demo(
-      '17 · Interaction events',
-      'SuperInteractions · onRowActivate · cell/row taps · selection + sort',
+      ExampleL10n.current.seventeenInteractionEvents,
+      ExampleL10n.current.interactionEventsDescription,
       Icons.ads_click_outlined,
       (_) => const InteractionEventsExample(),
     ),
     _Demo(
-      '18 · Column config',
-      'showSuperColumnManager · reorder / pin / show-hide · pins persist in views',
+      ExampleL10n.current.eighteenColumnConfig,
+      ExampleL10n.current.columnConfigDescription,
       Icons.view_column_outlined,
       (_) => const ColumnConfigExample(),
     ),
     _Demo(
-      '19 · Showcase',
-      'Interactions + column manager + grouping + totals + tracking + export',
+      ExampleL10n.current.nineteenShowcase,
+      ExampleL10n
+          .current
+          .interactionsPlusColumnManagerPlusGroupingPlusTotalsPlusTrackingPc4d7ca8,
       Icons.dashboard_outlined,
       (_) => const ShowcaseExample(),
     ),
     _Demo(
-      '20 - Table styles',
-      'Optional SuperTableStyle presets - banding - group footers - totals',
+      ExampleL10n.current.twentyTableStyles,
+      ExampleL10n
+          .current
+          .optionalSuperTableStylePresetsBandingGroupFootersTotals,
       Icons.table_chart_outlined,
       (_) => const TableStylesExample(),
     ),
     _Demo(
-      '21 · Column width fit',
-      'none · auto · maxCell · fit · responsive viewport sizing',
+      ExampleL10n.current.twentyOneColumnWidthFit,
+      ExampleL10n.current.noneAutoMaxCellFitResponsiveViewportSizing,
       Icons.width_normal_outlined,
       (_) => const ColumnWidthFitExample(),
     ),
     _Demo(
-      '22 · Big data load-more',
-      '1k / 5k / 10k rows per load · 100k max · performance counters',
+      ExampleL10n.current.twentyTwoBigDataLoadMore,
+      ExampleL10n.current.message1k5k10kRowsPerLoad100kMaxPerformanceCounters,
       Icons.speed_rounded,
       (_) => const BigDataLoadMoreExample(),
     ),
     _Demo(
-      '23 · Enumeration select',
-      'SuperEnumerationColumn · SuperSelectFormField · row-aware sources',
+      ExampleL10n.current.twentyThreeEnumerationSelect,
+      ExampleL10n
+          .current
+          .superEnumerationColumnSuperSelectFormFieldRowAwareSources,
       Icons.list_alt_outlined,
       (_) => const EnumerationSelectExample(),
     ),
@@ -277,6 +292,30 @@ class _Launcher extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: theme.bg,
+      appBar: AppBar(
+        backgroundColor: theme.bg,
+        surfaceTintColor: Colors.transparent,
+        actions: [
+          IconButton(
+            tooltip: mode == ThemeMode.dark
+                ? ExampleL10n.current.lightTheme
+                : ExampleL10n.current.darkTheme,
+            onPressed: onToggleTheme,
+            icon: Icon(
+              mode == ThemeMode.dark
+                  ? Icons.light_mode_rounded
+                  : Icons.dark_mode_rounded,
+            ),
+          ),
+          IconButton(
+            tooltip: dir == TextDirection.ltr
+                ? ExampleL10n.current.switchToArabic
+                : ExampleL10n.current.switchToEnglish,
+            onPressed: onToggleDir,
+            icon: const Icon(Icons.language_rounded),
+          ),
+        ],
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           child: SuperScaffold(
@@ -285,14 +324,14 @@ class _Launcher extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  'SUPER TABLE FIELD • GALLERY',
+                  ExampleL10n.current.galleryEyebrow,
                   style: context.superTextTheme.eyebrow.copyWith(
                     color: colorScheme.primary,
                   ),
                 ),
                 SizedBox(height: spacing.space2),
                 Text(
-                  'Component Demos مكتبة المكونات',
+                  ExampleL10n.current.componentDemoseb5e41,
                   style: context.superTextTheme.h1.copyWith(color: theme.fg1),
                 ),
                 SizedBox(height: spacing.space8),
@@ -300,28 +339,6 @@ class _Launcher extends StatelessWidget {
                   _DemoCard(demo: demo),
                   SizedBox(height: spacing.section),
                 ],
-                SizedBox(height: spacing.space6),
-                Wrap(
-                  alignment: WrapAlignment.center,
-                  spacing: spacing.space3,
-                  runSpacing: spacing.space3,
-                  children: [
-                    SuperButton(
-                      label: mode == ThemeMode.dark
-                          ? 'Light Theme'
-                          : 'Dark Theme',
-                      variant: SuperButtonVariant.secondary,
-                      onPressed: onToggleTheme,
-                    ),
-                    SuperButton(
-                      label: dir == TextDirection.ltr
-                          ? 'العربية (RTL)'
-                          : 'English (LTR)',
-                      variant: SuperButtonVariant.secondary,
-                      onPressed: onToggleDir,
-                    ),
-                  ],
-                ),
               ],
             ),
           ),

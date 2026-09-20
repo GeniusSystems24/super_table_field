@@ -11,6 +11,7 @@
 import 'package:flutter/material.dart';
 import 'package:super_table_field/super_table_field.dart';
 import 'package:super_core/super_core.dart';
+import 'package:super_table_field_example/localizations/example_l10n.dart';
 
 /// The host's typed domain model (the row's backing `value`).
 class Sale {
@@ -43,27 +44,27 @@ class _ReadonlyReportExampleState extends State<ReadonlyReportExample> {
     columns: [
       SuperEnumerationColumn<String>(
         key: 'region',
-        label: 'Region',
+        label: ExampleL10n.current.region,
         width: 130,
         values: const ['North', 'South', 'East', 'West'],
       ),
-      SuperTextColumn(key: 'rep', label: 'Sales Rep', width: 160),
-      SuperTextColumn(key: 'product', label: 'Product', width: 170),
+      SuperTextColumn(key: 'rep', label: ExampleL10n.current.salesRep, width: 160),
+      SuperTextColumn(key: 'product', label: ExampleL10n.current.product, width: 170),
       SuperNumberColumn<int>(
         key: 'units',
-        label: 'Units',
+        label: ExampleL10n.current.units,
         width: 90,
         agg: SuperAgg.sum,
       ),
       SuperCurrencyColumn(
         key: 'revenue',
-        label: 'Revenue',
+        label: ExampleL10n.current.revenue,
         width: 140,
         agg: SuperAgg.sum,
       ),
       SuperEnumerationColumn<String>(
         key: 'status',
-        label: 'Status',
+        label: ExampleL10n.current.status,
         width: 130,
         values: const ['Won', 'Open', 'Lost'],
       ),
@@ -114,7 +115,7 @@ class _ReadonlyReportExampleState extends State<ReadonlyReportExample> {
     return Scaffold(
       backgroundColor: t.bg,
       appBar: AppBar(
-        title: const Text('Read-only report'),
+        title: Text(ExampleL10n.current.readOnlyReport),
         backgroundColor: t.surface,
       ),
       body: Padding(

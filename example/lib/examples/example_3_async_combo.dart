@@ -12,6 +12,7 @@
 import 'package:flutter/material.dart';
 import 'package:super_table_field/super_table_field.dart';
 import 'package:super_auto_suggestion_box/super_auto_suggestion_box.dart';
+import 'package:super_table_field_example/localizations/example_l10n.dart';
 
 class AsyncComboExample extends StatefulWidget {
   const AsyncComboExample({super.key});
@@ -49,10 +50,10 @@ class _AsyncComboExampleState extends State<AsyncComboExample> {
       'bin': '',
     },
     columns: [
-      SuperTextColumn(key: 'sku', label: 'SKU', width: 130, mono: true),
+      SuperTextColumn(key: 'sku', label: ExampleL10n.current.sKU, width: 130, mono: true),
       SuperComboColumn<String>(
         key: 'warehouse',
-        label: 'Warehouse',
+        label: ExampleL10n.current.warehouse,
         width: 160,
         values: const ['WH-Riyadh', 'WH-Jeddah', 'WH-Dammam'],
         // Changing the warehouse invalidates the bin + forces the bin combo to
@@ -67,9 +68,9 @@ class _AsyncComboExampleState extends State<AsyncComboExample> {
       ),
       SuperComboColumn<String>(
         key: 'bin',
-        label: 'Bin',
+        label: ExampleL10n.current.bin,
         width: 160,
-        hintText: 'Search bins…',
+        hintText: ExampleL10n.current.searchBins,
         // Rebuilt whenever the row's fingerPrint changes (i.e. after a warehouse
         // change) — scoped to the row's current warehouse.
         sourceController: (ctx, c, row, cell) {
@@ -102,7 +103,7 @@ class _AsyncComboExampleState extends State<AsyncComboExample> {
     return Scaffold(
       backgroundColor: t.bg,
       appBar: AppBar(
-        title: const Text('Async combo (fingerPrint rebuild)'),
+        title: Text(ExampleL10n.current.asyncComboFingerPrintRebuild),
         backgroundColor: t.surface,
       ),
       body: Padding(
@@ -113,7 +114,7 @@ class _AsyncComboExampleState extends State<AsyncComboExample> {
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: Text(
-                'Double-click a Bin cell to search "remotely". Change the Warehouse and the Bin list rescopes.',
+                ExampleL10n.current.doubleClickABinCellToSearchRemotelyChangeTheWarehouseAndTheBinLi990d954,
                 style: TextStyle(color: t.fg3),
               ),
             ),

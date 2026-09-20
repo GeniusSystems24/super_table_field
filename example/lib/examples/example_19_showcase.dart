@@ -18,6 +18,7 @@ import 'package:flutter/services.dart';
 import 'package:super_table_field/super_table_field.dart';
 import 'package:super_form_field/super_form_field.dart';
 import 'package:super_auto_suggestion_box/super_auto_suggestion_box.dart';
+import 'package:super_table_field_example/localizations/example_l10n.dart';
 
 typedef _Row = Map<String, dynamic>;
 
@@ -74,12 +75,12 @@ class _ShowcaseExampleState extends State<ShowcaseExample> {
   bool _showUndoButton = true;
   bool _showRedoButton = true;
   Map<String, dynamic>? _savedView;
-  String _status = 'Ready';
+  String _status = ExampleL10n.current.ready;
 
   static final List<SuperColumn> _columns = [
     SuperTextColumn(
       key: 'sku',
-      label: 'SKU',
+      label: ExampleL10n.current.sKU,
       width: 118,
       mono: true,
       required: true,
@@ -88,14 +89,14 @@ class _ShowcaseExampleState extends State<ShowcaseExample> {
     ),
     SuperTextColumn(
       key: 'name',
-      label: 'Product',
+      label: ExampleL10n.current.product,
       width: 226,
       required: true,
       arKey: 'nameAr',
     ),
     SuperColumn<String>(
       key: 'lot',
-      label: 'Lot / Serial',
+      label: ExampleL10n.current.lotSerial,
       width: 132,
       mono: true,
       formatter: (value, row) {
@@ -103,18 +104,18 @@ class _ShowcaseExampleState extends State<ShowcaseExample> {
         return text.isEmpty ? '' : 'Lot $text';
       },
       validator: (context, controller, row, cell, value) =>
-          value.trim().isEmpty ? 'Lot is required' : null,
+          value.trim().isEmpty ? ExampleL10n.current.lotIsRequired : null,
     ),
     SuperTextColumn(
       key: 'warehouse',
-      label: 'Warehouse',
+      label: ExampleL10n.current.warehouse,
       hidden: true,
       groupable: true,
       filterable: true,
     ),
     SuperEnumerationColumn<String>(
       key: 'category',
-      label: 'Category',
+      label: ExampleL10n.current.category,
       width: 136,
       values: _categories,
       onChange: (context, controller, row, cell, previous, next) {
@@ -128,14 +129,14 @@ class _ShowcaseExampleState extends State<ShowcaseExample> {
     ),
     SuperEnumerationColumn<String>(
       key: 'status',
-      label: 'Status',
+      label: ExampleL10n.current.status,
       width: 140,
       values: _statuses,
       searchable: true,
       optionBuilder: (items, index, status) => SuperOption<String>(
         value: status,
         label: status,
-        description: 'Inventory state ${index + 1} of ${items.length}',
+        description: ExampleL10n.current.inventoryStateOf(index + 1, items.length),
       ),
       dot: true,
       tones: const {
@@ -148,32 +149,32 @@ class _ShowcaseExampleState extends State<ShowcaseExample> {
     ),
     SuperNumberColumn<int>(
       key: 'qty',
-      label: 'Qty',
+      label: ExampleL10n.current.qty,
       width: 92,
       min: 0,
       max: 99999,
       agg: SuperAgg.sum,
       validator: (context, controller, row, cell, value) =>
-          value < 0 ? 'Qty cannot be negative' : null,
+          value < 0 ? ExampleL10n.current.qtyCannotBeNegative : null,
     ),
     SuperNumberColumn<num>(
       key: 'discount',
-      label: 'Disc %',
+      label: ExampleL10n.current.discPercent,
       width: 96,
       min: 0,
       max: 60,
       decimals: 0,
       suffix: '%',
       validator: (context, controller, row, cell, value) =>
-          value > 40 ? 'Manager approval required' : null,
+          value > 40 ? ExampleL10n.current.managerApprovalRequired : null,
     ),
     SuperComboColumn<String>(
       key: 'uom',
-      label: 'Unit',
+      label: ExampleL10n.current.unit,
       width: 104,
       mono: true,
       clearButton: true,
-      hintText: 'Pick unit',
+      hintText: ExampleL10n.current.pickUnit,
       sourceController: (context, controller, row, cell) {
         final units = _unitsFor(row['category']);
         return SuperAutoSuggestionSources.list<String>(units);
@@ -181,16 +182,16 @@ class _ShowcaseExampleState extends State<ShowcaseExample> {
     ),
     SuperCurrencyColumn(
       key: 'cost',
-      label: 'Unit Cost',
+      label: ExampleL10n.current.unitCost,
       width: 126,
       symbol: r'$',
       agg: SuperAgg.avg,
-      aggLabel: 'AVG',
+      aggLabel: ExampleL10n.current.aVG,
       min: 0,
     ),
     SuperComputedColumn<num>(
       key: 'netValue',
-      label: 'Net Value',
+      label: ExampleL10n.current.netValue,
       width: 138,
       align: SuperAlign.end,
       agg: SuperAgg.sum,
@@ -199,43 +200,43 @@ class _ShowcaseExampleState extends State<ShowcaseExample> {
     ),
     SuperProgressColumn<num>(
       key: 'level',
-      label: 'Stock Level',
+      label: ExampleL10n.current.stockLevel,
       width: 150,
       max: 1,
       agg: SuperAgg.avg,
     ),
     SuperColorColumn<String>(
       key: 'tag',
-      label: 'Tag',
+      label: ExampleL10n.current.tag,
       width: 118,
-      filterItems: const [
-        FilterItem('Blue', '#4A7CFF'),
-        FilterItem('Green', '#1DB88A'),
-        FilterItem('Amber', '#E0A23B'),
-        FilterItem('Purple', '#8B5CF6'),
-        FilterItem('Red', '#EF4444'),
-        FilterItem('Cyan', '#06B6D4'),
+      filterItems: [
+        FilterItem(ExampleL10n.current.blue, '#4A7CFF'),
+        FilterItem(ExampleL10n.current.green, '#1DB88A'),
+        FilterItem(ExampleL10n.current.amber, '#E0A23B'),
+        FilterItem(ExampleL10n.current.purple, '#8B5CF6'),
+        FilterItem(ExampleL10n.current.red, '#EF4444'),
+        FilterItem(ExampleL10n.current.cyan, '#06B6D4'),
       ],
     ),
     SuperDateColumn(
       key: 'updated',
-      label: 'Updated',
+      label: ExampleL10n.current.updated,
       width: 130,
       required: true,
       validator: (context, controller, row, cell, value) =>
           RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(value)
           ? null
-          : 'Use YYYY-MM-DD',
+          : ExampleL10n.current.useYYYYMMDD,
     ),
     SuperTimeColumn(
       key: 'received',
-      label: 'Received',
+      label: ExampleL10n.current.received,
       width: 116,
       required: true,
     ),
     SuperLinkColumn(
       key: 'vendorUrl',
-      label: 'Vendor URL',
+      label: ExampleL10n.current.vendorURL,
       width: 220,
       onOpen: (value, row) {
         debugPrint('Open vendor URL: $value');
@@ -243,7 +244,7 @@ class _ShowcaseExampleState extends State<ShowcaseExample> {
     ),
     SuperCheckboxColumn(
       key: 'active',
-      label: 'Active',
+      label: ExampleL10n.current.active,
       width: 82,
       onChange: (context, controller, row, cell, previous, next) {
         if (!next) row['status'] = 'Discontinued';
@@ -252,7 +253,7 @@ class _ShowcaseExampleState extends State<ShowcaseExample> {
     ),
     SuperReadonlyColumn(
       key: 'ref',
-      label: 'Ref',
+      label: ExampleL10n.current.ref,
       width: 118,
       mono: true,
       pin: SuperPin.end,
@@ -302,7 +303,7 @@ class _ShowcaseExampleState extends State<ShowcaseExample> {
     _grouped = !_grouped;
     _c.setGroupKeys(_grouped ? ['warehouse', 'category'] : const []);
     _setStatus(
-      _grouped ? 'Grouped by warehouse and category.' : 'Grouping cleared.',
+      _grouped ? ExampleL10n.current.groupedByWarehouseAndCategory : ExampleL10n.current.groupingCleared,
     );
   }
 
@@ -320,7 +321,7 @@ class _ShowcaseExampleState extends State<ShowcaseExample> {
       );
     }
     _c.setPagination(pagination);
-    _setStatus('Loading mode: ${_loadingModeLabel(pagination)}.');
+    _setStatus(ExampleL10n.current.loadingMode(_loadingModeLabel(pagination)));
   }
 
   void _loadMore(SuperFilterState _) {
@@ -339,78 +340,78 @@ class _ShowcaseExampleState extends State<ShowcaseExample> {
       final more = _generatedRows(_nextGenerated, count);
       _nextGenerated += count;
       _c.appendRows(more, hasMore: _c.rows.length + count < _maxRows);
-      _setStatus('Loaded $count more rows.');
+      _setStatus(ExampleL10n.current.loadedMoreRows(count));
     });
   }
 
   Future<void> _copyCsv() async {
     await Clipboard.setData(ClipboardData(text: _c.toCsv()));
-    _setStatus('Copied ${_c.sortedRows.length} rows as CSV.');
+    _setStatus(ExampleL10n.current.copiedRowsAsCSV(_c.sortedRows.length));
   }
 
   void _validate() {
     showSuperValidationPanel(context, _c);
     _setStatus(
-      _c.isValid ? 'All rows valid.' : '${_c.errorCount} validation issue(s).',
+      _c.isValid ? ExampleL10n.current.allRowsValid : ExampleL10n.current.validationIssueS(_c.errorCount),
     );
   }
 
   void _saveView() {
     _savedView = _c.viewStateJson();
-    _setStatus('View state saved in memory.');
+    _setStatus(ExampleL10n.current.viewStateSavedInMemory);
   }
 
   void _restoreView() {
     final saved = _savedView;
     if (saved == null) {
-      _setStatus('No saved view yet.');
+      _setStatus(ExampleL10n.current.noSavedViewYet);
       return;
     }
     _c.applyViewJson(saved);
     _grouped = _c.grouped;
-    _setStatus('Saved view restored.');
+    _setStatus(ExampleL10n.current.savedViewRestored);
   }
 
   void _resetView() {
     _c.resetViewState();
     _grouped = false;
-    _setStatus('View state reset.');
+    _setStatus(ExampleL10n.current.viewStateReset);
   }
 
   void _addRow() {
     _c.addRow();
     _c.setMode(SuperTableMode.editable);
-    _setStatus('New editable row added.');
+    _setStatus(ExampleL10n.current.newEditableRowAdded);
   }
 
   void _moveUp() {
     _c.moveRowUp();
-    _setStatus('Focused row moved up.');
+    _setStatus(ExampleL10n.current.focusedRowMovedUp);
   }
 
   void _moveDown() {
     _c.moveRowDown();
-    _setStatus('Focused row moved down.');
+    _setStatus(ExampleL10n.current.focusedRowMovedDown);
   }
 
   void _fillDown() {
     _c.fillDown();
-    _setStatus('Fill down applied to the current selection.');
+    _setStatus(ExampleL10n.current.fillDownAppliedToTheCurrentSelection);
   }
 
   void _fillRight() {
     _c.fillRight();
-    _setStatus('Fill right applied to the current selection.');
+    _setStatus(ExampleL10n.current.fillRightAppliedToTheCurrentSelection);
   }
 
   void _rejectChanges() {
     _c.rejectChanges();
-    _setStatus('Changes rejected.');
+    _setStatus(ExampleL10n.current.changesRejected);
   }
 
   void _acceptChanges() {
     _c.acceptChanges();
-    _setStatus('Changes accepted.');
+    _setStatus(ExampleL10n.current.changesAccepted);
   }
 
   @override
@@ -422,7 +423,7 @@ class _ShowcaseExampleState extends State<ShowcaseExample> {
     return Scaffold(
       backgroundColor: t.bg,
       appBar: AppBar(
-        title: const Text('Showcase - all column types'),
+        title: Text(ExampleL10n.current.showcaseAllColumnTypes),
         backgroundColor: t.surface,
       ),
       body: Padding(
@@ -453,32 +454,32 @@ class _ShowcaseExampleState extends State<ShowcaseExample> {
                       ..hideCurrentSnackBar()
                       ..showSnackBar(
                         SnackBar(
-                          content: Text('Open ${row['sku']} - ${row['name']}'),
+                          content: Text(ExampleL10n.current.open(row['sku'], row['name'])),
                           duration: const Duration(seconds: 2),
                         ),
                       );
                   },
                   onCellDoubleTap: (details) => _setStatus(
-                    'Double tap ${details.column.label}: ${details.value ?? ''}',
+                    ExampleL10n.current.doubleTap(details.column.label, details.value ?? ''),
                   ),
                   onCellSecondaryTap: (details) =>
-                      _setStatus('Context menu on ${details.column.label}.'),
+                      _setStatus(ExampleL10n.current.contextMenuOn(details.column.label)),
                   onSelectionChanged: (selection) {
                     final stats = selection.stats;
                     if (stats != null && stats.hasAggregate) {
                       _setStatus(
-                        '${selection.cells.length} cells selected - sum ${stats.sum.toStringAsFixed(2)} - avg ${stats.average.toStringAsFixed(2)}',
+                        ExampleL10n.current.cellsSelectedSumAvg(selection.cells.length, stats.sum.toStringAsFixed(2), stats.average.toStringAsFixed(2)),
                       );
                     } else {
                       _setStatus(
-                        'Cursor row ${selection.cursor.r + 1}, column ${selection.cursor.c + 1}.',
+                        ExampleL10n.current.cursorRowColumn(selection.cursor.r + 1, selection.cursor.c + 1),
                       );
                     }
                   },
                   onSortChanged: (sort) => _setStatus(
                     sort.isSorted
-                        ? 'Sorted ${sort.columnLabel} ${sort.ascending ? 'asc' : 'desc'}.'
-                        : 'Sort cleared.',
+                        ? ExampleL10n.current.sorted(sort.columnLabel ?? '', sort.ascending ? 'asc' : 'desc')
+                        : ExampleL10n.current.sortCleared,
                   ),
                 ),
               ),
@@ -498,65 +499,65 @@ class _ShowcaseExampleState extends State<ShowcaseExample> {
         _btn(
           theme,
           editable ? Icons.visibility_rounded : Icons.edit_rounded,
-          editable ? 'Readable' : 'Editable',
+          editable ? ExampleL10n.current.readable : ExampleL10n.current.editable,
           _c.toggleMode,
           filled: true,
         ),
         _btn(
           theme,
           Icons.view_column_rounded,
-          'Columns',
+          ExampleL10n.current.columnscf723c,
           () => showSuperColumnManager(context, _c),
         ),
         _btn(
           theme,
           _grouped ? Icons.layers_clear_rounded : Icons.layers_rounded,
-          _grouped ? 'Ungroup' : 'Group',
+          _grouped ? ExampleL10n.current.ungroup : ExampleL10n.current.group,
           _toggleGroup,
         ),
-        _chip(theme, 'Totals', Icons.functions_rounded, _totals, () {
+        _chip(theme, ExampleL10n.current.totals, Icons.functions_rounded, _totals, () {
           setState(() => _totals = !_totals);
         }),
-        _chip(theme, 'Filters', Icons.filter_alt_outlined, _filters, () {
+        _chip(theme, ExampleL10n.current.filters, Icons.filter_alt_outlined, _filters, () {
           setState(() => _filters = !_filters);
         }),
         if (!editable) _loadingModePicker(theme),
         _chip(
           theme,
-          'JSON btn',
+          ExampleL10n.current.jSONBtn,
           Icons.content_copy_rounded,
           _showCopyJsonButton,
           () => setState(() => _showCopyJsonButton = !_showCopyJsonButton),
         ),
-        _chip(theme, 'Undo btn', Icons.undo_rounded, _showUndoButton, () {
+        _chip(theme, ExampleL10n.current.undoBtn, Icons.undo_rounded, _showUndoButton, () {
           setState(() => _showUndoButton = !_showUndoButton);
         }),
-        _chip(theme, 'Redo btn', Icons.redo_rounded, _showRedoButton, () {
+        _chip(theme, ExampleL10n.current.redoBtn, Icons.redo_rounded, _showRedoButton, () {
           setState(() => _showRedoButton = !_showRedoButton);
         }),
-        _btn(theme, Icons.add_rounded, 'Add row', _addRow),
-        _btn(theme, Icons.keyboard_arrow_up_rounded, 'Move up', _moveUp),
-        _btn(theme, Icons.keyboard_arrow_down_rounded, 'Move down', _moveDown),
+        _btn(theme, Icons.add_rounded, ExampleL10n.current.addRow, _addRow),
+        _btn(theme, Icons.keyboard_arrow_up_rounded, ExampleL10n.current.moveUp, _moveUp),
+        _btn(theme, Icons.keyboard_arrow_down_rounded, ExampleL10n.current.moveDown, _moveDown),
         _btn(
           theme,
           Icons.south_rounded,
-          'Fill down',
+          ExampleL10n.current.fillDown,
           editable ? _fillDown : null,
         ),
         _btn(
           theme,
           Icons.east_rounded,
-          'Fill right',
+          ExampleL10n.current.fillRight,
           editable ? _fillRight : null,
         ),
-        _btn(theme, Icons.file_download_outlined, 'Copy CSV', _copyCsv),
-        _btn(theme, Icons.rule_rounded, 'Validate', _validate),
-        _btn(theme, Icons.bookmark_add_outlined, 'Save view', _saveView),
-        _btn(theme, Icons.restore_rounded, 'Restore view', _restoreView),
-        _btn(theme, Icons.restart_alt_rounded, 'Reset view', _resetView),
+        _btn(theme, Icons.file_download_outlined, ExampleL10n.current.copyCSV, _copyCsv),
+        _btn(theme, Icons.rule_rounded, ExampleL10n.current.validate, _validate),
+        _btn(theme, Icons.bookmark_add_outlined, ExampleL10n.current.saveView, _saveView),
+        _btn(theme, Icons.restore_rounded, ExampleL10n.current.restoreView, _restoreView),
+        _btn(theme, Icons.restart_alt_rounded, ExampleL10n.current.resetView, _resetView),
         if (_c.hasChanges) ...[
-          _btn(theme, Icons.save_rounded, 'Accept', _acceptChanges),
-          _btn(theme, Icons.undo_rounded, 'Reject', _rejectChanges),
+          _btn(theme, Icons.save_rounded, ExampleL10n.current.accept, _acceptChanges),
+          _btn(theme, Icons.undo_rounded, ExampleL10n.current.reject, _rejectChanges),
         ],
       ],
     );
@@ -568,7 +569,7 @@ class _ShowcaseExampleState extends State<ShowcaseExample> {
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          'LOAD ',
+          ExampleL10n.current.lOAD,
           style: TextStyle(
             color: t.fg4,
             fontSize: 10,
@@ -578,26 +579,26 @@ class _ShowcaseExampleState extends State<ShowcaseExample> {
         const SizedBox(width: 6),
         SegmentedButton<SuperPagination>(
           showSelectedIcon: false,
-          segments: const [
+          segments: [
             ButtonSegment(
               value: SuperPagination.none,
-              icon: Icon(Icons.view_list_rounded, size: 15),
-              label: Text('Off'),
+              icon: const Icon(Icons.view_list_rounded, size: 15),
+              label: Text(ExampleL10n.current.off),
             ),
             ButtonSegment(
               value: SuperPagination.pages,
-              icon: Icon(Icons.auto_stories_rounded, size: 15),
-              label: Text('Pages'),
+              icon: const Icon(Icons.auto_stories_rounded, size: 15),
+              label: Text(ExampleL10n.current.pages),
             ),
             ButtonSegment(
               value: SuperPagination.loadMore,
-              icon: Icon(Icons.arrow_downward_rounded, size: 15),
-              label: Text('Load+'),
+              icon: const Icon(Icons.arrow_downward_rounded, size: 15),
+              label: Text(ExampleL10n.current.loadPlus),
             ),
             ButtonSegment(
               value: SuperPagination.infinite,
-              icon: Icon(Icons.all_inclusive_rounded, size: 15),
-              label: Text('Infinite'),
+              icon: const Icon(Icons.all_inclusive_rounded, size: 15),
+              label: Text(ExampleL10n.current.infinite),
             ),
           ],
           selected: {_c.pagination},

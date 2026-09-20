@@ -18,6 +18,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:super_table_field/super_table_field.dart';
 import 'package:super_core/super_core.dart';
+import 'package:super_table_field_example/localizations/example_l10n.dart';
 
 class ValidationViewsExample extends StatefulWidget {
   const ValidationViewsExample({super.key});
@@ -47,7 +48,7 @@ class _ValidationViewsExampleState extends State<ValidationViewsExample> {
       columns: [
         SuperTextColumn(
           key: 'sku',
-          label: 'SKU',
+          label: ExampleL10n.current.sKU,
           width: 130,
           required: true,
           unique: true,
@@ -55,19 +56,19 @@ class _ValidationViewsExampleState extends State<ValidationViewsExample> {
         ),
         SuperTextColumn(
           key: 'name',
-          label: 'Item name',
+          label: ExampleL10n.current.itemName,
           width: 240,
           required: true,
         ),
         SuperNumberColumn<int>(
           key: 'qty',
-          label: 'On hand',
+          label: ExampleL10n.current.onHand,
           width: 110,
           min: 0,
         ),
         SuperCurrencyColumn(
           key: 'cost',
-          label: 'Unit cost',
+          label: ExampleL10n.current.unitCostb16e07,
           width: 130,
           agg: SuperAgg.sum,
         ),
@@ -114,21 +115,21 @@ class _ValidationViewsExampleState extends State<ValidationViewsExample> {
     if (!_c.isValid) {
       _c.validateAll(); // light the badges
       setState(
-        () => _status = 'Cannot post — fix the validation issues first.',
+        () => _status = ExampleL10n.current.cannotPostFixTheValidationIssuesFirst,
       );
       showSuperValidationPanel(context, _c);
       return;
     }
     _c.acceptChanges();
     setState(
-      () => _status = 'Posted ✓  (baseline captured — cells are clean again)',
+      () => _status = ExampleL10n.current.postedBaselineCapturedCellsAreCleanAgain,
     );
   }
 
   void _saveView() {
     _savedView = jsonEncode(_c.viewStateJson());
     setState(
-      () => _status = 'View saved (${_savedView!.length} chars of JSON).',
+      () => _status = ExampleL10n.current.viewSavedCharsOfJSON(_savedView!.length),
     );
   }
 
@@ -137,7 +138,7 @@ class _ValidationViewsExampleState extends State<ValidationViewsExample> {
     _c.applyViewJson(jsonDecode(_savedView!) as Map<String, dynamic>);
     setState(
       () =>
-          _status = 'View restored — order, widths, sort and filters are back.',
+          _status = ExampleL10n.current.viewRestoredOrderWidthsSortAndFiltersAreBack,
     );
   }
 
@@ -147,7 +148,7 @@ class _ValidationViewsExampleState extends State<ValidationViewsExample> {
     return Scaffold(
       backgroundColor: t.bg,
       appBar: AppBar(
-        title: const Text('Validation summary · saved views'),
+        title: Text(ExampleL10n.current.validationSummarySavedViews),
         backgroundColor: t.surface,
       ),
       body: Padding(
@@ -158,9 +159,7 @@ class _ValidationViewsExampleState extends State<ValidationViewsExample> {
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: Text(
-                'SKU is required AND unique — try duplicating one, or leave it blank, then hit '
-                'Validate. Post is gated on controller.isValid. Save view snapshots the grid '
-                'layout (drag a column, resize, sort, filter…) and Restore brings it back.',
+                ExampleL10n.current.sKUIsRequiredANDUniqueTryDuplicatingOneOrLeaveItBlankThenHitVali3f35562,
                 style: TextStyle(color: t.fg3),
               ),
             ),
@@ -169,7 +168,7 @@ class _ValidationViewsExampleState extends State<ValidationViewsExample> {
                 OutlinedButton.icon(
                   onPressed: _validate,
                   icon: const Icon(Icons.rule_rounded, size: 16),
-                  label: const Text('Validate'),
+                  label: Text(ExampleL10n.current.validate),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: t.fg1,
                     side: BorderSide(color: t.borderStrong),
@@ -179,7 +178,7 @@ class _ValidationViewsExampleState extends State<ValidationViewsExample> {
                 OutlinedButton.icon(
                   onPressed: _post,
                   icon: const Icon(Icons.task_alt_rounded, size: 16),
-                  label: const Text('Post'),
+                  label: Text(ExampleL10n.current.post),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: t.fg1,
                     side: BorderSide(color: t.borderStrong),
@@ -189,7 +188,7 @@ class _ValidationViewsExampleState extends State<ValidationViewsExample> {
                 OutlinedButton.icon(
                   onPressed: _saveView,
                   icon: const Icon(Icons.bookmark_add_outlined, size: 16),
-                  label: const Text('Save view'),
+                  label: Text(ExampleL10n.current.saveView),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: t.fg1,
                     side: BorderSide(color: t.borderStrong),
@@ -199,7 +198,7 @@ class _ValidationViewsExampleState extends State<ValidationViewsExample> {
                 OutlinedButton.icon(
                   onPressed: _savedView == null ? null : _restoreView,
                   icon: const Icon(Icons.bookmark_outlined, size: 16),
-                  label: const Text('Restore view'),
+                  label: Text(ExampleL10n.current.restoreView),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: t.fg1,
                     side: BorderSide(color: t.borderStrong),
@@ -209,7 +208,7 @@ class _ValidationViewsExampleState extends State<ValidationViewsExample> {
                 OutlinedButton.icon(
                   onPressed: () => _c.resetViewState(),
                   icon: const Icon(Icons.restart_alt_rounded, size: 16),
-                  label: const Text('Reset view'),
+                  label: Text(ExampleL10n.current.resetView),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: t.fg1,
                     side: BorderSide(color: t.borderStrong),

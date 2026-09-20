@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 
 import 'package:super_table_field/super_table_field.dart';
 import 'package:super_core/super_core.dart';
+import 'package:super_table_field_example/localizations/example_l10n.dart';
 
 typedef _Row = Map<String, dynamic>;
 
@@ -32,21 +33,21 @@ class _SuperTableDemoState extends State<SuperTableDemo> {
   static final List<SuperColumn> _columns = [
     SuperTextColumn(
       key: 'sku',
-      label: 'SKU',
+      label: ExampleL10n.current.sKU,
       width: 130,
       mono: true,
       pin: SuperPin.start,
     ),
     SuperTextColumn(
       key: 'item',
-      label: 'Item',
+      label: ExampleL10n.current.item,
       width: 210,
       arKey: 'item_ar',
       required: true,
     ),
     SuperEnumerationColumn<String>(
       key: 'cat',
-      label: 'Category',
+      label: ExampleL10n.current.category,
       width: 150,
       values: const [
         'Raw Material',
@@ -57,19 +58,19 @@ class _SuperTableDemoState extends State<SuperTableDemo> {
     ),
     SuperEnumerationColumn<String>(
       key: 'status',
-      label: 'Status',
+      label: ExampleL10n.current.status,
       width: 130,
       values: const ['In Stock', 'Low Stock', 'Out of Stock', 'Discontinued'],
     ),
     SuperNumberColumn<int>(
       key: 'qty',
-      label: 'Qty',
+      label: ExampleL10n.current.qty,
       width: 90,
       agg: SuperAgg.sum,
     ),
     SuperComboColumn<String>(
       key: 'unit',
-      label: 'Unit',
+      label: ExampleL10n.current.unit,
       width: 130,
       values: const [
         'each',
@@ -85,14 +86,14 @@ class _SuperTableDemoState extends State<SuperTableDemo> {
     ),
     SuperCurrencyColumn(
       key: 'price',
-      label: 'Unit Price',
+      label: ExampleL10n.current.unitPrice,
       width: 130,
       symbol: '',
       code: 'SAR',
     ),
     SuperComputedColumn<num>(
       key: 'total',
-      label: 'Line Total',
+      label: ExampleL10n.current.lineTotal,
       width: 140,
       align: SuperAlign.end,
       agg: SuperAgg.sum,
@@ -101,10 +102,10 @@ class _SuperTableDemoState extends State<SuperTableDemo> {
           (r['price'] is num ? r['price'] as num : 0),
       format: (v, r) => '${(v as num).toStringAsFixed(2)} SAR',
     ),
-    SuperProgressColumn<int>(key: 'fill', label: 'Fill', width: 130, max: 100),
-    SuperDateColumn(key: 'received', label: 'Received', width: 130),
-    SuperColorColumn<String>(key: 'tag', label: 'Tag', width: 110),
-    SuperCheckboxColumn(key: 'active', label: 'Active', width: 80),
+    SuperProgressColumn<int>(key: 'fill', label: ExampleL10n.current.fill, width: 130, max: 100),
+    SuperDateColumn(key: 'received', label: ExampleL10n.current.received, width: 130),
+    SuperColorColumn<String>(key: 'tag', label: ExampleL10n.current.tag, width: 110),
+    SuperCheckboxColumn(key: 'active', label: ExampleL10n.current.active, width: 80),
   ];
 
   static List<SuperRow<_Row>> _seed() => [
@@ -277,14 +278,14 @@ class _SuperTableDemoState extends State<SuperTableDemo> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                'SUPER TABLE • UNIFIED DATA GRID',
+                ExampleL10n.current.sUPERTABLEUNIFIEDDATAGRID,
                 style: context.superTextTheme.eyebrow.copyWith(
                   color: colorScheme.primary,
                 ),
               ),
               SizedBox(height: spacing.space2),
               Text(
-                'Issue Inventory',
+                ExampleL10n.current.issueInventory,
                 style: context.superTextTheme.h1.copyWith(color: theme.fg1),
               ),
               SizedBox(height: spacing.space6),
@@ -330,9 +331,9 @@ class _SuperTableDemoState extends State<SuperTableDemo> {
       children: [
         ListenableBuilder(
           listenable: _c,
-          builder: (ctx, _) => _seg('Mode', [
+          builder: (ctx, _) => _seg(ExampleL10n.current.mode, [
             (
-              'Readable',
+              ExampleL10n.current.readable,
               _c.mode == SuperTableMode.readable,
               () => _c.setMode(SuperTableMode.readable),
             ),
@@ -343,9 +344,9 @@ class _SuperTableDemoState extends State<SuperTableDemo> {
             ),
           ]),
         ),
-        _seg('Select', [
+        _seg(ExampleL10n.current.select, [
           (
-            'Cell',
+            ExampleL10n.current.cell,
             _selMode == SuperSelectionMode.singleCell,
             () => _setSel(SuperSelectionMode.singleCell),
           ),
@@ -365,7 +366,7 @@ class _SuperTableDemoState extends State<SuperTableDemo> {
             () => _setSel(SuperSelectionMode.multiRows),
           ),
         ]),
-        _toggle(t, 'Group by category', _grouped, () {
+        _toggle(t, ExampleL10n.current.groupByCategory, _grouped, () {
           setState(() => _grouped = !_grouped);
           _c.clearGroups();
           if (_grouped) _c.toggleGroup('cat');
@@ -490,7 +491,7 @@ class _SuperTableDemoState extends State<SuperTableDemo> {
                 isDense: true,
                 border: InputBorder.none,
                 contentPadding: EdgeInsets.zero,
-                hintText: 'Search rows…',
+                hintText: ExampleL10n.current.searchRows,
                 hintStyle: context.superTextTheme.caption.copyWith(
                   color: t.fg4,
                 ),

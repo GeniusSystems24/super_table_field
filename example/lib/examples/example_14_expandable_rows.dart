@@ -16,6 +16,7 @@
 import 'package:flutter/material.dart';
 import 'package:super_table_field/super_table_field.dart';
 import 'package:super_core/super_core.dart';
+import 'package:super_table_field_example/localizations/example_l10n.dart';
 
 // ── Domain models ─────────────────────────────────────────────────────────
 
@@ -55,22 +56,22 @@ class JournalEntry {
 
 // ── Seed data ──────────────────────────────────────────────────────────────
 
-const List<JournalEntry> _seed = [
+final List<JournalEntry> _seed = [
   JournalEntry(
     ref: 'JV-2024-0001',
     date: '2024-01-15',
-    description: 'Opening Balance — Cash & Equity',
+    description: ExampleL10n.current.openingBalanceCashAndEquity,
     type: 'Opening',
     totalDebit: 50000,
     totalCredit: 50000,
     status: 'Posted',
     lines: [
-      JournalLine(
+      const JournalLine(
         account: '1001 · Cash on Hand',
         narration: 'Opening cash balance',
         debit: 50000,
       ),
-      JournalLine(
+      const JournalLine(
         account: '3001 · Retained Earnings',
         narration: 'Opening equity position',
         credit: 50000,
@@ -80,23 +81,23 @@ const List<JournalEntry> _seed = [
   JournalEntry(
     ref: 'JV-2024-0002',
     date: '2024-01-18',
-    description: 'Purchase — Office Equipment',
+    description: ExampleL10n.current.purchaseOfficeEquipment,
     type: 'Purchase',
     totalDebit: 12500,
     totalCredit: 12500,
     status: 'Posted',
     lines: [
-      JournalLine(
+      const JournalLine(
         account: '1501 · Office Equipment',
         narration: 'Laptop × 2, Monitor × 2',
         debit: 12500,
       ),
-      JournalLine(
+      const JournalLine(
         account: '2001 · Accounts Payable',
         narration: 'Vendor: TechSupply Co.',
         credit: 10000,
       ),
-      JournalLine(
+      const JournalLine(
         account: '1001 · Cash on Hand',
         narration: 'Cash down payment',
         credit: 2500,
@@ -106,28 +107,28 @@ const List<JournalEntry> _seed = [
   JournalEntry(
     ref: 'JV-2024-0003',
     date: '2024-01-22',
-    description: 'Sales Revenue — Q1 Invoice Batch',
+    description: ExampleL10n.current.salesRevenueQ1InvoiceBatch,
     type: 'Revenue',
     totalDebit: 34800,
     totalCredit: 34800,
     status: 'Posted',
     lines: [
-      JournalLine(
+      const JournalLine(
         account: '1101 · Accounts Receivable',
         narration: 'INV-2024-0041 through 0044',
         debit: 34800,
       ),
-      JournalLine(
+      const JournalLine(
         account: '4001 · Sales Revenue',
         narration: 'Ledger Pro licences (3)',
         credit: 18000,
       ),
-      JournalLine(
+      const JournalLine(
         account: '4002 · Service Revenue',
         narration: 'Implementation & training',
         credit: 12000,
       ),
-      JournalLine(
+      const JournalLine(
         account: '2201 · Tax Payable — VAT',
         narration: 'VAT 15%',
         credit: 4800,
@@ -137,28 +138,28 @@ const List<JournalEntry> _seed = [
   JournalEntry(
     ref: 'JV-2024-0004',
     date: '2024-01-28',
-    description: 'Payroll — January 2024',
+    description: ExampleL10n.current.payrollJanuary2024,
     type: 'Payroll',
     totalDebit: 28400,
     totalCredit: 28400,
     status: 'Posted',
     lines: [
-      JournalLine(
+      const JournalLine(
         account: '5001 · Salaries Expense',
         narration: 'Monthly payroll — 7 staff',
         debit: 24000,
       ),
-      JournalLine(
+      const JournalLine(
         account: '5002 · Social Insurance Exp.',
         narration: 'Employer contribution 18%',
         debit: 4400,
       ),
-      JournalLine(
+      const JournalLine(
         account: '1001 · Cash on Hand',
         narration: 'Net payroll disbursed',
         credit: 24000,
       ),
-      JournalLine(
+      const JournalLine(
         account: '2101 · SI Payable',
         narration: 'Social insurance due date',
         credit: 4400,
@@ -168,18 +169,18 @@ const List<JournalEntry> _seed = [
   JournalEntry(
     ref: 'JV-2024-0005',
     date: '2024-02-01',
-    description: 'Depreciation — Office Equipment',
+    description: ExampleL10n.current.depreciationOfficeEquipment,
     type: 'Depreciation',
     totalDebit: 625,
     totalCredit: 625,
     status: 'Draft',
     lines: [
-      JournalLine(
+      const JournalLine(
         account: '5101 · Depreciation Expense',
         narration: 'Office equipment — straight-line',
         debit: 625,
       ),
-      JournalLine(
+      const JournalLine(
         account: '1502 · Acc. Depreciation',
         narration: 'Accumulated depreciation',
         credit: 625,
@@ -189,18 +190,18 @@ const List<JournalEntry> _seed = [
   JournalEntry(
     ref: 'JV-2024-0006',
     date: '2024-02-05',
-    description: 'Cash Receipt — Accounts Receivable',
+    description: ExampleL10n.current.cashReceiptAccountsReceivable,
     type: 'Receipt',
     totalDebit: 18000,
     totalCredit: 18000,
     status: 'Posted',
     lines: [
-      JournalLine(
+      const JournalLine(
         account: '1001 · Cash on Hand',
         narration: 'Payment from client: INV-2024-0041',
         debit: 18000,
       ),
-      JournalLine(
+      const JournalLine(
         account: '1101 · Accounts Receivable',
         narration: 'INV-2024-0041 cleared',
         credit: 18000,
@@ -210,18 +211,18 @@ const List<JournalEntry> _seed = [
   JournalEntry(
     ref: 'JV-2024-0007',
     date: '2024-02-10',
-    description: 'Inventory Purchase — Raw Materials',
+    description: ExampleL10n.current.inventoryPurchaseRawMaterials,
     type: 'Purchase',
     totalDebit: 8750,
     totalCredit: 8750,
     status: 'Posted',
     lines: [
-      JournalLine(
+      const JournalLine(
         account: '1301 · Raw Materials Inventory',
         narration: 'Materials batch #INV-2024-0089',
         debit: 8750,
       ),
-      JournalLine(
+      const JournalLine(
         account: '2001 · Accounts Payable',
         narration: 'Supplier: BuildMat LLC',
         credit: 8750,
@@ -248,15 +249,15 @@ class _ExpandableRowsExampleState extends State<ExpandableRowsExample> {
         columns: [
           SuperTextColumn(
             key: 'ref',
-            label: 'Reference',
+            label: ExampleL10n.current.reference,
             width: 148,
             mono: true,
           ),
-          SuperTextColumn(key: 'date', label: 'Date', width: 114, mono: true),
-          SuperTextColumn(key: 'description', label: 'Description', width: 280),
+          SuperTextColumn(key: 'date', label: ExampleL10n.current.date, width: 114, mono: true),
+          SuperTextColumn(key: 'description', label: ExampleL10n.current.description, width: 280),
           SuperEnumerationColumn<String>(
             key: 'type',
-            label: 'Type',
+            label: ExampleL10n.current.type,
             width: 126,
             values: const [
               'Opening',
@@ -269,19 +270,19 @@ class _ExpandableRowsExampleState extends State<ExpandableRowsExample> {
           ),
           SuperCurrencyColumn(
             key: 'totalDebit',
-            label: 'Total Debit',
+            label: ExampleL10n.current.totalDebit,
             width: 136,
             agg: SuperAgg.sum,
           ),
           SuperCurrencyColumn(
             key: 'totalCredit',
-            label: 'Total Credit',
+            label: ExampleL10n.current.totalCredit,
             width: 136,
             agg: SuperAgg.sum,
           ),
           SuperEnumerationColumn<String>(
             key: 'status',
-            label: 'Status',
+            label: ExampleL10n.current.status,
             width: 108,
             values: const ['Posted', 'Draft'],
           ),
@@ -333,7 +334,7 @@ class _ExpandableRowsExampleState extends State<ExpandableRowsExample> {
     return Scaffold(
       backgroundColor: t.bg,
       appBar: AppBar(
-        title: const Text('Expandable Rows'),
+        title: Text(ExampleL10n.current.expandableRows020fb0),
         backgroundColor: t.surface,
         elevation: 0,
         actions: [
@@ -343,7 +344,7 @@ class _ExpandableRowsExampleState extends State<ExpandableRowsExample> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'EXPANSION MODE',
+                  ExampleL10n.current.eXPANSIONMODE,
                   style: TextStyle(
                     fontFamily: context.superTextTheme.body.fontFamily,
                     fontSize: 10,
@@ -354,7 +355,7 @@ class _ExpandableRowsExampleState extends State<ExpandableRowsExample> {
                 ),
                 const SizedBox(width: 10),
                 _ModeChip(
-                  label: 'Multi',
+                  label: ExampleL10n.current.multi,
                   active: !isSingle,
                   onTap: () => setState(
                     () => _expansionMode = SuperRowExpansionMode.multi,
@@ -362,7 +363,7 @@ class _ExpandableRowsExampleState extends State<ExpandableRowsExample> {
                 ),
                 const SizedBox(width: 6),
                 _ModeChip(
-                  label: 'Single',
+                  label: ExampleL10n.current.single,
                   active: isSingle,
                   onTap: () => setState(
                     () => _expansionMode = SuperRowExpansionMode.single,
@@ -387,8 +388,8 @@ class _ExpandableRowsExampleState extends State<ExpandableRowsExample> {
                   const SizedBox(width: 7),
                   Text(
                     isSingle
-                        ? 'Single mode — only one row can be open at a time (accordion).'
-                        : 'Multi mode — multiple rows can be expanded simultaneously.',
+                        ? ExampleL10n.current.singleModeOnlyOneRowCanBeOpenAtATimeAccordion
+                        : ExampleL10n.current.multiModeMultipleRowsCanBeExpandedSimultaneously,
                     style: TextStyle(
                       fontFamily: context.superTextTheme.body.fontFamily,
                       fontSize: 12.5,
@@ -397,7 +398,7 @@ class _ExpandableRowsExampleState extends State<ExpandableRowsExample> {
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    'Tap the chevron (▾) in the row number column to expand.',
+                    ExampleL10n.current.tapTheChevronInTheRowNumberColumnToExpand,
                     style: TextStyle(
                       fontFamily: context.superTextTheme.body.fontFamily,
                       fontSize: 12.5,
@@ -460,10 +461,10 @@ class _LineItemsPanel extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 12),
             child: Row(
               children: [
-                _colHead(context, t, 'ACCOUNT', flex: 4),
-                _colHead(context, t, 'NARRATION', flex: 3),
-                _colHeadFixed(context, t, 'DEBIT', width: 120, end: true),
-                _colHeadFixed(context, t, 'CREDIT', width: 120, end: true),
+                _colHead(context, t, ExampleL10n.current.aCCOUNT, flex: 4),
+                _colHead(context, t, ExampleL10n.current.nARRATION, flex: 3),
+                _colHeadFixed(context, t, ExampleL10n.current.dEBIT, width: 120, end: true),
+                _colHeadFixed(context, t, ExampleL10n.current.cREDIT, width: 120, end: true),
                 const SizedBox(width: 8),
               ],
             ),

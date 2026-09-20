@@ -45,7 +45,7 @@ import 'package:super_table_field/super_table_field.dart';
 | Dart SDK | `3.8.0` |
 | Flutter SDK | `3.32.0` |
 | `super_core` | `3.6.0` |
-| `super_auto_suggestion_box` | `1.3.2` |
+| `super_auto_suggestion_box` | `1.6.0` |
 | `super_form_field` | `1.12.0` |
 
 ## Installation
@@ -54,7 +54,7 @@ Add the package to `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  super_table_field: ^3.1.1
+  super_table_field: ^3.2.0
 ```
 
 Then install the dependency:
@@ -79,7 +79,7 @@ The table package keeps its public barrel focused on table-owned APIs. When your
 ```yaml
 dependencies:
   super_core: ">=3.6.0 <4.0.0"
-  super_auto_suggestion_box: ">=1.3.2 <2.0.0"
+  super_auto_suggestion_box: ">=1.6.0 <2.0.0"
   super_form_field: ">=1.12.0 <2.0.0"
 ```
 
@@ -994,16 +994,22 @@ SuperComboColumn<String>(
 );
 ```
 
-`SuperComboColumn` follows `super_auto_suggestion_box` 1.3.2: suggestion data
+`SuperComboColumn` follows `super_auto_suggestion_box` 1.6.0: suggestion data
 and row-scoped sources use raw `T` values. Metadata is derived from optional
-`suggestionBuilder`, then the column's `display` callback. Custom rows can
-read the built `SuperAutoSuggestionsItem<T>` from `itemBuilder`.
+`suggestionBuilder`, then the column's `display` callback. The builder signature
+is `(BuildContext context, List<T> items, int index, T element)`, so suggestion
+metadata may safely read Theme, localization, MediaQuery, and other inherited
+values. Custom rows can read the built `SuperAutoSuggestionsItem<T>` from
+`itemBuilder`.
 
-The 1.3.2 suggestion box exposes selection through `onSelectionChanged` and
+The 1.6.0 suggestion box exposes selection through `onSelectionChanged` and
 observes query text through `SuperAutoSuggestionsController.text`. The table
 adapts these APIs internally while preserving `SuperComboColumn`'s table-level
-selection/free-text behavior. Sources stay bound to
-`SuperAutoSuggestionsBox`, while controller instances own field state.
+selection/free-text behavior. `SuperComboColumn.advancedSearch` remains a
+table-level convenience flag and is mapped internally to
+`SuperAutoSuggestionsMode.both`; `leading` is mapped to
+`InputDecoration.prefixIcon`. Sources stay bound to `SuperAutoSuggestionsBox`,
+while controller instances own field state.
 
 ```dart
 import 'package:super_auto_suggestion_box/super_auto_suggestion_box.dart';
@@ -1013,7 +1019,7 @@ SuperComboColumn<String>(
   key: 'account',
   label: 'Account',
   values: const ['1010 · Cash', '4000 · Revenue'],
-  suggestionBuilder: (items, index, account) => SuperAutoSuggestionsItem<String>(
+  suggestionBuilder: (context, items, index, account) => SuperAutoSuggestionsItem<String>(
     value: account,
     titleText: account.split(' · ').last,
     descriptionText: account.split(' · ').first,

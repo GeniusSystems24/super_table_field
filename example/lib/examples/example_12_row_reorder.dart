@@ -12,6 +12,7 @@
 import 'package:flutter/material.dart';
 import 'package:super_table_field/super_table_field.dart';
 import 'package:super_core/super_core.dart';
+import 'package:super_table_field_example/localizations/example_l10n.dart';
 
 class RowReorderExample extends StatefulWidget {
   const RowReorderExample({super.key});
@@ -36,12 +37,12 @@ class _RowReorderExampleState extends State<RowReorderExample> {
         'price': 0.0,
       },
       columns: [
-        SuperTextColumn(key: 'desc', label: 'Description', width: 280),
-        SuperNumberColumn<int>(key: 'qty', label: 'Qty', width: 90, min: 1),
-        SuperCurrencyColumn(key: 'price', label: 'Unit Price', width: 140),
+        SuperTextColumn(key: 'desc', label: ExampleL10n.current.description, width: 280),
+        SuperNumberColumn<int>(key: 'qty', label: ExampleL10n.current.qty, width: 90, min: 1),
+        SuperCurrencyColumn(key: 'price', label: ExampleL10n.current.unitPrice, width: 140),
         SuperComputedColumn<num>(
           key: 'total',
-          label: 'Line Total',
+          label: ExampleL10n.current.lineTotal,
           width: 150,
           agg: SuperAgg.sum,
           compute: (row) =>
@@ -84,7 +85,7 @@ class _RowReorderExampleState extends State<RowReorderExample> {
     return Scaffold(
       backgroundColor: t.bg,
       appBar: AppBar(
-        title: const Text('Row reordering'),
+        title: Text(ExampleL10n.current.rowReordering),
         backgroundColor: t.surface,
       ),
       body: Padding(
@@ -95,8 +96,7 @@ class _RowReorderExampleState extends State<RowReorderExample> {
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: Text(
-                'Click a row number to select it, then use the buttons below — or right-click → '
-                'Move row up / down. ⌘Z undoes a move.',
+                ExampleL10n.current.clickARowNumberToSelectItThenUseTheButtonsBelowOrRightClickToMov5036271,
                 style: TextStyle(color: t.fg3),
               ),
             ),
@@ -105,7 +105,7 @@ class _RowReorderExampleState extends State<RowReorderExample> {
                 OutlinedButton.icon(
                   onPressed: () => _c.moveRowUp(),
                   icon: const Icon(Icons.arrow_upward_rounded, size: 16),
-                  label: const Text('Move up'),
+                  label: Text(ExampleL10n.current.moveUp),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: t.fg1,
                     side: BorderSide(color: t.borderStrong),
@@ -115,7 +115,7 @@ class _RowReorderExampleState extends State<RowReorderExample> {
                 OutlinedButton.icon(
                   onPressed: () => _c.moveRowDown(),
                   icon: const Icon(Icons.arrow_downward_rounded, size: 16),
-                  label: const Text('Move down'),
+                  label: Text(ExampleL10n.current.moveDown),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: t.fg1,
                     side: BorderSide(color: t.borderStrong),
@@ -125,7 +125,7 @@ class _RowReorderExampleState extends State<RowReorderExample> {
                 OutlinedButton.icon(
                   onPressed: _c.canUndo ? _c.undo : null,
                   icon: const Icon(Icons.undo_rounded, size: 16),
-                  label: const Text('Undo'),
+                  label: Text(ExampleL10n.current.undo),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: t.fg1,
                     side: BorderSide(color: t.borderStrong),

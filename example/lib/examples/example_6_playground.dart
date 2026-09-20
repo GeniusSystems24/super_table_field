@@ -15,6 +15,7 @@
 import 'package:flutter/material.dart';
 import 'package:super_table_field/super_table_field.dart';
 import 'package:super_core/super_core.dart';
+import 'package:super_table_field_example/localizations/example_l10n.dart';
 
 typedef _Row = Map<String, dynamic>;
 
@@ -69,22 +70,22 @@ class _PlaygroundExampleState extends State<PlaygroundExample> {
   static final List<SuperColumn> _columns = [
     SuperTextColumn(
       key: 'sku',
-      label: 'SKU',
+      label: ExampleL10n.current.sKU,
       width: 112,
       mono: true,
       required: true,
       pin: SuperPin.start,
     ),
-    SuperTextColumn(key: 'name', label: 'Product', width: 226, arKey: 'nameAr'),
+    SuperTextColumn(key: 'name', label: ExampleL10n.current.product, width: 226, arKey: 'nameAr'),
     SuperEnumerationColumn<String>(
       key: 'cat',
-      label: 'Category',
+      label: ExampleL10n.current.category,
       width: 134,
       values: _categories,
     ),
     SuperNumberColumn<int>(
       key: 'qty',
-      label: 'Qty',
+      label: ExampleL10n.current.qty,
       width: 88,
       agg: SuperAgg.sum,
       min: 0,
@@ -92,20 +93,20 @@ class _PlaygroundExampleState extends State<PlaygroundExample> {
     ),
     SuperComboColumn<String>(
       key: 'uom',
-      label: 'Unit',
+      label: ExampleL10n.current.unit,
       width: 96,
       mono: true,
       values: _units,
     ),
     SuperCurrencyColumn(
       key: 'cost',
-      label: 'Unit Cost',
+      label: ExampleL10n.current.unitCost,
       width: 124,
       agg: SuperAgg.avg,
     ),
     SuperComputedColumn<num>(
       key: 'value',
-      label: 'Stock Value',
+      label: ExampleL10n.current.stockValue,
       width: 138,
       align: SuperAlign.end,
       agg: SuperAgg.sum,
@@ -116,23 +117,23 @@ class _PlaygroundExampleState extends State<PlaygroundExample> {
     ),
     SuperProgressColumn<num>(
       key: 'level',
-      label: 'Stock Level',
+      label: ExampleL10n.current.stockLevel,
       width: 156,
       max: 1,
     ),
     SuperEnumerationColumn<String>(
       key: 'status',
-      label: 'Status',
+      label: ExampleL10n.current.status,
       width: 138,
       values: _statuses,
     ),
-    SuperColorColumn<String>(key: 'tag', label: 'Tag', width: 118),
-    SuperDateColumn(key: 'updated', label: 'Updated', width: 130),
-    SuperTimeColumn(key: 'recv', label: 'Received', width: 112),
-    SuperCheckboxColumn(key: 'active', label: 'Active', width: 74),
+    SuperColorColumn<String>(key: 'tag', label: ExampleL10n.current.tag, width: 118),
+    SuperDateColumn(key: 'updated', label: ExampleL10n.current.updated, width: 130),
+    SuperTimeColumn(key: 'recv', label: ExampleL10n.current.received, width: 112),
+    SuperCheckboxColumn(key: 'active', label: ExampleL10n.current.active, width: 74),
     SuperReadonlyColumn(
       key: 'ref',
-      label: 'Ref',
+      label: ExampleL10n.current.ref,
       width: 110,
       mono: true,
       pin: SuperPin.end,
@@ -475,7 +476,7 @@ class _PlaygroundExampleState extends State<PlaygroundExample> {
     final key = 'f${DateTime.now().millisecondsSinceEpoch.toRadixString(36)}';
     _c.updateColumns([
       ..._columns.where((col) => col.pin != SuperPin.end),
-      SuperTextColumn(key: key, label: 'Field', width: 130),
+      SuperTextColumn(key: key, label: ExampleL10n.current.field, width: 130),
       ..._columns.where((col) => col.pin == SuperPin.end),
     ]);
   }
@@ -492,7 +493,7 @@ class _PlaygroundExampleState extends State<PlaygroundExample> {
     return Scaffold(
       backgroundColor: t.bg,
       appBar: AppBar(
-        title: const Text('Playground — one grid, two modes'),
+        title: Text(ExampleL10n.current.playgroundOneGridTwoModes),
         backgroundColor: t.surface,
       ),
       body: Padding(
@@ -559,9 +560,9 @@ class _PlaygroundExampleState extends State<PlaygroundExample> {
         runSpacing: 10,
         crossAxisAlignment: WrapCrossAlignment.center,
         children: [
-          _seg('Mode', [
+          _seg(ExampleL10n.current.mode, [
             (
-              'Readable',
+              ExampleL10n.current.readable,
               _c.mode == SuperTableMode.readable,
               () => _c.setMode(SuperTableMode.readable),
             ),
@@ -572,9 +573,9 @@ class _PlaygroundExampleState extends State<PlaygroundExample> {
             ),
           ]),
           SizedBox(width: 180, child: _search(t)),
-          _seg('Select', [
+          _seg(ExampleL10n.current.select, [
             (
-              'Cell',
+              ExampleL10n.current.cell,
               _c.selectionMode == SuperSelectionMode.singleCell,
               () => _c.setSelectionMode(SuperSelectionMode.singleCell),
             ),
@@ -594,9 +595,9 @@ class _PlaygroundExampleState extends State<PlaygroundExample> {
               () => _c.setSelectionMode(SuperSelectionMode.multiRows),
             ),
           ]),
-          _seg('Paging', [
+          _seg(ExampleL10n.current.paging, [
             (
-              'Off',
+              ExampleL10n.current.off,
               _c.pagination == SuperPagination.none,
               () => _setPaging(SuperPagination.none),
             ),
@@ -618,14 +619,14 @@ class _PlaygroundExampleState extends State<PlaygroundExample> {
           ]),
           _chip(
             t,
-            'Totals',
+            ExampleL10n.current.totals,
             Icons.functions_rounded,
             _totals,
             () => setState(() => _totals = !_totals),
           ),
           _chip(
             t,
-            'Filters',
+            ExampleL10n.current.filters,
             Icons.filter_alt_outlined,
             _filters,
             () => setState(() => _filters = !_filters),
@@ -749,7 +750,7 @@ class _PlaygroundExampleState extends State<PlaygroundExample> {
                 isDense: true,
                 border: InputBorder.none,
                 contentPadding: EdgeInsets.zero,
-                hintText: 'Search…',
+                hintText: ExampleL10n.current.search,
                 hintStyle: TextStyle(fontSize: 13, color: t.fg4),
               ),
             ),

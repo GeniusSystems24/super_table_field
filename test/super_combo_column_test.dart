@@ -1,9 +1,23 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:super_auto_suggestion_box/super_auto_suggestion_box.dart';
 import 'package:super_table_field/super_table_field.dart';
 
+Future<BuildContext> _pumpHost(WidgetTester tester) async {
+  const hostKey = ValueKey<String>('combo-test-host');
+  await tester.pumpWidget(
+    const MaterialApp(
+      home: Scaffold(
+        body: SizedBox(key: hostKey),
+      ),
+    ),
+  );
+  return tester.element(find.byKey(hostKey));
+}
+
 void main() {
-  test('raw combo bridge preserves typed display callbacks', () {
+  testWidgets('raw combo bridge preserves typed display callbacks', (tester) async {
+    final context = await _pumpHost(tester);
     final SuperColumn column = SuperComboColumn<String>(
       key: 'account',
       label: 'Account',
@@ -13,6 +27,7 @@ void main() {
 
     final combo = column as SuperComboColumn;
     final suggestion = combo.buildSuggestion(
+      context,
       <dynamic>['1010 · Cash'],
       0,
       '1010 · Cash',
@@ -22,12 +37,13 @@ void main() {
     expect(suggestion.titleText, 'Cash');
   });
 
-  test('raw combo bridge uses custom suggestionBuilder', () {
+  testWidgets('raw combo bridge uses custom suggestionBuilder', (tester) async {
+    final context = await _pumpHost(tester);
     final SuperColumn column = SuperComboColumn<String>(
       key: 'account',
       label: 'Account',
       values: const ['1010 · Cash'],
-      suggestionBuilder: (items, index, account) {
+      suggestionBuilder: (context, items, index, account) {
         final parts = account.split(' · ');
         return SuperAutoSuggestionsItem<String>(
           value: account,
@@ -39,6 +55,7 @@ void main() {
 
     final combo = column as SuperComboColumn;
     final suggestion = combo.buildSuggestion(
+      context,
       <dynamic>['1010 · Cash'],
       0,
       '1010 · Cash',

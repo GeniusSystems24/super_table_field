@@ -18,6 +18,7 @@
 import 'package:flutter/material.dart';
 import 'package:super_table_field/super_table_field.dart';
 import 'package:super_core/super_core.dart';
+import 'package:super_table_field_example/localizations/example_l10n.dart';
 
 class GroupAggregatesExample extends StatefulWidget {
   const GroupAggregatesExample({super.key});
@@ -37,28 +38,28 @@ class _GroupAggregatesExampleState extends State<GroupAggregatesExample> {
       mode: SuperTableMode.readable,
       selectionMode: SuperSelectionMode.singleRow,
       columns: [
-        SuperTextColumn(key: 'sku', label: 'SKU', width: 130, mono: true),
+        SuperTextColumn(key: 'sku', label: ExampleL10n.current.sKU, width: 130, mono: true),
         SuperEnumerationColumn<String>(
           key: 'category',
-          label: 'Category',
+          label: ExampleL10n.current.category,
           width: 150,
           values: const ['Raw Material', 'Finished Good', 'Consumable'],
         ),
         SuperNumberColumn<int>(
           key: 'qty',
-          label: 'Qty',
+          label: ExampleL10n.current.qty,
           width: 100,
           agg: SuperAgg.sum,
           formatter: (value, row) => '${(value as num?)?.toInt() ?? 0} u',
         ),
         SuperCurrencyColumn(
           key: 'value',
-          label: 'Stock Value',
+          label: ExampleL10n.current.stockValue,
           width: 150,
           agg: SuperAgg.sum,
         ),
-        SuperTextColumn(key: 'region', label: 'Region', hidden: true),
-        SuperTextColumn(key: 'supplier', label: 'Supplier', hidden: true),
+        SuperTextColumn(key: 'region', label: ExampleL10n.current.region, hidden: true),
+        SuperTextColumn(key: 'supplier', label: ExampleL10n.current.supplier, hidden: true),
       ],
       rows: [
         SuperRow.map({
@@ -165,7 +166,7 @@ class _GroupAggregatesExampleState extends State<GroupAggregatesExample> {
     return Scaffold(
       backgroundColor: t.bg,
       appBar: AppBar(
-        title: const Text('Group Aggregates - Hidden Columns'),
+        title: Text(ExampleL10n.current.groupAggregatesHiddenColumns),
         backgroundColor: t.surface,
       ),
       body: LayoutBuilder(
@@ -220,9 +221,7 @@ class _GroupAggregatesExampleState extends State<GroupAggregatesExample> {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              'Region and Supplier are hidden columns. The grid never renders '
-              'them, but the chips filter by Region and the rollup groups by '
-              'Region then Category through the controller API.',
+              ExampleL10n.current.regionAndSupplierAreHiddenColumnsTheGridNeverRendersThemButTheCh9d8dca7,
               style: TextStyle(color: t.fg3, height: 1.45),
             ),
           ),
@@ -243,20 +242,20 @@ class _GroupAggregatesExampleState extends State<GroupAggregatesExample> {
       spacing: 10,
       runSpacing: 10,
       children: [
-        _metric(t, 'Visible rows', '$rowCount', Icons.table_rows_outlined),
+        _metric(t, ExampleL10n.current.visibleRows, '$rowCount', Icons.table_rows_outlined),
         _metric(
           t,
-          'Visible regions',
+          ExampleL10n.current.visibleRegions,
           '${regions.length}',
           Icons.public_outlined,
         ),
         _metric(
           t,
-          'Total qty',
-          _count(totals['qty']),
+          ExampleL10n.current.totalQty,
+          _count(totals[ExampleL10n.current.qty77e74d]),
           Icons.inventory_2_outlined,
         ),
-        _metric(t, 'Stock value', _money(totals['value']), Icons.paid_outlined),
+        _metric(t, ExampleL10n.current.stockValuefdb1ac, _money(totals[ExampleL10n.current.value]), Icons.paid_outlined),
       ],
     );
   }
@@ -321,7 +320,7 @@ class _GroupAggregatesExampleState extends State<GroupAggregatesExample> {
       runSpacing: 8,
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
-        _chip(t, 'All regions', null),
+        _chip(t, ExampleL10n.current.allRegions, null),
         for (final region in regions) _chip(t, region, region),
       ],
     );
@@ -427,7 +426,7 @@ class _GroupAggregatesExampleState extends State<GroupAggregatesExample> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'PROGRAMMATIC ROLLUP',
+                      ExampleL10n.current.pROGRAMMATICROLLUP,
                       style: TextStyle(
                         color: t.fg2,
                         fontWeight: FontWeight.w800,
@@ -437,7 +436,7 @@ class _GroupAggregatesExampleState extends State<GroupAggregatesExample> {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'groupAggregates(region / category)',
+                      ExampleL10n.current.groupAggregatesRegionCategory,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(color: t.fg4, fontSize: 11),
@@ -452,7 +451,7 @@ class _GroupAggregatesExampleState extends State<GroupAggregatesExample> {
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 16),
               child: Text(
-                'No rows match the current filter.',
+                ExampleL10n.current.noRowsMatchTheCurrentFilter,
                 style: TextStyle(color: t.fg4),
               ),
             )
@@ -462,7 +461,7 @@ class _GroupAggregatesExampleState extends State<GroupAggregatesExample> {
                 t,
                 label: region.value,
                 count: region.count,
-                qty: region.aggregate('qty'),
+                qty: region.aggregate(ExampleL10n.current.qty77e74d),
                 value: region.aggregate('value'),
                 bold: true,
               ),
@@ -471,7 +470,7 @@ class _GroupAggregatesExampleState extends State<GroupAggregatesExample> {
                   t,
                   label: category.value,
                   count: category.count,
-                  qty: category.aggregate('qty'),
+                  qty: category.aggregate(ExampleL10n.current.qty77e74d),
                   value: category.aggregate('value'),
                   indent: true,
                 ),
@@ -479,10 +478,10 @@ class _GroupAggregatesExampleState extends State<GroupAggregatesExample> {
           Divider(color: t.borderStrong, height: 28),
           _rollupRow(
             t,
-            label: 'Grand total',
+            label: ExampleL10n.current.grandTotal,
             count: null,
-            qty: totals['qty'],
-            value: totals['value'],
+            qty: totals[ExampleL10n.current.qty77e74d],
+            value: totals[ExampleL10n.current.value],
             bold: true,
             accent: true,
           ),
