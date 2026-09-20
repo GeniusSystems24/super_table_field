@@ -12,8 +12,7 @@
 import 'package:flutter/material.dart';
 import 'package:super_table_field/super_table_field.dart';
 import 'package:super_auto_suggestion_box/super_auto_suggestion_box.dart';
-import 'package:super_table_field_example/localizations/example_l10n.dart';
-
+import 'package:super_table_field_example/localizations/generated/l10n.dart';
 class EditableJournalExample extends StatefulWidget {
   const EditableJournalExample({super.key});
   @override
@@ -21,11 +20,15 @@ class EditableJournalExample extends StatefulWidget {
 }
 
 class _EditableJournalExampleState extends State<EditableJournalExample> {
+  bool _exampleDependenciesInitialized = false;
+
   late final SuperTableController<Map<String, dynamic>> _c;
 
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_exampleDependenciesInitialized) return;
+    _exampleDependenciesInitialized = true;
     _c = SuperTableController<Map<String, dynamic>>(
       mode: SuperTableMode.editable,
       addRowEnabled: true,
@@ -38,12 +41,12 @@ class _EditableJournalExampleState extends State<EditableJournalExample> {
       columns: [
         SuperComboColumn<String>(
           key: 'account',
-          label: ExampleL10n.current.account,
+          label: SuperTableExampleLocalization.of(context).account,
           width: 200,
           required: true,
           allowFreeText: false,
           clearButton: true,
-          hintText: ExampleL10n.current.searchAccount,
+          hintText: SuperTableExampleLocalization.of(context).searchAccount,
           values: const [
             '1010 · Cash',
             '1200 · Receivable',
@@ -63,12 +66,12 @@ class _EditableJournalExampleState extends State<EditableJournalExample> {
             );
           },
           validator: (ctx, c, row, cell, v) =>
-              (v.isEmpty) ? ExampleL10n.current.pickAnAccount : null,
+              (v.isEmpty) ? SuperTableExampleLocalization.of(context).pickAnAccount : null,
         ),
-        SuperTextColumn(key: 'memo', label: ExampleL10n.current.memo, width: 220),
+        SuperTextColumn(key: 'memo', label: SuperTableExampleLocalization.of(context).memo, width: 220),
         SuperNumberColumn<num>(
           key: 'debit',
-          label: ExampleL10n.current.debit,
+          label: SuperTableExampleLocalization.of(context).debit,
           width: 130,
           min: 0,
           // Entering a debit clears the credit on the same row.
@@ -79,7 +82,7 @@ class _EditableJournalExampleState extends State<EditableJournalExample> {
         ),
         SuperNumberColumn<num>(
           key: 'credit',
-          label: ExampleL10n.current.credit,
+          label: SuperTableExampleLocalization.of(context).credit,
           width: 130,
           min: 0,
           onChange: (ctx, c, row, cell, prev, next) {
@@ -129,7 +132,7 @@ class _EditableJournalExampleState extends State<EditableJournalExample> {
     return Scaffold(
       backgroundColor: t.bg,
       appBar: AppBar(
-        title: Text(ExampleL10n.current.editableJournalEntry),
+        title: Text(SuperTableExampleLocalization.of(context).editableJournalEntry),
         backgroundColor: t.surface,
       ),
       body: Padding(
@@ -163,12 +166,12 @@ class _EditableJournalExampleState extends State<EditableJournalExample> {
                   ),
                   const SizedBox(width: 10),
                   Text(
-                    balanced ? ExampleL10n.current.balanced : ExampleL10n.current.outOfBalance,
+                    balanced ? SuperTableExampleLocalization.of(context).balanced : SuperTableExampleLocalization.of(context).outOfBalance,
                     style: TextStyle(fontWeight: FontWeight.w700, color: t.fg1),
                   ),
                   const Spacer(),
                   Text(
-                    ExampleL10n.current.debitCredit(tot.debit, tot.credit),
+                    SuperTableExampleLocalization.of(context).debitCredit(tot.debit, tot.credit),
                     style: TextStyle(
                       fontFamily: context.superTextTheme.mono.fontFamily,
                       color: t.fg2,

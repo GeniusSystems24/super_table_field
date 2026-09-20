@@ -12,8 +12,7 @@
 import 'package:flutter/material.dart';
 import 'package:super_form_field/super_form_field.dart';
 import 'package:super_table_field/super_table_field.dart';
-import 'package:super_table_field_example/localizations/example_l10n.dart';
-
+import 'package:super_table_field_example/localizations/generated/l10n.dart';
 typedef _Row = Map<String, dynamic>;
 
 class EnumerationSelectExample extends StatefulWidget {
@@ -42,10 +41,10 @@ class _EnumerationSelectExampleState extends State<EnumerationSelectExample> {
           'status': 'Draft',
         },
         columns: [
-          SuperTextColumn(key: 'sku', label: ExampleL10n.current.sKU, width: 140, mono: true),
+          SuperTextColumn(key: 'sku', label: SuperTableExampleLocalization.of(context).sKU, width: 140, mono: true),
           SuperEnumerationColumn<String>(
             key: 'warehouse',
-            label: ExampleL10n.current.warehouse,
+            label: SuperTableExampleLocalization.of(context).warehouse,
             width: 150,
             values: const ['Riyadh', 'Jeddah', 'Dammam'],
             searchable: true,
@@ -60,7 +59,7 @@ class _EnumerationSelectExampleState extends State<EnumerationSelectExample> {
           ),
           SuperEnumerationColumn<String>(
             key: 'bin',
-            label: ExampleL10n.current.bin,
+            label: SuperTableExampleLocalization.of(context).bin,
             width: 140,
             searchable: false,
             searchHint: 'Search bins…',
@@ -75,12 +74,12 @@ class _EnumerationSelectExampleState extends State<EnumerationSelectExample> {
             optionBuilder: (items, index, bin) => SuperOption<String>(
               value: bin,
               label: bin,
-              description: ExampleL10n.current.binOf(index + 1, items.length),
+              description: SuperTableExampleLocalization.of(context).binOf(index + 1, items.length),
             ),
           ),
           SuperEnumerationColumn<String>(
             key: 'status',
-            label: ExampleL10n.current.status,
+            label: SuperTableExampleLocalization.of(context).status,
             width: 160,
             searchable: false,
             sources: const [
@@ -92,9 +91,9 @@ class _EnumerationSelectExampleState extends State<EnumerationSelectExample> {
               value: status,
               label: status,
               description: switch (status) {
-                'Draft' => ExampleL10n.current.stillEditable,
-                'Posted' => ExampleL10n.current.committedTransaction,
-                _ => ExampleL10n.current.noLongerActive,
+                'Draft' => SuperTableExampleLocalization.of(context).stillEditable,
+                'Posted' => SuperTableExampleLocalization.of(context).committedTransaction,
+                _ => SuperTableExampleLocalization.of(context).noLongerActive,
               },
             ),
           ),
@@ -130,19 +129,19 @@ class _EnumerationSelectExampleState extends State<EnumerationSelectExample> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(ExampleL10n.current.enumerationSelect)),
+      appBar: AppBar(title: Text(SuperTableExampleLocalization.of(context).enumerationSelect)),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              ExampleL10n.current.doubleClickAnEnumerationCellToEditItWithSuperSelectFormField,
+              SuperTableExampleLocalization.of(context).doubleClickAnEnumerationCellToEditItWithSuperSelectFormField,
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             const SizedBox(height: 12),
             Text(
-              ExampleL10n.current.changingWarehouseRebuildsTheBinSourcesForThatRow,
+              SuperTableExampleLocalization.of(context).changingWarehouseRebuildsTheBinSourcesForThatRow,
             ),
             const SizedBox(height: 16),
             Expanded(child: SuperTable<_Row>(controller: _controller)),

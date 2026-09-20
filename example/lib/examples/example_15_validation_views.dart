@@ -18,8 +18,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:super_table_field/super_table_field.dart';
 import 'package:super_core/super_core.dart';
-import 'package:super_table_field_example/localizations/example_l10n.dart';
-
+import 'package:super_table_field_example/localizations/generated/l10n.dart';
 class ValidationViewsExample extends StatefulWidget {
   const ValidationViewsExample({super.key});
   @override
@@ -27,13 +26,17 @@ class ValidationViewsExample extends StatefulWidget {
 }
 
 class _ValidationViewsExampleState extends State<ValidationViewsExample> {
+  bool _exampleDependenciesInitialized = false;
+
   late final SuperTableController<Map<String, dynamic>> _c;
   String? _savedView;
   String _status = '';
 
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_exampleDependenciesInitialized) return;
+    _exampleDependenciesInitialized = true;
     _c = SuperTableController<Map<String, dynamic>>(
       mode: SuperTableMode.editable,
       selectionMode: SuperSelectionMode.multiCells,
@@ -48,7 +51,7 @@ class _ValidationViewsExampleState extends State<ValidationViewsExample> {
       columns: [
         SuperTextColumn(
           key: 'sku',
-          label: ExampleL10n.current.sKU,
+          label: SuperTableExampleLocalization.of(context).sKU,
           width: 130,
           required: true,
           unique: true,
@@ -56,19 +59,19 @@ class _ValidationViewsExampleState extends State<ValidationViewsExample> {
         ),
         SuperTextColumn(
           key: 'name',
-          label: ExampleL10n.current.itemName,
+          label: SuperTableExampleLocalization.of(context).itemName,
           width: 240,
           required: true,
         ),
         SuperNumberColumn<int>(
           key: 'qty',
-          label: ExampleL10n.current.onHand,
+          label: SuperTableExampleLocalization.of(context).onHand,
           width: 110,
           min: 0,
         ),
         SuperCurrencyColumn(
           key: 'cost',
-          label: ExampleL10n.current.unitCostb16e07,
+          label: SuperTableExampleLocalization.of(context).unitCostb16e07,
           width: 130,
           agg: SuperAgg.sum,
         ),
@@ -115,21 +118,21 @@ class _ValidationViewsExampleState extends State<ValidationViewsExample> {
     if (!_c.isValid) {
       _c.validateAll(); // light the badges
       setState(
-        () => _status = ExampleL10n.current.cannotPostFixTheValidationIssuesFirst,
+        () => _status = SuperTableExampleLocalization.of(context).cannotPostFixTheValidationIssuesFirst,
       );
       showSuperValidationPanel(context, _c);
       return;
     }
     _c.acceptChanges();
     setState(
-      () => _status = ExampleL10n.current.postedBaselineCapturedCellsAreCleanAgain,
+      () => _status = SuperTableExampleLocalization.of(context).postedBaselineCapturedCellsAreCleanAgain,
     );
   }
 
   void _saveView() {
     _savedView = jsonEncode(_c.viewStateJson());
     setState(
-      () => _status = ExampleL10n.current.viewSavedCharsOfJSON(_savedView!.length),
+      () => _status = SuperTableExampleLocalization.of(context).viewSavedCharsOfJSON(_savedView!.length),
     );
   }
 
@@ -138,7 +141,7 @@ class _ValidationViewsExampleState extends State<ValidationViewsExample> {
     _c.applyViewJson(jsonDecode(_savedView!) as Map<String, dynamic>);
     setState(
       () =>
-          _status = ExampleL10n.current.viewRestoredOrderWidthsSortAndFiltersAreBack,
+          _status = SuperTableExampleLocalization.of(context).viewRestoredOrderWidthsSortAndFiltersAreBack,
     );
   }
 
@@ -148,7 +151,7 @@ class _ValidationViewsExampleState extends State<ValidationViewsExample> {
     return Scaffold(
       backgroundColor: t.bg,
       appBar: AppBar(
-        title: Text(ExampleL10n.current.validationSummarySavedViews),
+        title: Text(SuperTableExampleLocalization.of(context).validationSummarySavedViews),
         backgroundColor: t.surface,
       ),
       body: Padding(
@@ -159,7 +162,7 @@ class _ValidationViewsExampleState extends State<ValidationViewsExample> {
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: Text(
-                ExampleL10n.current.sKUIsRequiredANDUniqueTryDuplicatingOneOrLeaveItBlankThenHitVali3f35562,
+                SuperTableExampleLocalization.of(context).sKUIsRequiredANDUniqueTryDuplicatingOneOrLeaveItBlankThenHitVali3f35562,
                 style: TextStyle(color: t.fg3),
               ),
             ),
@@ -168,7 +171,7 @@ class _ValidationViewsExampleState extends State<ValidationViewsExample> {
                 OutlinedButton.icon(
                   onPressed: _validate,
                   icon: const Icon(Icons.rule_rounded, size: 16),
-                  label: Text(ExampleL10n.current.validate),
+                  label: Text(SuperTableExampleLocalization.of(context).validate),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: t.fg1,
                     side: BorderSide(color: t.borderStrong),
@@ -178,7 +181,7 @@ class _ValidationViewsExampleState extends State<ValidationViewsExample> {
                 OutlinedButton.icon(
                   onPressed: _post,
                   icon: const Icon(Icons.task_alt_rounded, size: 16),
-                  label: Text(ExampleL10n.current.post),
+                  label: Text(SuperTableExampleLocalization.of(context).post),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: t.fg1,
                     side: BorderSide(color: t.borderStrong),
@@ -188,7 +191,7 @@ class _ValidationViewsExampleState extends State<ValidationViewsExample> {
                 OutlinedButton.icon(
                   onPressed: _saveView,
                   icon: const Icon(Icons.bookmark_add_outlined, size: 16),
-                  label: Text(ExampleL10n.current.saveView),
+                  label: Text(SuperTableExampleLocalization.of(context).saveView),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: t.fg1,
                     side: BorderSide(color: t.borderStrong),
@@ -198,7 +201,7 @@ class _ValidationViewsExampleState extends State<ValidationViewsExample> {
                 OutlinedButton.icon(
                   onPressed: _savedView == null ? null : _restoreView,
                   icon: const Icon(Icons.bookmark_outlined, size: 16),
-                  label: Text(ExampleL10n.current.restoreView),
+                  label: Text(SuperTableExampleLocalization.of(context).restoreView),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: t.fg1,
                     side: BorderSide(color: t.borderStrong),
@@ -208,7 +211,7 @@ class _ValidationViewsExampleState extends State<ValidationViewsExample> {
                 OutlinedButton.icon(
                   onPressed: () => _c.resetViewState(),
                   icon: const Icon(Icons.restart_alt_rounded, size: 16),
-                  label: Text(ExampleL10n.current.resetView),
+                  label: Text(SuperTableExampleLocalization.of(context).resetView),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: t.fg1,
                     side: BorderSide(color: t.borderStrong),

@@ -12,8 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:super_table_field/super_table_field.dart';
 import 'package:super_core/super_core.dart';
-import 'package:super_table_field_example/localizations/example_l10n.dart';
-
+import 'package:super_table_field_example/localizations/generated/l10n.dart';
 class StylingAndFiltersExample extends StatefulWidget {
   const StylingAndFiltersExample({super.key});
   @override
@@ -26,23 +25,23 @@ class _StylingAndFiltersExampleState extends State<StylingAndFiltersExample> {
       SuperTableController<Map<String, dynamic>>(
         mode: SuperTableMode.readable,
         columns: [
-          SuperTextColumn(key: 'task', label: ExampleL10n.current.task, width: 220),
+          SuperTextColumn(key: 'task', label: SuperTableExampleLocalization.of(context).task, width: 220),
           SuperEnumerationColumn<String>(
             key: 'priority',
-            label: ExampleL10n.current.priority,
+            label: SuperTableExampleLocalization.of(context).priority,
             width: 130,
             values: const ['Low', 'Medium', 'High', 'Critical'],
             // FilterItem lets the dropdown label differ from the matched value.
             filterItems: [
-              FilterItem(ExampleL10n.current.low, 'Low'),
-              FilterItem(ExampleL10n.current.medium, 'Medium'),
-              FilterItem(ExampleL10n.current.high, 'High'),
-              FilterItem(ExampleL10n.current.critical, 'Critical'),
+              FilterItem(SuperTableExampleLocalization.of(context).low, 'Low'),
+              FilterItem(SuperTableExampleLocalization.of(context).medium, 'Medium'),
+              FilterItem(SuperTableExampleLocalization.of(context).high, 'High'),
+              FilterItem(SuperTableExampleLocalization.of(context).critical, 'Critical'),
             ],
           ),
           SuperNumberColumn<int>(
             key: 'progress',
-            label: ExampleL10n.current.progress,
+            label: SuperTableExampleLocalization.of(context).progress,
             width: 120,
             // Conditional CELL styles: red text when stalled, green when done.
             styles: {
@@ -58,12 +57,12 @@ class _StylingAndFiltersExampleState extends State<StylingAndFiltersExample> {
           ),
           SuperCurrencyColumn(
             key: 'budget',
-            label: ExampleL10n.current.budget,
+            label: SuperTableExampleLocalization.of(context).budget,
             width: 140,
             filterItems: [
-              FilterItem(ExampleL10n.current.under5k, 5000),
-              FilterItem(ExampleL10n.current.message5k20k, 20000),
-              FilterItem(ExampleL10n.current.over20k, 100000),
+              FilterItem(SuperTableExampleLocalization.of(context).under5k, 5000),
+              FilterItem(SuperTableExampleLocalization.of(context).message5k20k, 20000),
+              FilterItem(SuperTableExampleLocalization.of(context).over20k, 100000),
             ],
           ),
         ],
@@ -124,7 +123,7 @@ class _StylingAndFiltersExampleState extends State<StylingAndFiltersExample> {
     return Scaffold(
       backgroundColor: t.bg,
       appBar: AppBar(
-        title: Text(ExampleL10n.current.stylingAndFilters),
+        title: Text(SuperTableExampleLocalization.of(context).stylingAndFilters),
         backgroundColor: t.surface,
       ),
       body: Padding(
@@ -135,7 +134,7 @@ class _StylingAndFiltersExampleState extends State<StylingAndFiltersExample> {
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: Text(
-                ExampleL10n.current.useTheColumnFilterRowTheAdvancedFilterButtonGutterHeaderOrPressRToReset,
+                SuperTableExampleLocalization.of(context).useTheColumnFilterRowTheAdvancedFilterButtonGutterHeaderOrPressRToReset,
                 style: TextStyle(color: t.fg3),
               ),
             ),

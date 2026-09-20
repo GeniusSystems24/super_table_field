@@ -11,8 +11,7 @@
 import 'package:flutter/material.dart';
 import 'package:super_table_field/super_table_field.dart';
 import 'package:super_core/super_core.dart';
-import 'package:super_table_field_example/localizations/example_l10n.dart';
-
+import 'package:super_table_field_example/localizations/generated/l10n.dart';
 class SelectionStatsExample extends StatefulWidget {
   const SelectionStatsExample({super.key});
   @override
@@ -20,25 +19,29 @@ class SelectionStatsExample extends StatefulWidget {
 }
 
 class _SelectionStatsExampleState extends State<SelectionStatsExample> {
+  bool _exampleDependenciesInitialized = false;
+
   late final SuperTableController<Map<String, dynamic>> _c;
 
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_exampleDependenciesInitialized) return;
+    _exampleDependenciesInitialized = true;
     _c = SuperTableController<Map<String, dynamic>>(
       mode: SuperTableMode.readable,
       selectionMode: SuperSelectionMode.multiCells, // ← rubber-band cells
       columns: [
         SuperTextColumn(
           key: 'account',
-          label: ExampleL10n.current.account,
+          label: SuperTableExampleLocalization.of(context).account,
           width: 200,
           mono: true,
         ),
-        SuperCurrencyColumn(key: 'q1', label: ExampleL10n.current.q1, width: 130),
-        SuperCurrencyColumn(key: 'q2', label: ExampleL10n.current.q2, width: 130),
-        SuperCurrencyColumn(key: 'q3', label: ExampleL10n.current.q3, width: 130),
-        SuperCurrencyColumn(key: 'q4', label: ExampleL10n.current.q4, width: 130),
+        SuperCurrencyColumn(key: 'q1', label: SuperTableExampleLocalization.of(context).q1, width: 130),
+        SuperCurrencyColumn(key: 'q2', label: SuperTableExampleLocalization.of(context).q2, width: 130),
+        SuperCurrencyColumn(key: 'q3', label: SuperTableExampleLocalization.of(context).q3, width: 130),
+        SuperCurrencyColumn(key: 'q4', label: SuperTableExampleLocalization.of(context).q4, width: 130),
       ],
       rows: [
         SuperRow.map({
@@ -96,7 +99,7 @@ class _SelectionStatsExampleState extends State<SelectionStatsExample> {
     return Scaffold(
       backgroundColor: t.bg,
       appBar: AppBar(
-        title: Text(ExampleL10n.current.selectionStatistics),
+        title: Text(SuperTableExampleLocalization.of(context).selectionStatistics),
         backgroundColor: t.surface,
       ),
       body: Padding(
@@ -107,7 +110,7 @@ class _SelectionStatsExampleState extends State<SelectionStatsExample> {
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: Text(
-                ExampleL10n.current.shiftDragABlockOfTheQuarterlyNumbersTheLiveSumAvgMinMaxAppearsIn8285e43,
+                SuperTableExampleLocalization.of(context).shiftDragABlockOfTheQuarterlyNumbersTheLiveSumAvgMinMaxAppearsIn8285e43,
                 style: TextStyle(color: t.fg3),
               ),
             ),
@@ -122,18 +125,18 @@ class _SelectionStatsExampleState extends State<SelectionStatsExample> {
               ),
               child: (stats == null || !stats.hasAggregate)
                   ? Text(
-                      ExampleL10n.current.selectTwoOrMoreNumericCellsToSeeStatistics,
+                      SuperTableExampleLocalization.of(context).selectTwoOrMoreNumericCellsToSeeStatistics,
                       style: TextStyle(color: t.fg3),
                     )
                   : Wrap(
                       spacing: 28,
                       runSpacing: 10,
                       children: [
-                        _stat(ExampleL10n.current.sUM, money(stats.sum), t),
-                        _stat(ExampleL10n.current.aVERAGE, money(stats.average), t),
-                        _stat(ExampleL10n.current.mIN, money(stats.min!), t),
-                        _stat(ExampleL10n.current.mAX, money(stats.max!), t),
-                        _stat(ExampleL10n.current.cOUNT, '${stats.numericCount}', t),
+                        _stat(SuperTableExampleLocalization.of(context).sUM, money(stats.sum), t),
+                        _stat(SuperTableExampleLocalization.of(context).aVERAGE, money(stats.average), t),
+                        _stat(SuperTableExampleLocalization.of(context).mIN, money(stats.min!), t),
+                        _stat(SuperTableExampleLocalization.of(context).mAX, money(stats.max!), t),
+                        _stat(SuperTableExampleLocalization.of(context).cOUNT, '${stats.numericCount}', t),
                       ],
                     ),
             ),

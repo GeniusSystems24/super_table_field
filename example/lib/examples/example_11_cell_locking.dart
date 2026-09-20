@@ -12,8 +12,7 @@
 import 'package:flutter/material.dart';
 import 'package:super_table_field/super_table_field.dart';
 import 'package:super_core/super_core.dart';
-import 'package:super_table_field_example/localizations/example_l10n.dart';
-
+import 'package:super_table_field_example/localizations/generated/l10n.dart';
 class CellLockingExample extends StatefulWidget {
   const CellLockingExample({super.key});
   @override
@@ -21,11 +20,15 @@ class CellLockingExample extends StatefulWidget {
 }
 
 class _CellLockingExampleState extends State<CellLockingExample> {
+  bool _exampleDependenciesInitialized = false;
+
   late final SuperTableController<Map<String, dynamic>> _c;
 
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_exampleDependenciesInitialized) return;
+    _exampleDependenciesInitialized = true;
     _c = SuperTableController<Map<String, dynamic>>(
       mode: SuperTableMode.editable,
       addRowEnabled: true,
@@ -40,17 +43,17 @@ class _CellLockingExampleState extends State<CellLockingExample> {
       cellEditable: (col, row) =>
           row['status'] == 'Draft' || col.key == 'status',
       columns: [
-        SuperTextColumn(key: 'ref', label: ExampleL10n.current.reference, width: 150, mono: true),
-        SuperTextColumn(key: 'memo', label: ExampleL10n.current.memo, width: 240),
+        SuperTextColumn(key: 'ref', label: SuperTableExampleLocalization.of(context).reference, width: 150, mono: true),
+        SuperTextColumn(key: 'memo', label: SuperTableExampleLocalization.of(context).memo, width: 240),
         SuperCurrencyColumn(
           key: 'amount',
-          label: ExampleL10n.current.amount,
+          label: SuperTableExampleLocalization.of(context).amount,
           width: 140,
           agg: SuperAgg.sum,
         ),
         SuperEnumerationColumn<String>(
           key: 'status',
-          label: ExampleL10n.current.status,
+          label: SuperTableExampleLocalization.of(context).status,
           width: 130,
           values: const ['Draft', 'Posted'],
         ),
@@ -102,7 +105,7 @@ class _CellLockingExampleState extends State<CellLockingExample> {
     return Scaffold(
       backgroundColor: t.bg,
       appBar: AppBar(
-        title: Text(ExampleL10n.current.cellLocking),
+        title: Text(SuperTableExampleLocalization.of(context).cellLocking),
         backgroundColor: t.surface,
       ),
       body: Padding(
@@ -113,7 +116,7 @@ class _CellLockingExampleState extends State<CellLockingExample> {
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: Text(
-                ExampleL10n.current.postedRowsAreLockedDoubleClickTheirCellsNothingHappensChangeARow5099657,
+                SuperTableExampleLocalization.of(context).postedRowsAreLockedDoubleClickTheirCellsNothingHappensChangeARow5099657,
                 style: TextStyle(color: t.fg3),
               ),
             ),

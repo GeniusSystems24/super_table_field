@@ -1289,4 +1289,64 @@ class SuperTableExampleLocalizationAr extends SuperTableExampleLocalization {
 
   @override
   String get cSVCopiedToClipboard => 'تم نسخ CSV إلى الحافظة';
+
+  @override
+  String get cells => 'خلايا';
+
+  @override
+  String get row => 'صف';
+
+  @override
+  String get rows => 'صفوف';
+
+  @override
+  String get rawMaterial => 'مادة خام';
+
+  @override
+  String get component => 'مكوّن';
+
+  @override
+  String get finishedGood => 'منتج نهائي';
+
+  @override
+  String get consumable => 'مادة استهلاكية';
+
+  @override
+  String get inStock => 'متوفر في المخزون';
+
+  @override
+  String get lowStock => 'مخزون منخفض';
+
+  @override
+  String get outOfStock => 'نفد من المخزون';
+
+  @override
+  String get discontinued => 'متوقف';
+
+  @override
+  String get unitEach => 'قطعة';
+
+  @override
+  String get unitBox => 'صندوق';
+
+  @override
+  String get unitPallet => 'منصة';
+
+  @override
+  String get unitKg => 'كجم';
+
+  @override
+  String get unitTonne => 'طن';
+
+  @override
+  String get unitLitre => 'لتر';
+
+  @override
+  String get unitMetre => 'متر';
+
+  @override
+  String get unitRoll => 'لفة';
+
+  @override
+  String get unitSheet => 'صفيحة';
 }

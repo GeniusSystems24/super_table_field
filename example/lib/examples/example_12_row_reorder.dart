@@ -12,8 +12,7 @@
 import 'package:flutter/material.dart';
 import 'package:super_table_field/super_table_field.dart';
 import 'package:super_core/super_core.dart';
-import 'package:super_table_field_example/localizations/example_l10n.dart';
-
+import 'package:super_table_field_example/localizations/generated/l10n.dart';
 class RowReorderExample extends StatefulWidget {
   const RowReorderExample({super.key});
   @override
@@ -21,11 +20,15 @@ class RowReorderExample extends StatefulWidget {
 }
 
 class _RowReorderExampleState extends State<RowReorderExample> {
+  bool _exampleDependenciesInitialized = false;
+
   late final SuperTableController<Map<String, dynamic>> _c;
 
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_exampleDependenciesInitialized) return;
+    _exampleDependenciesInitialized = true;
     _c = SuperTableController<Map<String, dynamic>>(
       mode: SuperTableMode.editable,
       selectionMode: SuperSelectionMode.singleRow,
@@ -37,12 +40,12 @@ class _RowReorderExampleState extends State<RowReorderExample> {
         'price': 0.0,
       },
       columns: [
-        SuperTextColumn(key: 'desc', label: ExampleL10n.current.description, width: 280),
-        SuperNumberColumn<int>(key: 'qty', label: ExampleL10n.current.qty, width: 90, min: 1),
-        SuperCurrencyColumn(key: 'price', label: ExampleL10n.current.unitPrice, width: 140),
+        SuperTextColumn(key: 'desc', label: SuperTableExampleLocalization.of(context).description, width: 280),
+        SuperNumberColumn<int>(key: 'qty', label: SuperTableExampleLocalization.of(context).qty, width: 90, min: 1),
+        SuperCurrencyColumn(key: 'price', label: SuperTableExampleLocalization.of(context).unitPrice, width: 140),
         SuperComputedColumn<num>(
           key: 'total',
-          label: ExampleL10n.current.lineTotal,
+          label: SuperTableExampleLocalization.of(context).lineTotal,
           width: 150,
           agg: SuperAgg.sum,
           compute: (row) =>
@@ -85,7 +88,7 @@ class _RowReorderExampleState extends State<RowReorderExample> {
     return Scaffold(
       backgroundColor: t.bg,
       appBar: AppBar(
-        title: Text(ExampleL10n.current.rowReordering),
+        title: Text(SuperTableExampleLocalization.of(context).rowReordering),
         backgroundColor: t.surface,
       ),
       body: Padding(
@@ -96,7 +99,7 @@ class _RowReorderExampleState extends State<RowReorderExample> {
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: Text(
-                ExampleL10n.current.clickARowNumberToSelectItThenUseTheButtonsBelowOrRightClickToMov5036271,
+                SuperTableExampleLocalization.of(context).clickARowNumberToSelectItThenUseTheButtonsBelowOrRightClickToMov5036271,
                 style: TextStyle(color: t.fg3),
               ),
             ),
@@ -105,7 +108,7 @@ class _RowReorderExampleState extends State<RowReorderExample> {
                 OutlinedButton.icon(
                   onPressed: () => _c.moveRowUp(),
                   icon: const Icon(Icons.arrow_upward_rounded, size: 16),
-                  label: Text(ExampleL10n.current.moveUp),
+                  label: Text(SuperTableExampleLocalization.of(context).moveUp),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: t.fg1,
                     side: BorderSide(color: t.borderStrong),
@@ -115,7 +118,7 @@ class _RowReorderExampleState extends State<RowReorderExample> {
                 OutlinedButton.icon(
                   onPressed: () => _c.moveRowDown(),
                   icon: const Icon(Icons.arrow_downward_rounded, size: 16),
-                  label: Text(ExampleL10n.current.moveDown),
+                  label: Text(SuperTableExampleLocalization.of(context).moveDown),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: t.fg1,
                     side: BorderSide(color: t.borderStrong),
@@ -125,7 +128,7 @@ class _RowReorderExampleState extends State<RowReorderExample> {
                 OutlinedButton.icon(
                   onPressed: _c.canUndo ? _c.undo : null,
                   icon: const Icon(Icons.undo_rounded, size: 16),
-                  label: Text(ExampleL10n.current.undo),
+                  label: Text(SuperTableExampleLocalization.of(context).undo),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: t.fg1,
                     side: BorderSide(color: t.borderStrong),

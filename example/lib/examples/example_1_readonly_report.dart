@@ -11,8 +11,7 @@
 import 'package:flutter/material.dart';
 import 'package:super_table_field/super_table_field.dart';
 import 'package:super_core/super_core.dart';
-import 'package:super_table_field_example/localizations/example_l10n.dart';
-
+import 'package:super_table_field_example/localizations/generated/l10n.dart';
 /// The host's typed domain model (the row's backing `value`).
 class Sale {
   final String region;
@@ -44,27 +43,27 @@ class _ReadonlyReportExampleState extends State<ReadonlyReportExample> {
     columns: [
       SuperEnumerationColumn<String>(
         key: 'region',
-        label: ExampleL10n.current.region,
+        label: SuperTableExampleLocalization.of(context).region,
         width: 130,
         values: const ['North', 'South', 'East', 'West'],
       ),
-      SuperTextColumn(key: 'rep', label: ExampleL10n.current.salesRep, width: 160),
-      SuperTextColumn(key: 'product', label: ExampleL10n.current.product, width: 170),
+      SuperTextColumn(key: 'rep', label: SuperTableExampleLocalization.of(context).salesRep, width: 160),
+      SuperTextColumn(key: 'product', label: SuperTableExampleLocalization.of(context).product, width: 170),
       SuperNumberColumn<int>(
         key: 'units',
-        label: ExampleL10n.current.units,
+        label: SuperTableExampleLocalization.of(context).units,
         width: 90,
         agg: SuperAgg.sum,
       ),
       SuperCurrencyColumn(
         key: 'revenue',
-        label: ExampleL10n.current.revenue,
+        label: SuperTableExampleLocalization.of(context).revenue,
         width: 140,
         agg: SuperAgg.sum,
       ),
       SuperEnumerationColumn<String>(
         key: 'status',
-        label: ExampleL10n.current.status,
+        label: SuperTableExampleLocalization.of(context).status,
         width: 130,
         values: const ['Won', 'Open', 'Lost'],
       ),
@@ -115,7 +114,7 @@ class _ReadonlyReportExampleState extends State<ReadonlyReportExample> {
     return Scaffold(
       backgroundColor: t.bg,
       appBar: AppBar(
-        title: Text(ExampleL10n.current.readOnlyReport),
+        title: Text(SuperTableExampleLocalization.of(context).readOnlyReport),
         backgroundColor: t.surface,
       ),
       body: Padding(

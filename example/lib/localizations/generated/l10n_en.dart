@@ -1291,4 +1291,64 @@ class SuperTableExampleLocalizationEn extends SuperTableExampleLocalization {
 
   @override
   String get cSVCopiedToClipboard => 'CSV copied to clipboard';
+
+  @override
+  String get cells => 'Cells';
+
+  @override
+  String get row => 'Row';
+
+  @override
+  String get rows => 'Rows';
+
+  @override
+  String get rawMaterial => 'Raw Material';
+
+  @override
+  String get component => 'Component';
+
+  @override
+  String get finishedGood => 'Finished Good';
+
+  @override
+  String get consumable => 'Consumable';
+
+  @override
+  String get inStock => 'In Stock';
+
+  @override
+  String get lowStock => 'Low Stock';
+
+  @override
+  String get outOfStock => 'Out of Stock';
+
+  @override
+  String get discontinued => 'Discontinued';
+
+  @override
+  String get unitEach => 'each';
+
+  @override
+  String get unitBox => 'box';
+
+  @override
+  String get unitPallet => 'pallet';
+
+  @override
+  String get unitKg => 'kg';
+
+  @override
+  String get unitTonne => 'tonne';
+
+  @override
+  String get unitLitre => 'litre';
+
+  @override
+  String get unitMetre => 'metre';
+
+  @override
+  String get unitRoll => 'roll';
+
+  @override
+  String get unitSheet => 'sheet';
 }

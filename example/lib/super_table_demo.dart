@@ -13,8 +13,7 @@ import 'package:flutter/material.dart';
 
 import 'package:super_table_field/super_table_field.dart';
 import 'package:super_core/super_core.dart';
-import 'package:super_table_field_example/localizations/example_l10n.dart';
-
+import 'package:super_table_field_example/localizations/generated/l10n.dart';
 typedef _Row = Map<String, dynamic>;
 
 class SuperTableDemo extends StatefulWidget {
@@ -25,29 +24,31 @@ class SuperTableDemo extends StatefulWidget {
 }
 
 class _SuperTableDemoState extends State<SuperTableDemo> {
+  bool _exampleDependenciesInitialized = false;
+
   late final SuperTableController<_Row> _c;
   SuperSelectionMode _selMode = SuperSelectionMode.singleCell;
   bool _grouped = false;
   String? _toast;
 
-  static final List<SuperColumn> _columns = [
+  List<SuperColumn> get _columns => [
     SuperTextColumn(
       key: 'sku',
-      label: ExampleL10n.current.sKU,
+      label: SuperTableExampleLocalization.of(context).sKU,
       width: 130,
       mono: true,
       pin: SuperPin.start,
     ),
     SuperTextColumn(
       key: 'item',
-      label: ExampleL10n.current.item,
+      label: SuperTableExampleLocalization.of(context).item,
       width: 210,
       arKey: 'item_ar',
       required: true,
     ),
     SuperEnumerationColumn<String>(
       key: 'cat',
-      label: ExampleL10n.current.category,
+      label: SuperTableExampleLocalization.of(context).category,
       width: 150,
       values: const [
         'Raw Material',
@@ -55,22 +56,36 @@ class _SuperTableDemoState extends State<SuperTableDemo> {
         'Finished Good',
         'Consumable',
       ],
+      display: (value) => switch (value) {
+        'Raw Material' => SuperTableExampleLocalization.of(context).rawMaterial,
+        'Component' => SuperTableExampleLocalization.of(context).component,
+        'Finished Good' => SuperTableExampleLocalization.of(context).finishedGood,
+        'Consumable' => SuperTableExampleLocalization.of(context).consumable,
+        _ => value,
+      },
     ),
     SuperEnumerationColumn<String>(
       key: 'status',
-      label: ExampleL10n.current.status,
+      label: SuperTableExampleLocalization.of(context).status,
       width: 130,
       values: const ['In Stock', 'Low Stock', 'Out of Stock', 'Discontinued'],
+      display: (value) => switch (value) {
+        'In Stock' => SuperTableExampleLocalization.of(context).inStock,
+        'Low Stock' => SuperTableExampleLocalization.of(context).lowStock,
+        'Out of Stock' => SuperTableExampleLocalization.of(context).outOfStock,
+        'Discontinued' => SuperTableExampleLocalization.of(context).discontinued,
+        _ => value,
+      },
     ),
     SuperNumberColumn<int>(
       key: 'qty',
-      label: ExampleL10n.current.qty,
+      label: SuperTableExampleLocalization.of(context).qty,
       width: 90,
       agg: SuperAgg.sum,
     ),
     SuperComboColumn<String>(
       key: 'unit',
-      label: ExampleL10n.current.unit,
+      label: SuperTableExampleLocalization.of(context).unit,
       width: 130,
       values: const [
         'each',
@@ -83,17 +98,29 @@ class _SuperTableDemoState extends State<SuperTableDemo> {
         'roll',
         'sheet',
       ],
+      display: (value) => switch (value) {
+        'each' => SuperTableExampleLocalization.of(context).unitEach,
+        'box' => SuperTableExampleLocalization.of(context).unitBox,
+        'pallet' => SuperTableExampleLocalization.of(context).unitPallet,
+        'kg' => SuperTableExampleLocalization.of(context).unitKg,
+        'tonne' => SuperTableExampleLocalization.of(context).unitTonne,
+        'litre' => SuperTableExampleLocalization.of(context).unitLitre,
+        'metre' => SuperTableExampleLocalization.of(context).unitMetre,
+        'roll' => SuperTableExampleLocalization.of(context).unitRoll,
+        'sheet' => SuperTableExampleLocalization.of(context).unitSheet,
+        _ => value,
+      },
     ),
     SuperCurrencyColumn(
       key: 'price',
-      label: ExampleL10n.current.unitPrice,
+      label: SuperTableExampleLocalization.of(context).unitPrice,
       width: 130,
       symbol: '',
       code: 'SAR',
     ),
     SuperComputedColumn<num>(
       key: 'total',
-      label: ExampleL10n.current.lineTotal,
+      label: SuperTableExampleLocalization.of(context).lineTotal,
       width: 140,
       align: SuperAlign.end,
       agg: SuperAgg.sum,
@@ -102,10 +129,10 @@ class _SuperTableDemoState extends State<SuperTableDemo> {
           (r['price'] is num ? r['price'] as num : 0),
       format: (v, r) => '${(v as num).toStringAsFixed(2)} SAR',
     ),
-    SuperProgressColumn<int>(key: 'fill', label: ExampleL10n.current.fill, width: 130, max: 100),
-    SuperDateColumn(key: 'received', label: ExampleL10n.current.received, width: 130),
-    SuperColorColumn<String>(key: 'tag', label: ExampleL10n.current.tag, width: 110),
-    SuperCheckboxColumn(key: 'active', label: ExampleL10n.current.active, width: 80),
+    SuperProgressColumn<int>(key: 'fill', label: SuperTableExampleLocalization.of(context).fill, width: 130, max: 100),
+    SuperDateColumn(key: 'received', label: SuperTableExampleLocalization.of(context).received, width: 130),
+    SuperColorColumn<String>(key: 'tag', label: SuperTableExampleLocalization.of(context).tag, width: 110),
+    SuperCheckboxColumn(key: 'active', label: SuperTableExampleLocalization.of(context).active, width: 80),
   ];
 
   static List<SuperRow<_Row>> _seed() => [
@@ -228,8 +255,10 @@ class _SuperTableDemoState extends State<SuperTableDemo> {
   ];
 
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_exampleDependenciesInitialized) return;
+    _exampleDependenciesInitialized = true;
     _c = SuperTableController<_Row>(
       columns: _columns,
       rows: _seed(),
@@ -278,14 +307,14 @@ class _SuperTableDemoState extends State<SuperTableDemo> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                ExampleL10n.current.sUPERTABLEUNIFIEDDATAGRID,
+                SuperTableExampleLocalization.of(context).sUPERTABLEUNIFIEDDATAGRID,
                 style: context.superTextTheme.eyebrow.copyWith(
                   color: colorScheme.primary,
                 ),
               ),
               SizedBox(height: spacing.space2),
               Text(
-                ExampleL10n.current.issueInventory,
+                SuperTableExampleLocalization.of(context).issueInventory,
                 style: context.superTextTheme.h1.copyWith(color: theme.fg1),
               ),
               SizedBox(height: spacing.space6),
@@ -331,42 +360,42 @@ class _SuperTableDemoState extends State<SuperTableDemo> {
       children: [
         ListenableBuilder(
           listenable: _c,
-          builder: (ctx, _) => _seg(ExampleL10n.current.mode, [
+          builder: (ctx, _) => _seg(SuperTableExampleLocalization.of(context).mode, [
             (
-              ExampleL10n.current.readable,
+              SuperTableExampleLocalization.of(context).readable,
               _c.mode == SuperTableMode.readable,
               () => _c.setMode(SuperTableMode.readable),
             ),
             (
-              'Editable',
+              SuperTableExampleLocalization.of(context).editable,
               _c.mode == SuperTableMode.editable,
               () => _c.setMode(SuperTableMode.editable),
             ),
           ]),
         ),
-        _seg(ExampleL10n.current.select, [
+        _seg(SuperTableExampleLocalization.of(context).select, [
           (
-            ExampleL10n.current.cell,
+            SuperTableExampleLocalization.of(context).cell,
             _selMode == SuperSelectionMode.singleCell,
             () => _setSel(SuperSelectionMode.singleCell),
           ),
           (
-            'Cells',
+            SuperTableExampleLocalization.of(context).cells,
             _selMode == SuperSelectionMode.multiCells,
             () => _setSel(SuperSelectionMode.multiCells),
           ),
           (
-            'Row',
+            SuperTableExampleLocalization.of(context).row,
             _selMode == SuperSelectionMode.singleRow,
             () => _setSel(SuperSelectionMode.singleRow),
           ),
           (
-            'Rows',
+            SuperTableExampleLocalization.of(context).rows,
             _selMode == SuperSelectionMode.multiRows,
             () => _setSel(SuperSelectionMode.multiRows),
           ),
         ]),
-        _toggle(t, ExampleL10n.current.groupByCategory, _grouped, () {
+        _toggle(t, SuperTableExampleLocalization.of(context).groupByCategory, _grouped, () {
           setState(() => _grouped = !_grouped);
           _c.clearGroups();
           if (_grouped) _c.toggleGroup('cat');
@@ -491,7 +520,7 @@ class _SuperTableDemoState extends State<SuperTableDemo> {
                 isDense: true,
                 border: InputBorder.none,
                 contentPadding: EdgeInsets.zero,
-                hintText: ExampleL10n.current.searchRows,
+                hintText: SuperTableExampleLocalization.of(context).searchRows,
                 hintStyle: context.superTextTheme.caption.copyWith(
                   color: t.fg4,
                 ),

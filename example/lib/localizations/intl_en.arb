@@ -497,5 +497,25 @@
       "format": {}
     }
   },
-  "cSVCopiedToClipboard": "CSV copied to clipboard"
+  "cSVCopiedToClipboard": "CSV copied to clipboard",
+  "cells": "Cells",
+  "row": "Row",
+  "rows": "Rows",
+  "rawMaterial": "Raw Material",
+  "component": "Component",
+  "finishedGood": "Finished Good",
+  "consumable": "Consumable",
+  "inStock": "In Stock",
+  "lowStock": "Low Stock",
+  "outOfStock": "Out of Stock",
+  "discontinued": "Discontinued",
+  "unitEach": "each",
+  "unitBox": "box",
+  "unitPallet": "pallet",
+  "unitKg": "kg",
+  "unitTonne": "tonne",
+  "unitLitre": "litre",
+  "unitMetre": "metre",
+  "unitRoll": "roll",
+  "unitSheet": "sheet"
 }

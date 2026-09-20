@@ -16,8 +16,7 @@
 import 'package:flutter/material.dart';
 import 'package:super_table_field/super_table_field.dart';
 import 'package:super_core/super_core.dart';
-import 'package:super_table_field_example/localizations/example_l10n.dart';
-
+import 'package:super_table_field_example/localizations/generated/l10n.dart';
 // ── Domain models ─────────────────────────────────────────────────────────
 
 class JournalLine {
@@ -56,11 +55,11 @@ class JournalEntry {
 
 // ── Seed data ──────────────────────────────────────────────────────────────
 
-final List<JournalEntry> _seed = [
+List<JournalEntry> _seed(BuildContext context) => [
   JournalEntry(
     ref: 'JV-2024-0001',
     date: '2024-01-15',
-    description: ExampleL10n.current.openingBalanceCashAndEquity,
+    description: SuperTableExampleLocalization.of(context).openingBalanceCashAndEquity,
     type: 'Opening',
     totalDebit: 50000,
     totalCredit: 50000,
@@ -81,7 +80,7 @@ final List<JournalEntry> _seed = [
   JournalEntry(
     ref: 'JV-2024-0002',
     date: '2024-01-18',
-    description: ExampleL10n.current.purchaseOfficeEquipment,
+    description: SuperTableExampleLocalization.of(context).purchaseOfficeEquipment,
     type: 'Purchase',
     totalDebit: 12500,
     totalCredit: 12500,
@@ -107,7 +106,7 @@ final List<JournalEntry> _seed = [
   JournalEntry(
     ref: 'JV-2024-0003',
     date: '2024-01-22',
-    description: ExampleL10n.current.salesRevenueQ1InvoiceBatch,
+    description: SuperTableExampleLocalization.of(context).salesRevenueQ1InvoiceBatch,
     type: 'Revenue',
     totalDebit: 34800,
     totalCredit: 34800,
@@ -138,7 +137,7 @@ final List<JournalEntry> _seed = [
   JournalEntry(
     ref: 'JV-2024-0004',
     date: '2024-01-28',
-    description: ExampleL10n.current.payrollJanuary2024,
+    description: SuperTableExampleLocalization.of(context).payrollJanuary2024,
     type: 'Payroll',
     totalDebit: 28400,
     totalCredit: 28400,
@@ -169,7 +168,7 @@ final List<JournalEntry> _seed = [
   JournalEntry(
     ref: 'JV-2024-0005',
     date: '2024-02-01',
-    description: ExampleL10n.current.depreciationOfficeEquipment,
+    description: SuperTableExampleLocalization.of(context).depreciationOfficeEquipment,
     type: 'Depreciation',
     totalDebit: 625,
     totalCredit: 625,
@@ -190,7 +189,7 @@ final List<JournalEntry> _seed = [
   JournalEntry(
     ref: 'JV-2024-0006',
     date: '2024-02-05',
-    description: ExampleL10n.current.cashReceiptAccountsReceivable,
+    description: SuperTableExampleLocalization.of(context).cashReceiptAccountsReceivable,
     type: 'Receipt',
     totalDebit: 18000,
     totalCredit: 18000,
@@ -211,7 +210,7 @@ final List<JournalEntry> _seed = [
   JournalEntry(
     ref: 'JV-2024-0007',
     date: '2024-02-10',
-    description: ExampleL10n.current.inventoryPurchaseRawMaterials,
+    description: SuperTableExampleLocalization.of(context).inventoryPurchaseRawMaterials,
     type: 'Purchase',
     totalDebit: 8750,
     totalCredit: 8750,
@@ -249,15 +248,15 @@ class _ExpandableRowsExampleState extends State<ExpandableRowsExample> {
         columns: [
           SuperTextColumn(
             key: 'ref',
-            label: ExampleL10n.current.reference,
+            label: SuperTableExampleLocalization.of(context).reference,
             width: 148,
             mono: true,
           ),
-          SuperTextColumn(key: 'date', label: ExampleL10n.current.date, width: 114, mono: true),
-          SuperTextColumn(key: 'description', label: ExampleL10n.current.description, width: 280),
+          SuperTextColumn(key: 'date', label: SuperTableExampleLocalization.of(context).date, width: 114, mono: true),
+          SuperTextColumn(key: 'description', label: SuperTableExampleLocalization.of(context).description, width: 280),
           SuperEnumerationColumn<String>(
             key: 'type',
-            label: ExampleL10n.current.type,
+            label: SuperTableExampleLocalization.of(context).type,
             width: 126,
             values: const [
               'Opening',
@@ -270,25 +269,25 @@ class _ExpandableRowsExampleState extends State<ExpandableRowsExample> {
           ),
           SuperCurrencyColumn(
             key: 'totalDebit',
-            label: ExampleL10n.current.totalDebit,
+            label: SuperTableExampleLocalization.of(context).totalDebit,
             width: 136,
             agg: SuperAgg.sum,
           ),
           SuperCurrencyColumn(
             key: 'totalCredit',
-            label: ExampleL10n.current.totalCredit,
+            label: SuperTableExampleLocalization.of(context).totalCredit,
             width: 136,
             agg: SuperAgg.sum,
           ),
           SuperEnumerationColumn<String>(
             key: 'status',
-            label: ExampleL10n.current.status,
+            label: SuperTableExampleLocalization.of(context).status,
             width: 108,
             values: const ['Posted', 'Draft'],
           ),
         ],
         rows: [
-          for (final e in _seed)
+          for (final e in _seed(context))
             SuperRow<JournalEntry>.of(e, {
               'ref': e.ref,
               'date': e.date,
@@ -334,7 +333,7 @@ class _ExpandableRowsExampleState extends State<ExpandableRowsExample> {
     return Scaffold(
       backgroundColor: t.bg,
       appBar: AppBar(
-        title: Text(ExampleL10n.current.expandableRows020fb0),
+        title: Text(SuperTableExampleLocalization.of(context).expandableRows020fb0),
         backgroundColor: t.surface,
         elevation: 0,
         actions: [
@@ -344,7 +343,7 @@ class _ExpandableRowsExampleState extends State<ExpandableRowsExample> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  ExampleL10n.current.eXPANSIONMODE,
+                  SuperTableExampleLocalization.of(context).eXPANSIONMODE,
                   style: TextStyle(
                     fontFamily: context.superTextTheme.body.fontFamily,
                     fontSize: 10,
@@ -355,7 +354,7 @@ class _ExpandableRowsExampleState extends State<ExpandableRowsExample> {
                 ),
                 const SizedBox(width: 10),
                 _ModeChip(
-                  label: ExampleL10n.current.multi,
+                  label: SuperTableExampleLocalization.of(context).multi,
                   active: !isSingle,
                   onTap: () => setState(
                     () => _expansionMode = SuperRowExpansionMode.multi,
@@ -363,7 +362,7 @@ class _ExpandableRowsExampleState extends State<ExpandableRowsExample> {
                 ),
                 const SizedBox(width: 6),
                 _ModeChip(
-                  label: ExampleL10n.current.single,
+                  label: SuperTableExampleLocalization.of(context).single,
                   active: isSingle,
                   onTap: () => setState(
                     () => _expansionMode = SuperRowExpansionMode.single,
@@ -388,8 +387,8 @@ class _ExpandableRowsExampleState extends State<ExpandableRowsExample> {
                   const SizedBox(width: 7),
                   Text(
                     isSingle
-                        ? ExampleL10n.current.singleModeOnlyOneRowCanBeOpenAtATimeAccordion
-                        : ExampleL10n.current.multiModeMultipleRowsCanBeExpandedSimultaneously,
+                        ? SuperTableExampleLocalization.of(context).singleModeOnlyOneRowCanBeOpenAtATimeAccordion
+                        : SuperTableExampleLocalization.of(context).multiModeMultipleRowsCanBeExpandedSimultaneously,
                     style: TextStyle(
                       fontFamily: context.superTextTheme.body.fontFamily,
                       fontSize: 12.5,
@@ -398,7 +397,7 @@ class _ExpandableRowsExampleState extends State<ExpandableRowsExample> {
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    ExampleL10n.current.tapTheChevronInTheRowNumberColumnToExpand,
+                    SuperTableExampleLocalization.of(context).tapTheChevronInTheRowNumberColumnToExpand,
                     style: TextStyle(
                       fontFamily: context.superTextTheme.body.fontFamily,
                       fontSize: 12.5,
@@ -461,10 +460,10 @@ class _LineItemsPanel extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 12),
             child: Row(
               children: [
-                _colHead(context, t, ExampleL10n.current.aCCOUNT, flex: 4),
-                _colHead(context, t, ExampleL10n.current.nARRATION, flex: 3),
-                _colHeadFixed(context, t, ExampleL10n.current.dEBIT, width: 120, end: true),
-                _colHeadFixed(context, t, ExampleL10n.current.cREDIT, width: 120, end: true),
+                _colHead(context, t, SuperTableExampleLocalization.of(context).aCCOUNT, flex: 4),
+                _colHead(context, t, SuperTableExampleLocalization.of(context).nARRATION, flex: 3),
+                _colHeadFixed(context, t, SuperTableExampleLocalization.of(context).dEBIT, width: 120, end: true),
+                _colHeadFixed(context, t, SuperTableExampleLocalization.of(context).cREDIT, width: 120, end: true),
                 const SizedBox(width: 8),
               ],
             ),

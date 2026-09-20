@@ -15,8 +15,7 @@
 import 'package:flutter/material.dart';
 import 'package:super_table_field/super_table_field.dart';
 import 'package:super_core/super_core.dart';
-import 'package:super_table_field_example/localizations/example_l10n.dart';
-
+import 'package:super_table_field_example/localizations/generated/l10n.dart';
 class AggregationsExample extends StatefulWidget {
   const AggregationsExample({super.key});
   @override
@@ -24,6 +23,8 @@ class AggregationsExample extends StatefulWidget {
 }
 
 class _AggregationsExampleState extends State<AggregationsExample> {
+  bool _exampleDependenciesInitialized = false;
+
   late final SuperTableController<Map<String, dynamic>> _c;
 
   // Quantity-weighted average unit cost: Σ(qty·cost) / Σ(qty).
@@ -39,49 +40,51 @@ class _AggregationsExampleState extends State<AggregationsExample> {
   }
 
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_exampleDependenciesInitialized) return;
+    _exampleDependenciesInitialized = true;
     _c = SuperTableController<Map<String, dynamic>>(
       mode: SuperTableMode.readable,
       columns: [
-        SuperTextColumn(key: 'sku', label: ExampleL10n.current.sKU, width: 130, mono: true),
+        SuperTextColumn(key: 'sku', label: SuperTableExampleLocalization.of(context).sKU, width: 130, mono: true),
         SuperEnumerationColumn<String>(
           key: 'category',
-          label: ExampleL10n.current.category,
+          label: SuperTableExampleLocalization.of(context).category,
           width: 150,
           values: const ['Raw Material', 'Finished Good', 'Consumable'],
         ),
         SuperNumberColumn<int>(
           key: 'qty',
-          label: ExampleL10n.current.qty,
+          label: SuperTableExampleLocalization.of(context).qty,
           width: 100,
           agg: SuperAgg.sum,
         ),
         // min unit cost across the group / table.
         SuperCurrencyColumn(
           key: 'cost',
-          label: ExampleL10n.current.unitCost,
+          label: SuperTableExampleLocalization.of(context).unitCost,
           width: 140,
           agg: SuperAgg.min,
-          aggLabel: ExampleL10n.current.mINCOST,
+          aggLabel: SuperTableExampleLocalization.of(context).mINCOST,
         ),
         // max unit cost — a computed mirror of `cost` so it can carry its own agg.
         SuperComputedColumn<num>(
           key: 'cost_hi',
-          label: ExampleL10n.current.costMax,
+          label: SuperTableExampleLocalization.of(context).costMax,
           width: 140,
           agg: SuperAgg.max,
-          aggLabel: ExampleL10n.current.mAXCOST,
+          aggLabel: SuperTableExampleLocalization.of(context).mAXCOST,
           compute: (row) => (row['cost'] as num?) ?? 0,
           format: (v, row) => '\$${(v as num).toStringAsFixed(2)}',
         ),
         // custom: quantity-weighted average unit cost.
         SuperComputedColumn<num>(
           key: 'wac',
-          label: ExampleL10n.current.wAC,
+          label: SuperTableExampleLocalization.of(context).wAC,
           width: 150,
           agg: SuperAgg.custom,
-          aggLabel: ExampleL10n.current.wTDAVG,
+          aggLabel: SuperTableExampleLocalization.of(context).wTDAVG,
           aggregator: _weightedAvgCost,
           compute: (row) => (row['cost'] as num?) ?? 0,
           format: (v, row) => '\$${(v as num).toStringAsFixed(2)}',
@@ -140,7 +143,7 @@ class _AggregationsExampleState extends State<AggregationsExample> {
     return Scaffold(
       backgroundColor: t.bg,
       appBar: AppBar(
-        title: Text(ExampleL10n.current.aggregations),
+        title: Text(SuperTableExampleLocalization.of(context).aggregations),
         backgroundColor: t.surface,
       ),
       body: Padding(
@@ -151,7 +154,7 @@ class _AggregationsExampleState extends State<AggregationsExample> {
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: Text(
-                ExampleL10n.current.theTotalsRowShowsQtySumTheCostMinMaxAndAQuantityWeightedAverageC039559c,
+                SuperTableExampleLocalization.of(context).theTotalsRowShowsQtySumTheCostMinMaxAndAQuantityWeightedAverageC039559c,
                 style: TextStyle(color: t.fg3),
               ),
             ),
@@ -160,7 +163,7 @@ class _AggregationsExampleState extends State<AggregationsExample> {
                 OutlinedButton.icon(
                   onPressed: () => _c.toggleGroup('category'),
                   icon: const Icon(Icons.workspaces_outline, size: 16),
-                  label: Text(ExampleL10n.current.toggleGroupByCategory),
+                  label: Text(SuperTableExampleLocalization.of(context).toggleGroupByCategory),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: t.fg1,
                     side: BorderSide(color: t.borderStrong),

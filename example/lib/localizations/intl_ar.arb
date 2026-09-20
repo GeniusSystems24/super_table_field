@@ -497,5 +497,25 @@
       "format": {}
     }
   },
-  "cSVCopiedToClipboard": "تم نسخ CSV إلى الحافظة"
+  "cSVCopiedToClipboard": "تم نسخ CSV إلى الحافظة",
+  "cells": "خلايا",
+  "row": "صف",
+  "rows": "صفوف",
+  "rawMaterial": "مادة خام",
+  "component": "مكوّن",
+  "finishedGood": "منتج نهائي",
+  "consumable": "مادة استهلاكية",
+  "inStock": "متوفر في المخزون",
+  "lowStock": "مخزون منخفض",
+  "outOfStock": "نفد من المخزون",
+  "discontinued": "متوقف",
+  "unitEach": "قطعة",
+  "unitBox": "صندوق",
+  "unitPallet": "منصة",
+  "unitKg": "كجم",
+  "unitTonne": "طن",
+  "unitLitre": "لتر",
+  "unitMetre": "متر",
+  "unitRoll": "لفة",
+  "unitSheet": "صفيحة"
 }

@@ -13,8 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:super_table_field/super_table_field.dart';
 import 'package:super_form_field/super_form_field.dart';
 import 'package:super_core/super_core.dart';
-import 'package:super_table_field_example/localizations/example_l10n.dart';
-
+import 'package:super_table_field_example/localizations/generated/l10n.dart';
 class ControllerDrivenExample extends StatefulWidget {
   const ControllerDrivenExample({super.key});
   @override
@@ -23,6 +22,8 @@ class ControllerDrivenExample extends StatefulWidget {
 }
 
 class _ControllerDrivenExampleState extends State<ControllerDrivenExample> {
+  bool _exampleDependenciesInitialized = false;
+
   int _nextId = 1;
   late final SuperTableController<Map<String, dynamic>> _c;
 
@@ -37,25 +38,27 @@ class _ControllerDrivenExampleState extends State<ControllerDrivenExample> {
   ];
 
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_exampleDependenciesInitialized) return;
+    _exampleDependenciesInitialized = true;
     _c = SuperTableController<Map<String, dynamic>>(
       mode: SuperTableMode.readable,
       selectionMode: SuperSelectionMode.multiRows,
       pagination: SuperPagination.loadMore,
       hasMore: true,
       columns: [
-        SuperTextColumn(key: 'id', label: ExampleL10n.current.reference, width: 150, mono: true),
+        SuperTextColumn(key: 'id', label: SuperTableExampleLocalization.of(context).reference, width: 150, mono: true),
         SuperEnumerationColumn<String>(
           key: 'type',
-          label: ExampleL10n.current.type,
+          label: SuperTableExampleLocalization.of(context).type,
           width: 120,
           values: const ['Debit', 'Credit'],
         ),
-        SuperCurrencyColumn(key: 'amount', label: ExampleL10n.current.amount, width: 140),
+        SuperCurrencyColumn(key: 'amount', label: SuperTableExampleLocalization.of(context).amount, width: 140),
         SuperEnumerationColumn<String>(
           key: 'status',
-          label: ExampleL10n.current.status,
+          label: SuperTableExampleLocalization.of(context).status,
           width: 130,
           sources: const [
             SuperSelectListSource<String>(items: ['Posted', 'Pending', 'Void']),
@@ -64,7 +67,7 @@ class _ControllerDrivenExampleState extends State<ControllerDrivenExample> {
           optionBuilder: (items, index, status) => SuperOption<String>(
             value: status,
             label: status,
-            description: index == 0 ? ExampleL10n.current.finalizedTransaction : null,
+            description: index == 0 ? SuperTableExampleLocalization.of(context).finalizedTransaction : null,
           ),
         ),
       ],
@@ -89,7 +92,7 @@ class _ControllerDrivenExampleState extends State<ControllerDrivenExample> {
     final json = _c.filterStateJson();
     ScaffoldMessenger.of(
       context,
-    ).showSnackBar(SnackBar(content: Text(ExampleL10n.current.filterState(json))));
+    ).showSnackBar(SnackBar(content: Text(SuperTableExampleLocalization.of(context).filterState(json))));
   }
 
   @override
@@ -98,7 +101,7 @@ class _ControllerDrivenExampleState extends State<ControllerDrivenExample> {
     return Scaffold(
       backgroundColor: t.bg,
       appBar: AppBar(
-        title: Text(ExampleL10n.current.controllerDriven),
+        title: Text(SuperTableExampleLocalization.of(context).controllerDriven),
         backgroundColor: t.surface,
       ),
       body: Padding(
@@ -110,14 +113,14 @@ class _ControllerDrivenExampleState extends State<ControllerDrivenExample> {
               spacing: 8,
               runSpacing: 8,
               children: [
-                _btn(ExampleL10n.current.toggleMode, Icons.swap_horiz_rounded, _c.toggleMode),
+                _btn(SuperTableExampleLocalization.of(context).toggleMode, Icons.swap_horiz_rounded, _c.toggleMode),
                 _btn(
-                  ExampleL10n.current.filterPosted,
+                  SuperTableExampleLocalization.of(context).filterPosted,
                   Icons.filter_alt_outlined,
                   () => _c.setColumnFilter('status', 'Posted'),
                 ),
                 _btn(
-                  ExampleL10n.current.advancedAmountGreaterEqual500,
+                  SuperTableExampleLocalization.of(context).advancedAmountGreaterEqual500,
                   Icons.tune_rounded,
                   () => _c.setAdvancedFilter([
                     const AdvancedFilterClause(
@@ -127,23 +130,23 @@ class _ControllerDrivenExampleState extends State<ControllerDrivenExample> {
                     ),
                   ]),
                 ),
-                _btn(ExampleL10n.current.clearFilters, Icons.filter_alt_off_outlined, () {
+                _btn(SuperTableExampleLocalization.of(context).clearFilters, Icons.filter_alt_off_outlined, () {
                   _c.clearColumnFilters();
                   _c.clearAdvancedFilter();
                 }),
                 _btn(
-                  ExampleL10n.current.selectRowsZeroTwo,
+                  SuperTableExampleLocalization.of(context).selectRowsZeroTwo,
                   Icons.checklist_rounded,
                   () => _c.selectRowsAt([0, 1, 2]),
                 ),
                 _btn(
-                  ExampleL10n.current.clearSelection,
+                  SuperTableExampleLocalization.of(context).clearSelection,
                   Icons.deselect_rounded,
                   _c.clearSelection,
                 ),
-                _btn(ExampleL10n.current.loadMore, Icons.arrow_downward_rounded, _c.loadMore),
-                _btn(ExampleL10n.current.filterJSON, Icons.data_object_rounded, _showFilterJson),
-                _btn(ExampleL10n.current.clearTable, Icons.delete_sweep_outlined, _c.clearTable),
+                _btn(SuperTableExampleLocalization.of(context).loadMore, Icons.arrow_downward_rounded, _c.loadMore),
+                _btn(SuperTableExampleLocalization.of(context).filterJSON, Icons.data_object_rounded, _showFilterJson),
+                _btn(SuperTableExampleLocalization.of(context).clearTable, Icons.delete_sweep_outlined, _c.clearTable),
               ],
             ),
             const SizedBox(height: 16),

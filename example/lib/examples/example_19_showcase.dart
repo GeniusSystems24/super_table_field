@@ -18,8 +18,7 @@ import 'package:flutter/services.dart';
 import 'package:super_table_field/super_table_field.dart';
 import 'package:super_form_field/super_form_field.dart';
 import 'package:super_auto_suggestion_box/super_auto_suggestion_box.dart';
-import 'package:super_table_field_example/localizations/example_l10n.dart';
-
+import 'package:super_table_field_example/localizations/generated/l10n.dart';
 typedef _Row = Map<String, dynamic>;
 
 class ShowcaseExample extends StatefulWidget {
@@ -30,6 +29,8 @@ class ShowcaseExample extends StatefulWidget {
 }
 
 class _ShowcaseExampleState extends State<ShowcaseExample> {
+  bool _exampleDependenciesInitialized = false;
+
   static const _categories = [
     'Electronics',
     'Apparel',
@@ -75,12 +76,12 @@ class _ShowcaseExampleState extends State<ShowcaseExample> {
   bool _showUndoButton = true;
   bool _showRedoButton = true;
   Map<String, dynamic>? _savedView;
-  String _status = ExampleL10n.current.ready;
+  late String _status;
 
-  static final List<SuperColumn> _columns = [
+  List<SuperColumn> get _columns => [
     SuperTextColumn(
       key: 'sku',
-      label: ExampleL10n.current.sKU,
+      label: SuperTableExampleLocalization.of(context).sKU,
       width: 118,
       mono: true,
       required: true,
@@ -89,14 +90,14 @@ class _ShowcaseExampleState extends State<ShowcaseExample> {
     ),
     SuperTextColumn(
       key: 'name',
-      label: ExampleL10n.current.product,
+      label: SuperTableExampleLocalization.of(context).product,
       width: 226,
       required: true,
       arKey: 'nameAr',
     ),
     SuperColumn<String>(
       key: 'lot',
-      label: ExampleL10n.current.lotSerial,
+      label: SuperTableExampleLocalization.of(context).lotSerial,
       width: 132,
       mono: true,
       formatter: (value, row) {
@@ -104,18 +105,18 @@ class _ShowcaseExampleState extends State<ShowcaseExample> {
         return text.isEmpty ? '' : 'Lot $text';
       },
       validator: (context, controller, row, cell, value) =>
-          value.trim().isEmpty ? ExampleL10n.current.lotIsRequired : null,
+          value.trim().isEmpty ? SuperTableExampleLocalization.of(context).lotIsRequired : null,
     ),
     SuperTextColumn(
       key: 'warehouse',
-      label: ExampleL10n.current.warehouse,
+      label: SuperTableExampleLocalization.of(context).warehouse,
       hidden: true,
       groupable: true,
       filterable: true,
     ),
     SuperEnumerationColumn<String>(
       key: 'category',
-      label: ExampleL10n.current.category,
+      label: SuperTableExampleLocalization.of(context).category,
       width: 136,
       values: _categories,
       onChange: (context, controller, row, cell, previous, next) {
@@ -129,14 +130,14 @@ class _ShowcaseExampleState extends State<ShowcaseExample> {
     ),
     SuperEnumerationColumn<String>(
       key: 'status',
-      label: ExampleL10n.current.status,
+      label: SuperTableExampleLocalization.of(context).status,
       width: 140,
       values: _statuses,
       searchable: true,
       optionBuilder: (items, index, status) => SuperOption<String>(
         value: status,
         label: status,
-        description: ExampleL10n.current.inventoryStateOf(index + 1, items.length),
+        description: SuperTableExampleLocalization.of(context).inventoryStateOf(index + 1, items.length),
       ),
       dot: true,
       tones: const {
@@ -149,32 +150,32 @@ class _ShowcaseExampleState extends State<ShowcaseExample> {
     ),
     SuperNumberColumn<int>(
       key: 'qty',
-      label: ExampleL10n.current.qty,
+      label: SuperTableExampleLocalization.of(context).qty,
       width: 92,
       min: 0,
       max: 99999,
       agg: SuperAgg.sum,
       validator: (context, controller, row, cell, value) =>
-          value < 0 ? ExampleL10n.current.qtyCannotBeNegative : null,
+          value < 0 ? SuperTableExampleLocalization.of(context).qtyCannotBeNegative : null,
     ),
     SuperNumberColumn<num>(
       key: 'discount',
-      label: ExampleL10n.current.discPercent,
+      label: SuperTableExampleLocalization.of(context).discPercent,
       width: 96,
       min: 0,
       max: 60,
       decimals: 0,
       suffix: '%',
       validator: (context, controller, row, cell, value) =>
-          value > 40 ? ExampleL10n.current.managerApprovalRequired : null,
+          value > 40 ? SuperTableExampleLocalization.of(context).managerApprovalRequired : null,
     ),
     SuperComboColumn<String>(
       key: 'uom',
-      label: ExampleL10n.current.unit,
+      label: SuperTableExampleLocalization.of(context).unit,
       width: 104,
       mono: true,
       clearButton: true,
-      hintText: ExampleL10n.current.pickUnit,
+      hintText: SuperTableExampleLocalization.of(context).pickUnit,
       sourceController: (context, controller, row, cell) {
         final units = _unitsFor(row['category']);
         return SuperAutoSuggestionSources.list<String>(units);
@@ -182,16 +183,16 @@ class _ShowcaseExampleState extends State<ShowcaseExample> {
     ),
     SuperCurrencyColumn(
       key: 'cost',
-      label: ExampleL10n.current.unitCost,
+      label: SuperTableExampleLocalization.of(context).unitCost,
       width: 126,
       symbol: r'$',
       agg: SuperAgg.avg,
-      aggLabel: ExampleL10n.current.aVG,
+      aggLabel: SuperTableExampleLocalization.of(context).aVG,
       min: 0,
     ),
     SuperComputedColumn<num>(
       key: 'netValue',
-      label: ExampleL10n.current.netValue,
+      label: SuperTableExampleLocalization.of(context).netValue,
       width: 138,
       align: SuperAlign.end,
       agg: SuperAgg.sum,
@@ -200,43 +201,43 @@ class _ShowcaseExampleState extends State<ShowcaseExample> {
     ),
     SuperProgressColumn<num>(
       key: 'level',
-      label: ExampleL10n.current.stockLevel,
+      label: SuperTableExampleLocalization.of(context).stockLevel,
       width: 150,
       max: 1,
       agg: SuperAgg.avg,
     ),
     SuperColorColumn<String>(
       key: 'tag',
-      label: ExampleL10n.current.tag,
+      label: SuperTableExampleLocalization.of(context).tag,
       width: 118,
       filterItems: [
-        FilterItem(ExampleL10n.current.blue, '#4A7CFF'),
-        FilterItem(ExampleL10n.current.green, '#1DB88A'),
-        FilterItem(ExampleL10n.current.amber, '#E0A23B'),
-        FilterItem(ExampleL10n.current.purple, '#8B5CF6'),
-        FilterItem(ExampleL10n.current.red, '#EF4444'),
-        FilterItem(ExampleL10n.current.cyan, '#06B6D4'),
+        FilterItem(SuperTableExampleLocalization.of(context).blue, '#4A7CFF'),
+        FilterItem(SuperTableExampleLocalization.of(context).green, '#1DB88A'),
+        FilterItem(SuperTableExampleLocalization.of(context).amber, '#E0A23B'),
+        FilterItem(SuperTableExampleLocalization.of(context).purple, '#8B5CF6'),
+        FilterItem(SuperTableExampleLocalization.of(context).red, '#EF4444'),
+        FilterItem(SuperTableExampleLocalization.of(context).cyan, '#06B6D4'),
       ],
     ),
     SuperDateColumn(
       key: 'updated',
-      label: ExampleL10n.current.updated,
+      label: SuperTableExampleLocalization.of(context).updated,
       width: 130,
       required: true,
       validator: (context, controller, row, cell, value) =>
           RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(value)
           ? null
-          : ExampleL10n.current.useYYYYMMDD,
+          : SuperTableExampleLocalization.of(context).useYYYYMMDD,
     ),
     SuperTimeColumn(
       key: 'received',
-      label: ExampleL10n.current.received,
+      label: SuperTableExampleLocalization.of(context).received,
       width: 116,
       required: true,
     ),
     SuperLinkColumn(
       key: 'vendorUrl',
-      label: ExampleL10n.current.vendorURL,
+      label: SuperTableExampleLocalization.of(context).vendorURL,
       width: 220,
       onOpen: (value, row) {
         debugPrint('Open vendor URL: $value');
@@ -244,7 +245,7 @@ class _ShowcaseExampleState extends State<ShowcaseExample> {
     ),
     SuperCheckboxColumn(
       key: 'active',
-      label: ExampleL10n.current.active,
+      label: SuperTableExampleLocalization.of(context).active,
       width: 82,
       onChange: (context, controller, row, cell, previous, next) {
         if (!next) row['status'] = 'Discontinued';
@@ -253,7 +254,7 @@ class _ShowcaseExampleState extends State<ShowcaseExample> {
     ),
     SuperReadonlyColumn(
       key: 'ref',
-      label: ExampleL10n.current.ref,
+      label: SuperTableExampleLocalization.of(context).ref,
       width: 118,
       mono: true,
       pin: SuperPin.end,
@@ -261,8 +262,11 @@ class _ShowcaseExampleState extends State<ShowcaseExample> {
   ];
 
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_exampleDependenciesInitialized) return;
+    _exampleDependenciesInitialized = true;
+    _status = SuperTableExampleLocalization.of(context).ready;
     _c = SuperTableController<_Row>(
       mode: SuperTableMode.readable,
       selectionMode: SuperSelectionMode.multiCells,
@@ -303,7 +307,7 @@ class _ShowcaseExampleState extends State<ShowcaseExample> {
     _grouped = !_grouped;
     _c.setGroupKeys(_grouped ? ['warehouse', 'category'] : const []);
     _setStatus(
-      _grouped ? ExampleL10n.current.groupedByWarehouseAndCategory : ExampleL10n.current.groupingCleared,
+      _grouped ? SuperTableExampleLocalization.of(context).groupedByWarehouseAndCategory : SuperTableExampleLocalization.of(context).groupingCleared,
     );
   }
 
@@ -321,7 +325,7 @@ class _ShowcaseExampleState extends State<ShowcaseExample> {
       );
     }
     _c.setPagination(pagination);
-    _setStatus(ExampleL10n.current.loadingMode(_loadingModeLabel(pagination)));
+    _setStatus(SuperTableExampleLocalization.of(context).loadingMode(_loadingModeLabel(pagination)));
   }
 
   void _loadMore(SuperFilterState _) {
@@ -340,78 +344,78 @@ class _ShowcaseExampleState extends State<ShowcaseExample> {
       final more = _generatedRows(_nextGenerated, count);
       _nextGenerated += count;
       _c.appendRows(more, hasMore: _c.rows.length + count < _maxRows);
-      _setStatus(ExampleL10n.current.loadedMoreRows(count));
+      _setStatus(SuperTableExampleLocalization.of(context).loadedMoreRows(count));
     });
   }
 
   Future<void> _copyCsv() async {
     await Clipboard.setData(ClipboardData(text: _c.toCsv()));
-    _setStatus(ExampleL10n.current.copiedRowsAsCSV(_c.sortedRows.length));
+    _setStatus(SuperTableExampleLocalization.of(context).copiedRowsAsCSV(_c.sortedRows.length));
   }
 
   void _validate() {
     showSuperValidationPanel(context, _c);
     _setStatus(
-      _c.isValid ? ExampleL10n.current.allRowsValid : ExampleL10n.current.validationIssueS(_c.errorCount),
+      _c.isValid ? SuperTableExampleLocalization.of(context).allRowsValid : SuperTableExampleLocalization.of(context).validationIssueS(_c.errorCount),
     );
   }
 
   void _saveView() {
     _savedView = _c.viewStateJson();
-    _setStatus(ExampleL10n.current.viewStateSavedInMemory);
+    _setStatus(SuperTableExampleLocalization.of(context).viewStateSavedInMemory);
   }
 
   void _restoreView() {
     final saved = _savedView;
     if (saved == null) {
-      _setStatus(ExampleL10n.current.noSavedViewYet);
+      _setStatus(SuperTableExampleLocalization.of(context).noSavedViewYet);
       return;
     }
     _c.applyViewJson(saved);
     _grouped = _c.grouped;
-    _setStatus(ExampleL10n.current.savedViewRestored);
+    _setStatus(SuperTableExampleLocalization.of(context).savedViewRestored);
   }
 
   void _resetView() {
     _c.resetViewState();
     _grouped = false;
-    _setStatus(ExampleL10n.current.viewStateReset);
+    _setStatus(SuperTableExampleLocalization.of(context).viewStateReset);
   }
 
   void _addRow() {
     _c.addRow();
     _c.setMode(SuperTableMode.editable);
-    _setStatus(ExampleL10n.current.newEditableRowAdded);
+    _setStatus(SuperTableExampleLocalization.of(context).newEditableRowAdded);
   }
 
   void _moveUp() {
     _c.moveRowUp();
-    _setStatus(ExampleL10n.current.focusedRowMovedUp);
+    _setStatus(SuperTableExampleLocalization.of(context).focusedRowMovedUp);
   }
 
   void _moveDown() {
     _c.moveRowDown();
-    _setStatus(ExampleL10n.current.focusedRowMovedDown);
+    _setStatus(SuperTableExampleLocalization.of(context).focusedRowMovedDown);
   }
 
   void _fillDown() {
     _c.fillDown();
-    _setStatus(ExampleL10n.current.fillDownAppliedToTheCurrentSelection);
+    _setStatus(SuperTableExampleLocalization.of(context).fillDownAppliedToTheCurrentSelection);
   }
 
   void _fillRight() {
     _c.fillRight();
-    _setStatus(ExampleL10n.current.fillRightAppliedToTheCurrentSelection);
+    _setStatus(SuperTableExampleLocalization.of(context).fillRightAppliedToTheCurrentSelection);
   }
 
   void _rejectChanges() {
     _c.rejectChanges();
-    _setStatus(ExampleL10n.current.changesRejected);
+    _setStatus(SuperTableExampleLocalization.of(context).changesRejected);
   }
 
   void _acceptChanges() {
     _c.acceptChanges();
-    _setStatus(ExampleL10n.current.changesAccepted);
+    _setStatus(SuperTableExampleLocalization.of(context).changesAccepted);
   }
 
   @override
@@ -423,7 +427,7 @@ class _ShowcaseExampleState extends State<ShowcaseExample> {
     return Scaffold(
       backgroundColor: t.bg,
       appBar: AppBar(
-        title: Text(ExampleL10n.current.showcaseAllColumnTypes),
+        title: Text(SuperTableExampleLocalization.of(context).showcaseAllColumnTypes),
         backgroundColor: t.surface,
       ),
       body: Padding(
@@ -454,32 +458,32 @@ class _ShowcaseExampleState extends State<ShowcaseExample> {
                       ..hideCurrentSnackBar()
                       ..showSnackBar(
                         SnackBar(
-                          content: Text(ExampleL10n.current.open(row['sku'], row['name'])),
+                          content: Text(SuperTableExampleLocalization.of(context).open(row['sku'], row['name'])),
                           duration: const Duration(seconds: 2),
                         ),
                       );
                   },
                   onCellDoubleTap: (details) => _setStatus(
-                    ExampleL10n.current.doubleTap(details.column.label, details.value ?? ''),
+                    SuperTableExampleLocalization.of(context).doubleTap(details.column.label, details.value ?? ''),
                   ),
                   onCellSecondaryTap: (details) =>
-                      _setStatus(ExampleL10n.current.contextMenuOn(details.column.label)),
+                      _setStatus(SuperTableExampleLocalization.of(context).contextMenuOn(details.column.label)),
                   onSelectionChanged: (selection) {
                     final stats = selection.stats;
                     if (stats != null && stats.hasAggregate) {
                       _setStatus(
-                        ExampleL10n.current.cellsSelectedSumAvg(selection.cells.length, stats.sum.toStringAsFixed(2), stats.average.toStringAsFixed(2)),
+                        SuperTableExampleLocalization.of(context).cellsSelectedSumAvg(selection.cells.length, stats.sum.toStringAsFixed(2), stats.average.toStringAsFixed(2)),
                       );
                     } else {
                       _setStatus(
-                        ExampleL10n.current.cursorRowColumn(selection.cursor.r + 1, selection.cursor.c + 1),
+                        SuperTableExampleLocalization.of(context).cursorRowColumn(selection.cursor.r + 1, selection.cursor.c + 1),
                       );
                     }
                   },
                   onSortChanged: (sort) => _setStatus(
                     sort.isSorted
-                        ? ExampleL10n.current.sorted(sort.columnLabel ?? '', sort.ascending ? 'asc' : 'desc')
-                        : ExampleL10n.current.sortCleared,
+                        ? SuperTableExampleLocalization.of(context).sorted(sort.columnLabel ?? '', sort.ascending ? 'asc' : 'desc')
+                        : SuperTableExampleLocalization.of(context).sortCleared,
                   ),
                 ),
               ),
@@ -499,65 +503,65 @@ class _ShowcaseExampleState extends State<ShowcaseExample> {
         _btn(
           theme,
           editable ? Icons.visibility_rounded : Icons.edit_rounded,
-          editable ? ExampleL10n.current.readable : ExampleL10n.current.editable,
+          editable ? SuperTableExampleLocalization.of(context).readable : SuperTableExampleLocalization.of(context).editable,
           _c.toggleMode,
           filled: true,
         ),
         _btn(
           theme,
           Icons.view_column_rounded,
-          ExampleL10n.current.columnscf723c,
+          SuperTableExampleLocalization.of(context).columnscf723c,
           () => showSuperColumnManager(context, _c),
         ),
         _btn(
           theme,
           _grouped ? Icons.layers_clear_rounded : Icons.layers_rounded,
-          _grouped ? ExampleL10n.current.ungroup : ExampleL10n.current.group,
+          _grouped ? SuperTableExampleLocalization.of(context).ungroup : SuperTableExampleLocalization.of(context).group,
           _toggleGroup,
         ),
-        _chip(theme, ExampleL10n.current.totals, Icons.functions_rounded, _totals, () {
+        _chip(theme, SuperTableExampleLocalization.of(context).totals, Icons.functions_rounded, _totals, () {
           setState(() => _totals = !_totals);
         }),
-        _chip(theme, ExampleL10n.current.filters, Icons.filter_alt_outlined, _filters, () {
+        _chip(theme, SuperTableExampleLocalization.of(context).filters, Icons.filter_alt_outlined, _filters, () {
           setState(() => _filters = !_filters);
         }),
         if (!editable) _loadingModePicker(theme),
         _chip(
           theme,
-          ExampleL10n.current.jSONBtn,
+          SuperTableExampleLocalization.of(context).jSONBtn,
           Icons.content_copy_rounded,
           _showCopyJsonButton,
           () => setState(() => _showCopyJsonButton = !_showCopyJsonButton),
         ),
-        _chip(theme, ExampleL10n.current.undoBtn, Icons.undo_rounded, _showUndoButton, () {
+        _chip(theme, SuperTableExampleLocalization.of(context).undoBtn, Icons.undo_rounded, _showUndoButton, () {
           setState(() => _showUndoButton = !_showUndoButton);
         }),
-        _chip(theme, ExampleL10n.current.redoBtn, Icons.redo_rounded, _showRedoButton, () {
+        _chip(theme, SuperTableExampleLocalization.of(context).redoBtn, Icons.redo_rounded, _showRedoButton, () {
           setState(() => _showRedoButton = !_showRedoButton);
         }),
-        _btn(theme, Icons.add_rounded, ExampleL10n.current.addRow, _addRow),
-        _btn(theme, Icons.keyboard_arrow_up_rounded, ExampleL10n.current.moveUp, _moveUp),
-        _btn(theme, Icons.keyboard_arrow_down_rounded, ExampleL10n.current.moveDown, _moveDown),
+        _btn(theme, Icons.add_rounded, SuperTableExampleLocalization.of(context).addRow, _addRow),
+        _btn(theme, Icons.keyboard_arrow_up_rounded, SuperTableExampleLocalization.of(context).moveUp, _moveUp),
+        _btn(theme, Icons.keyboard_arrow_down_rounded, SuperTableExampleLocalization.of(context).moveDown, _moveDown),
         _btn(
           theme,
           Icons.south_rounded,
-          ExampleL10n.current.fillDown,
+          SuperTableExampleLocalization.of(context).fillDown,
           editable ? _fillDown : null,
         ),
         _btn(
           theme,
           Icons.east_rounded,
-          ExampleL10n.current.fillRight,
+          SuperTableExampleLocalization.of(context).fillRight,
           editable ? _fillRight : null,
         ),
-        _btn(theme, Icons.file_download_outlined, ExampleL10n.current.copyCSV, _copyCsv),
-        _btn(theme, Icons.rule_rounded, ExampleL10n.current.validate, _validate),
-        _btn(theme, Icons.bookmark_add_outlined, ExampleL10n.current.saveView, _saveView),
-        _btn(theme, Icons.restore_rounded, ExampleL10n.current.restoreView, _restoreView),
-        _btn(theme, Icons.restart_alt_rounded, ExampleL10n.current.resetView, _resetView),
+        _btn(theme, Icons.file_download_outlined, SuperTableExampleLocalization.of(context).copyCSV, _copyCsv),
+        _btn(theme, Icons.rule_rounded, SuperTableExampleLocalization.of(context).validate, _validate),
+        _btn(theme, Icons.bookmark_add_outlined, SuperTableExampleLocalization.of(context).saveView, _saveView),
+        _btn(theme, Icons.restore_rounded, SuperTableExampleLocalization.of(context).restoreView, _restoreView),
+        _btn(theme, Icons.restart_alt_rounded, SuperTableExampleLocalization.of(context).resetView, _resetView),
         if (_c.hasChanges) ...[
-          _btn(theme, Icons.save_rounded, ExampleL10n.current.accept, _acceptChanges),
-          _btn(theme, Icons.undo_rounded, ExampleL10n.current.reject, _rejectChanges),
+          _btn(theme, Icons.save_rounded, SuperTableExampleLocalization.of(context).accept, _acceptChanges),
+          _btn(theme, Icons.undo_rounded, SuperTableExampleLocalization.of(context).reject, _rejectChanges),
         ],
       ],
     );
@@ -569,7 +573,7 @@ class _ShowcaseExampleState extends State<ShowcaseExample> {
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          ExampleL10n.current.lOAD,
+          SuperTableExampleLocalization.of(context).lOAD,
           style: TextStyle(
             color: t.fg4,
             fontSize: 10,
@@ -583,22 +587,22 @@ class _ShowcaseExampleState extends State<ShowcaseExample> {
             ButtonSegment(
               value: SuperPagination.none,
               icon: const Icon(Icons.view_list_rounded, size: 15),
-              label: Text(ExampleL10n.current.off),
+              label: Text(SuperTableExampleLocalization.of(context).off),
             ),
             ButtonSegment(
               value: SuperPagination.pages,
               icon: const Icon(Icons.auto_stories_rounded, size: 15),
-              label: Text(ExampleL10n.current.pages),
+              label: Text(SuperTableExampleLocalization.of(context).pages),
             ),
             ButtonSegment(
               value: SuperPagination.loadMore,
               icon: const Icon(Icons.arrow_downward_rounded, size: 15),
-              label: Text(ExampleL10n.current.loadPlus),
+              label: Text(SuperTableExampleLocalization.of(context).loadPlus),
             ),
             ButtonSegment(
               value: SuperPagination.infinite,
               icon: const Icon(Icons.all_inclusive_rounded, size: 15),
-              label: Text(ExampleL10n.current.infinite),
+              label: Text(SuperTableExampleLocalization.of(context).infinite),
             ),
           ],
           selected: {_c.pagination},

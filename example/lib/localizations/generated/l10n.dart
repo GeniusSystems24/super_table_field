@@ -2425,6 +2425,126 @@ abstract class SuperTableExampleLocalization {
   /// In en, this message translates to:
   /// **'CSV copied to clipboard'**
   String get cSVCopiedToClipboard;
+
+  /// No description provided for @cells.
+  ///
+  /// In en, this message translates to:
+  /// **'Cells'**
+  String get cells;
+
+  /// No description provided for @row.
+  ///
+  /// In en, this message translates to:
+  /// **'Row'**
+  String get row;
+
+  /// No description provided for @rows.
+  ///
+  /// In en, this message translates to:
+  /// **'Rows'**
+  String get rows;
+
+  /// No description provided for @rawMaterial.
+  ///
+  /// In en, this message translates to:
+  /// **'Raw Material'**
+  String get rawMaterial;
+
+  /// No description provided for @component.
+  ///
+  /// In en, this message translates to:
+  /// **'Component'**
+  String get component;
+
+  /// No description provided for @finishedGood.
+  ///
+  /// In en, this message translates to:
+  /// **'Finished Good'**
+  String get finishedGood;
+
+  /// No description provided for @consumable.
+  ///
+  /// In en, this message translates to:
+  /// **'Consumable'**
+  String get consumable;
+
+  /// No description provided for @inStock.
+  ///
+  /// In en, this message translates to:
+  /// **'In Stock'**
+  String get inStock;
+
+  /// No description provided for @lowStock.
+  ///
+  /// In en, this message translates to:
+  /// **'Low Stock'**
+  String get lowStock;
+
+  /// No description provided for @outOfStock.
+  ///
+  /// In en, this message translates to:
+  /// **'Out of Stock'**
+  String get outOfStock;
+
+  /// No description provided for @discontinued.
+  ///
+  /// In en, this message translates to:
+  /// **'Discontinued'**
+  String get discontinued;
+
+  /// No description provided for @unitEach.
+  ///
+  /// In en, this message translates to:
+  /// **'each'**
+  String get unitEach;
+
+  /// No description provided for @unitBox.
+  ///
+  /// In en, this message translates to:
+  /// **'box'**
+  String get unitBox;
+
+  /// No description provided for @unitPallet.
+  ///
+  /// In en, this message translates to:
+  /// **'pallet'**
+  String get unitPallet;
+
+  /// No description provided for @unitKg.
+  ///
+  /// In en, this message translates to:
+  /// **'kg'**
+  String get unitKg;
+
+  /// No description provided for @unitTonne.
+  ///
+  /// In en, this message translates to:
+  /// **'tonne'**
+  String get unitTonne;
+
+  /// No description provided for @unitLitre.
+  ///
+  /// In en, this message translates to:
+  /// **'litre'**
+  String get unitLitre;
+
+  /// No description provided for @unitMetre.
+  ///
+  /// In en, this message translates to:
+  /// **'metre'**
+  String get unitMetre;
+
+  /// No description provided for @unitRoll.
+  ///
+  /// In en, this message translates to:
+  /// **'roll'**
+  String get unitRoll;
+
+  /// No description provided for @unitSheet.
+  ///
+  /// In en, this message translates to:
+  /// **'sheet'**
+  String get unitSheet;
 }
 
 class _SuperTableExampleLocalizationDelegate

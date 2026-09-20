@@ -14,8 +14,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:super_table_field/super_table_field.dart';
 import 'package:super_core/super_core.dart';
-import 'package:super_table_field_example/localizations/example_l10n.dart';
-
+import 'package:super_table_field_example/localizations/generated/l10n.dart';
 class ExportExample extends StatefulWidget {
   const ExportExample({super.key});
   @override
@@ -23,31 +22,35 @@ class ExportExample extends StatefulWidget {
 }
 
 class _ExportExampleState extends State<ExportExample> {
+  bool _exampleDependenciesInitialized = false;
+
   late final SuperTableController<Map<String, dynamic>> _c;
   String _preview = '';
   String _format = 'CSV';
 
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_exampleDependenciesInitialized) return;
+    _exampleDependenciesInitialized = true;
     _c = SuperTableController<Map<String, dynamic>>(
       mode: SuperTableMode.readable,
       columns: [
-        SuperTextColumn(key: 'ref', label: ExampleL10n.current.reference, width: 150, mono: true),
+        SuperTextColumn(key: 'ref', label: SuperTableExampleLocalization.of(context).reference, width: 150, mono: true),
         SuperEnumerationColumn<String>(
           key: 'type',
-          label: ExampleL10n.current.type,
+          label: SuperTableExampleLocalization.of(context).type,
           width: 120,
           values: const ['Debit', 'Credit'],
         ),
-        SuperTextColumn(key: 'memo', label: ExampleL10n.current.memo, width: 240),
+        SuperTextColumn(key: 'memo', label: SuperTableExampleLocalization.of(context).memo, width: 240),
         SuperCurrencyColumn(
           key: 'amount',
-          label: ExampleL10n.current.amount,
+          label: SuperTableExampleLocalization.of(context).amount,
           width: 140,
           agg: SuperAgg.sum,
         ),
-        SuperDateColumn(key: 'date', label: ExampleL10n.current.date, width: 140),
+        SuperDateColumn(key: 'date', label: SuperTableExampleLocalization.of(context).date, width: 140),
       ],
       rows: [
         SuperRow.map({
@@ -105,7 +108,7 @@ class _ExportExampleState extends State<ExportExample> {
     final t = context.superTheme;
     return Scaffold(
       backgroundColor: t.bg,
-      appBar: AppBar(title: Text(ExampleL10n.current.export), backgroundColor: t.surface),
+      appBar: AppBar(title: Text(SuperTableExampleLocalization.of(context).export), backgroundColor: t.surface),
       body: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -123,7 +126,7 @@ class _ExportExampleState extends State<ExportExample> {
                     decoration: InputDecoration(
                       isDense: true,
                       prefixIcon: const Icon(Icons.search_rounded, size: 18),
-                      hintText: ExampleL10n.current.searchExportReflectsTheFilteredView,
+                      hintText: SuperTableExampleLocalization.of(context).searchExportReflectsTheFilteredView,
                       hintStyle: TextStyle(color: t.fg4),
                       enabledBorder: OutlineInputBorder(
                         borderSide: BorderSide(color: t.border),
@@ -137,9 +140,9 @@ class _ExportExampleState extends State<ExportExample> {
                 const SizedBox(width: 12),
                 SegmentedButton<String>(
                   segments: [
-                    ButtonSegment(value: 'CSV', label: Text(ExampleL10n.current.cSV)),
-                    ButtonSegment(value: 'TSV', label: Text(ExampleL10n.current.tSV)),
-                    ButtonSegment(value: 'JSON', label: Text(ExampleL10n.current.jSON)),
+                    ButtonSegment(value: 'CSV', label: Text(SuperTableExampleLocalization.of(context).cSV)),
+                    ButtonSegment(value: 'TSV', label: Text(SuperTableExampleLocalization.of(context).tSV)),
+                    ButtonSegment(value: 'JSON', label: Text(SuperTableExampleLocalization.of(context).jSON)),
                   ],
                   selected: {_format},
                   onSelectionChanged: (s) {
@@ -158,7 +161,7 @@ class _ExportExampleState extends State<ExportExample> {
             Row(
               children: [
                 Text(
-                  ExampleL10n.current.output(_format),
+                  SuperTableExampleLocalization.of(context).output(_format),
                   style: TextStyle(fontWeight: FontWeight.w700, color: t.fg1),
                 ),
                 const Spacer(),
@@ -166,11 +169,11 @@ class _ExportExampleState extends State<ExportExample> {
                   onPressed: () {
                     _c.copyCsvToClipboard();
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(ExampleL10n.current.cSVCopiedToClipboard)),
+                      SnackBar(content: Text(SuperTableExampleLocalization.of(context).cSVCopiedToClipboard)),
                     );
                   },
                   icon: const Icon(Icons.copy_rounded, size: 16),
-                  label: Text(ExampleL10n.current.copyCSV),
+                  label: Text(SuperTableExampleLocalization.of(context).copyCSV),
                 ),
               ],
             ),

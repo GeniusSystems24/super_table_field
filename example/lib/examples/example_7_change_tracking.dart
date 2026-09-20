@@ -14,8 +14,7 @@
 import 'package:flutter/material.dart';
 import 'package:super_table_field/super_table_field.dart';
 import 'package:super_core/super_core.dart';
-import 'package:super_table_field_example/localizations/example_l10n.dart';
-
+import 'package:super_table_field_example/localizations/generated/l10n.dart';
 class ChangeTrackingExample extends StatefulWidget {
   const ChangeTrackingExample({super.key});
   @override
@@ -23,11 +22,15 @@ class ChangeTrackingExample extends StatefulWidget {
 }
 
 class _ChangeTrackingExampleState extends State<ChangeTrackingExample> {
+  bool _exampleDependenciesInitialized = false;
+
   late final SuperTableController<Map<String, dynamic>> _c;
 
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_exampleDependenciesInitialized) return;
+    _exampleDependenciesInitialized = true;
     _c = SuperTableController<Map<String, dynamic>>(
       mode: SuperTableMode.editable,
       addRowEnabled: true,
@@ -41,22 +44,22 @@ class _ChangeTrackingExampleState extends State<ChangeTrackingExample> {
       columns: [
         SuperTextColumn(
           key: 'sku',
-          label: ExampleL10n.current.sKU,
+          label: SuperTableExampleLocalization.of(context).sKU,
           width: 140,
           mono: true,
           required: true,
         ),
-        SuperTextColumn(key: 'name', label: ExampleL10n.current.product, width: 220),
+        SuperTextColumn(key: 'name', label: SuperTableExampleLocalization.of(context).product, width: 220),
         SuperNumberColumn<int>(
           key: 'qty',
-          label: ExampleL10n.current.onHand41733d,
+          label: SuperTableExampleLocalization.of(context).onHand41733d,
           width: 110,
           min: 0,
           agg: SuperAgg.sum,
         ),
         SuperCurrencyColumn(
           key: 'price',
-          label: ExampleL10n.current.unitPrice,
+          label: SuperTableExampleLocalization.of(context).unitPrice,
           width: 140,
           agg: SuperAgg.sum,
         ),
@@ -96,7 +99,7 @@ class _ChangeTrackingExampleState extends State<ChangeTrackingExample> {
     final delta = _c.changes;
     ScaffoldMessenger.of(
       context,
-    ).showSnackBar(SnackBar(content: Text(ExampleL10n.current.pOSTDeltaTo(delta.toString()))));
+    ).showSnackBar(SnackBar(content: Text(SuperTableExampleLocalization.of(context).pOSTDeltaTo(delta.toString()))));
     _c.acceptChanges(); // re-baseline: the grid is now clean
   }
 
@@ -107,7 +110,7 @@ class _ChangeTrackingExampleState extends State<ChangeTrackingExample> {
     return Scaffold(
       backgroundColor: t.bg,
       appBar: AppBar(
-        title: Text(ExampleL10n.current.changeTracking),
+        title: Text(SuperTableExampleLocalization.of(context).changeTracking),
         backgroundColor: t.surface,
       ),
       body: Padding(
@@ -118,7 +121,7 @@ class _ChangeTrackingExampleState extends State<ChangeTrackingExample> {
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: Text(
-                ExampleL10n.current.editACellTabPastTheLastCellToAddARowOrRightClickToDeleteDirtyCel9f2a32d,
+                SuperTableExampleLocalization.of(context).editACellTabPastTheLastCellToAddARowOrRightClickToDeleteDirtyCel9f2a32d,
                 style: TextStyle(color: t.fg3),
               ),
             ),
@@ -130,8 +133,8 @@ class _ChangeTrackingExampleState extends State<ChangeTrackingExample> {
               children: [
                 Text(
                   _c.hasChanges
-                      ? ExampleL10n.current.unsavedChanges(delta.count)
-                      : ExampleL10n.current.noChanges,
+                      ? SuperTableExampleLocalization.of(context).unsavedChanges(delta.count)
+                      : SuperTableExampleLocalization.of(context).noChanges,
                   style: TextStyle(
                     fontWeight: FontWeight.w700,
                     color: _c.hasChanges ? const Color(0xFFE0A23B) : t.fg3,
@@ -141,7 +144,7 @@ class _ChangeTrackingExampleState extends State<ChangeTrackingExample> {
                 OutlinedButton.icon(
                   onPressed: _c.hasChanges ? _c.rejectChanges : null,
                   icon: const Icon(Icons.undo_rounded, size: 16),
-                  label: Text(ExampleL10n.current.revert),
+                  label: Text(SuperTableExampleLocalization.of(context).revert),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: t.fg1,
                     side: BorderSide(color: t.borderStrong),
@@ -151,7 +154,7 @@ class _ChangeTrackingExampleState extends State<ChangeTrackingExample> {
                 FilledButton.icon(
                   onPressed: _c.hasChanges ? _save : null,
                   icon: const Icon(Icons.cloud_upload_outlined, size: 16),
-                  label: Text(ExampleL10n.current.saveChanges),
+                  label: Text(SuperTableExampleLocalization.of(context).saveChanges),
                 ),
               ],
             ),
@@ -194,11 +197,11 @@ class _ChangePanel extends StatelessWidget {
     );
     return Row(
       children: [
-        chip(ExampleL10n.current.added, delta.added.length, const Color(0xFF1DB88A)),
+        chip(SuperTableExampleLocalization.of(context).added, delta.added.length, const Color(0xFF1DB88A)),
         const SizedBox(width: 10),
-        chip(ExampleL10n.current.modified, delta.modified.length, const Color(0xFFE0A23B)),
+        chip(SuperTableExampleLocalization.of(context).modified, delta.modified.length, const Color(0xFFE0A23B)),
         const SizedBox(width: 10),
-        chip(ExampleL10n.current.deleted, delta.deleted.length, const Color(0xFFEF4444)),
+        chip(SuperTableExampleLocalization.of(context).deleted, delta.deleted.length, const Color(0xFFEF4444)),
       ],
     );
   }

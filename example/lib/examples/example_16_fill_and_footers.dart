@@ -16,8 +16,7 @@
 import 'package:flutter/material.dart';
 import 'package:super_table_field/super_table_field.dart';
 import 'package:super_core/super_core.dart';
-import 'package:super_table_field_example/localizations/example_l10n.dart';
-
+import 'package:super_table_field_example/localizations/generated/l10n.dart';
 class FillAndFootersExample extends StatefulWidget {
   const FillAndFootersExample({super.key});
   @override
@@ -25,11 +24,15 @@ class FillAndFootersExample extends StatefulWidget {
 }
 
 class _FillAndFootersExampleState extends State<FillAndFootersExample> {
+  bool _exampleDependenciesInitialized = false;
+
   late final SuperTableController<Map<String, dynamic>> _c;
 
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_exampleDependenciesInitialized) return;
+    _exampleDependenciesInitialized = true;
     _c = SuperTableController<Map<String, dynamic>>(
       mode: SuperTableMode.editable,
       selectionMode: SuperSelectionMode.multiCells,
@@ -45,23 +48,23 @@ class _FillAndFootersExampleState extends State<FillAndFootersExample> {
       columns: [
         SuperEnumerationColumn(
           key: 'warehouse',
-          label: ExampleL10n.current.warehouse,
+          label: SuperTableExampleLocalization.of(context).warehouse,
           width: 140,
           values: const ['Main', 'North', 'Overflow'],
           groupable: true,
         ),
-        SuperTextColumn(key: 'item', label: ExampleL10n.current.item, width: 220),
-        SuperTextColumn(key: 'bin', label: ExampleL10n.current.bin, width: 100, mono: true),
+        SuperTextColumn(key: 'item', label: SuperTableExampleLocalization.of(context).item, width: 220),
+        SuperTextColumn(key: 'bin', label: SuperTableExampleLocalization.of(context).bin, width: 100, mono: true),
         SuperNumberColumn<int>(
           key: 'qty',
-          label: ExampleL10n.current.qty,
+          label: SuperTableExampleLocalization.of(context).qty,
           width: 100,
           min: 0,
           agg: SuperAgg.sum,
         ),
         SuperCurrencyColumn(
           key: 'value',
-          label: ExampleL10n.current.stockValuefdb1ac,
+          label: SuperTableExampleLocalization.of(context).stockValuefdb1ac,
           width: 150,
           agg: SuperAgg.sum,
         ),
@@ -121,7 +124,7 @@ class _FillAndFootersExampleState extends State<FillAndFootersExample> {
     return Scaffold(
       backgroundColor: t.bg,
       appBar: AppBar(
-        title: Text(ExampleL10n.current.fillDownRightGroupFooters),
+        title: Text(SuperTableExampleLocalization.of(context).fillDownRightGroupFooters),
         backgroundColor: t.surface,
       ),
       body: Padding(
@@ -133,8 +136,8 @@ class _FillAndFootersExampleState extends State<FillAndFootersExample> {
               padding: const EdgeInsets.only(bottom: 12),
               child: Text(
                 _editable
-                    ? ExampleL10n.current.editableSelectARangeSpanningRowsPressCommandCtrlPlusDToFillDownC05fc021
-                    : ExampleL10n.current.readableGroupedByWarehouseWithGroupFootersOnEachGroupClosesWithAb03b87f,
+                    ? SuperTableExampleLocalization.of(context).editableSelectARangeSpanningRowsPressCommandCtrlPlusDToFillDownC05fc021
+                    : SuperTableExampleLocalization.of(context).readableGroupedByWarehouseWithGroupFootersOnEachGroupClosesWithAb03b87f,
                 style: TextStyle(color: t.fg3),
               ),
             ),
@@ -155,7 +158,7 @@ class _FillAndFootersExampleState extends State<FillAndFootersExample> {
                     size: 16,
                   ),
                   label: Text(
-                    _editable ? ExampleL10n.current.readablePlusGrouped : ExampleL10n.current.backToEditable,
+                    _editable ? SuperTableExampleLocalization.of(context).readablePlusGrouped : SuperTableExampleLocalization.of(context).backToEditable,
                   ),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: t.fg1,
@@ -167,7 +170,7 @@ class _FillAndFootersExampleState extends State<FillAndFootersExample> {
                   OutlinedButton.icon(
                     onPressed: _c.fillDown,
                     icon: const Icon(Icons.south_rounded, size: 16),
-                    label: Text(ExampleL10n.current.fillDown),
+                    label: Text(SuperTableExampleLocalization.of(context).fillDown),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: t.fg1,
                       side: BorderSide(color: t.borderStrong),
@@ -177,7 +180,7 @@ class _FillAndFootersExampleState extends State<FillAndFootersExample> {
                   OutlinedButton.icon(
                     onPressed: _c.fillRight,
                     icon: const Icon(Icons.east_rounded, size: 16),
-                    label: Text(ExampleL10n.current.fillRight),
+                    label: Text(SuperTableExampleLocalization.of(context).fillRight),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: t.fg1,
                       side: BorderSide(color: t.borderStrong),
@@ -187,7 +190,7 @@ class _FillAndFootersExampleState extends State<FillAndFootersExample> {
                   OutlinedButton.icon(
                     onPressed: _c.canUndo ? _c.undo : null,
                     icon: const Icon(Icons.undo_rounded, size: 16),
-                    label: Text(ExampleL10n.current.undo),
+                    label: Text(SuperTableExampleLocalization.of(context).undo),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: t.fg1,
                       side: BorderSide(color: t.borderStrong),

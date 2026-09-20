@@ -12,8 +12,7 @@
 import 'package:flutter/material.dart';
 import 'package:super_table_field/super_table_field.dart';
 import 'package:super_core/super_core.dart';
-import 'package:super_table_field_example/localizations/example_l10n.dart';
-
+import 'package:super_table_field_example/localizations/generated/l10n.dart';
 typedef _Row = Map<String, dynamic>;
 
 class BigDataLoadMoreExample extends StatefulWidget {
@@ -24,6 +23,8 @@ class BigDataLoadMoreExample extends StatefulWidget {
 }
 
 class _BigDataLoadMoreExampleState extends State<BigDataLoadMoreExample> {
+  bool _exampleDependenciesInitialized = false;
+
   static const int _maxRows = 1000000;
   static const List<int> _batchSizes = [1000, 5000, 10000, 50000, 100000];
 
@@ -56,74 +57,74 @@ class _BigDataLoadMoreExampleState extends State<BigDataLoadMoreExample> {
     'Prime Source',
   ];
 
-  static final List<SuperColumn> _columns = [
+  List<SuperColumn> get _columns => [
     SuperTextColumn(
       key: 'id',
-      label: ExampleL10n.current.iD,
+      label: SuperTableExampleLocalization.of(context).iD,
       width: 126,
       mono: true,
       pin: SuperPin.start,
     ),
-    SuperTextColumn(key: 'name', label: ExampleL10n.current.product, width: 220),
+    SuperTextColumn(key: 'name', label: SuperTableExampleLocalization.of(context).product, width: 220),
     SuperEnumerationColumn<String>(
       key: 'category',
-      label: ExampleL10n.current.category,
+      label: SuperTableExampleLocalization.of(context).category,
       width: 136,
       values: _categories,
     ),
     SuperEnumerationColumn<String>(
       key: 'status',
-      label: ExampleL10n.current.status,
+      label: SuperTableExampleLocalization.of(context).status,
       width: 132,
       values: _statuses,
     ),
     SuperEnumerationColumn<String>(
       key: 'warehouse',
-      label: ExampleL10n.current.warehouse,
+      label: SuperTableExampleLocalization.of(context).warehouse,
       width: 132,
       values: _warehouses,
     ),
-    SuperNumberColumn<int>(key: 'qty', label: ExampleL10n.current.qty, width: 92),
-    SuperNumberColumn<int>(key: 'reserved', label: ExampleL10n.current.reserved, width: 106),
-    SuperNumberColumn<int>(key: 'available', label: ExampleL10n.current.available, width: 110),
+    SuperNumberColumn<int>(key: 'qty', label: SuperTableExampleLocalization.of(context).qty, width: 92),
+    SuperNumberColumn<int>(key: 'reserved', label: SuperTableExampleLocalization.of(context).reserved, width: 106),
+    SuperNumberColumn<int>(key: 'available', label: SuperTableExampleLocalization.of(context).available, width: 110),
     SuperEnumerationColumn<String>(
       key: 'unit',
-      label: ExampleL10n.current.unit,
+      label: SuperTableExampleLocalization.of(context).unit,
       width: 90,
       values: _units,
     ),
     SuperCurrencyColumn(
       key: 'price',
-      label: ExampleL10n.current.unitPrice,
+      label: SuperTableExampleLocalization.of(context).unitPrice,
       width: 122,
       symbol: r'$',
     ),
     SuperCurrencyColumn(
       key: 'value',
-      label: ExampleL10n.current.stockValue,
+      label: SuperTableExampleLocalization.of(context).stockValue,
       width: 138,
       symbol: r'$',
     ),
     SuperNumberColumn<int>(
       key: 'discount',
-      label: ExampleL10n.current.discPercent,
+      label: SuperTableExampleLocalization.of(context).discPercent,
       width: 94,
       suffix: '%',
     ),
     SuperProgressColumn<num>(
       key: 'level',
-      label: ExampleL10n.current.stockLevel,
+      label: SuperTableExampleLocalization.of(context).stockLevel,
       width: 142,
       max: 1,
     ),
-    SuperTextColumn(key: 'supplier', label: ExampleL10n.current.supplier, width: 150),
-    SuperTextColumn(key: 'barcode', label: ExampleL10n.current.barcode, width: 154, mono: true),
-    SuperDateColumn(key: 'updated', label: ExampleL10n.current.updated, width: 124),
-    SuperCheckboxColumn(key: 'active', label: ExampleL10n.current.active, width: 82),
-    SuperTextColumn(key: 'note', label: ExampleL10n.current.note, width: 220),
+    SuperTextColumn(key: 'supplier', label: SuperTableExampleLocalization.of(context).supplier, width: 150),
+    SuperTextColumn(key: 'barcode', label: SuperTableExampleLocalization.of(context).barcode, width: 154, mono: true),
+    SuperDateColumn(key: 'updated', label: SuperTableExampleLocalization.of(context).updated, width: 124),
+    SuperCheckboxColumn(key: 'active', label: SuperTableExampleLocalization.of(context).active, width: 82),
+    SuperTextColumn(key: 'note', label: SuperTableExampleLocalization.of(context).note, width: 220),
     SuperReadonlyColumn(
       key: 'ref',
-      label: ExampleL10n.current.ref,
+      label: SuperTableExampleLocalization.of(context).ref,
       width: 132,
       mono: true,
       pin: SuperPin.end,
@@ -140,8 +141,10 @@ class _BigDataLoadMoreExampleState extends State<BigDataLoadMoreExample> {
   bool _loadingBatch = false;
 
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_exampleDependenciesInitialized) return;
+    _exampleDependenciesInitialized = true;
 
     final initial = _makeBatch(_batchSize);
     _lastBatchCount = initial.length;
@@ -255,7 +258,7 @@ class _BigDataLoadMoreExampleState extends State<BigDataLoadMoreExample> {
     return Scaffold(
       backgroundColor: t.bg,
       appBar: AppBar(
-        title: Text(ExampleL10n.current.bigDataLoadMoreStressTest),
+        title: Text(SuperTableExampleLocalization.of(context).bigDataLoadMoreStressTest),
         backgroundColor: t.surface,
       ),
       body: Padding(
@@ -264,7 +267,7 @@ class _BigDataLoadMoreExampleState extends State<BigDataLoadMoreExample> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              ExampleL10n.current.eachLoadAppendsALargeBatchScrollToTheBottomForAutomaticLoadMoreO440a8e7,
+              SuperTableExampleLocalization.of(context).eachLoadAppendsALargeBatchScrollToTheBottomForAutomaticLoadMoreO440a8e7,
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             const SizedBox(height: 12),
@@ -273,7 +276,7 @@ class _BigDataLoadMoreExampleState extends State<BigDataLoadMoreExample> {
               runSpacing: 8,
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                Text(ExampleL10n.current.rowsPerLoad),
+                Text(SuperTableExampleLocalization.of(context).rowsPerLoad),
                 for (final size in _batchSizes)
                   ChoiceChip(
                     label: Text(_compact(size)),
@@ -293,13 +296,13 @@ class _BigDataLoadMoreExampleState extends State<BigDataLoadMoreExample> {
                         )
                       : const Icon(Icons.add_rounded),
                   label: Text(
-                    _loadingBatch ? ExampleL10n.current.loading : ExampleL10n.current.load(_compact(_batchSize)),
+                    _loadingBatch ? SuperTableExampleLocalization.of(context).loading : SuperTableExampleLocalization.of(context).load(_compact(_batchSize)),
                   ),
                 ),
                 OutlinedButton.icon(
                   onPressed: _loadingBatch ? null : _reset,
                   icon: const Icon(Icons.restart_alt_rounded),
-                  label: Text(ExampleL10n.current.reset),
+                  label: Text(SuperTableExampleLocalization.of(context).reset),
                 ),
               ],
             ),

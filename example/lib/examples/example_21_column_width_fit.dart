@@ -15,8 +15,7 @@
 import 'package:flutter/material.dart';
 import 'package:super_table_field/super_table_field.dart';
 import 'package:super_core/super_core.dart';
-import 'package:super_table_field_example/localizations/example_l10n.dart';
-
+import 'package:super_table_field_example/localizations/generated/l10n.dart';
 typedef _Row = Map<String, dynamic>;
 
 class ColumnWidthFitExample extends StatefulWidget {
@@ -27,14 +26,18 @@ class ColumnWidthFitExample extends StatefulWidget {
 }
 
 class _ColumnWidthFitExampleState extends State<ColumnWidthFitExample> {
+  bool _exampleDependenciesInitialized = false;
+
   late final SuperTableController<_Row> _noneController;
   late final SuperTableController<_Row> _autoController;
   late final SuperTableController<_Row> _maxCellController;
   late final SuperTableController<_Row> _fitController;
 
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_exampleDependenciesInitialized) return;
+    _exampleDependenciesInitialized = true;
     _noneController = _buildNoneController();
     _autoController = _buildAutoController();
     _maxCellController = _buildMaxCellController();
@@ -56,20 +59,20 @@ class _ColumnWidthFitExampleState extends State<ColumnWidthFitExample> {
       columns: [
         SuperTextColumn(
           key: 'code',
-          label: ExampleL10n.current.code110Px,
+          label: SuperTableExampleLocalization.of(context).code110Px,
           width: 110,
           widthFit: SuperColumnWidthFit.none,
           mono: true,
         ),
         SuperTextColumn(
           key: 'name',
-          label: ExampleL10n.current.name220Px,
+          label: SuperTableExampleLocalization.of(context).name220Px,
           width: 220,
           widthFit: SuperColumnWidthFit.none,
         ),
         SuperTextColumn(
           key: 'status',
-          label: ExampleL10n.current.status140Px,
+          label: SuperTableExampleLocalization.of(context).status140Px,
           width: 140,
           widthFit: SuperColumnWidthFit.none,
         ),
@@ -88,26 +91,26 @@ class _ColumnWidthFitExampleState extends State<ColumnWidthFitExample> {
       columns: [
         SuperTextColumn(
           key: 'code',
-          label: ExampleL10n.current.fixed120Px,
+          label: SuperTableExampleLocalization.of(context).fixed120Px,
           width: 120,
           widthFit: SuperColumnWidthFit.none,
           mono: true,
         ),
         SuperTextColumn(
           key: 'region',
-          label: ExampleL10n.current.autoADeclared80,
+          label: SuperTableExampleLocalization.of(context).autoADeclared80,
           width: 80,
           widthFit: SuperColumnWidthFit.auto,
         ),
         SuperTextColumn(
           key: 'owner',
-          label: ExampleL10n.current.autoBDeclared220,
+          label: SuperTableExampleLocalization.of(context).autoBDeclared220,
           width: 220,
           widthFit: SuperColumnWidthFit.auto,
         ),
         SuperTextColumn(
           key: 'status',
-          label: ExampleL10n.current.autoCDeclared100,
+          label: SuperTableExampleLocalization.of(context).autoCDeclared100,
           width: 100,
           widthFit: SuperColumnWidthFit.auto,
         ),
@@ -141,20 +144,20 @@ class _ColumnWidthFitExampleState extends State<ColumnWidthFitExample> {
       columns: [
         SuperTextColumn(
           key: 'code',
-          label: ExampleL10n.current.codeMaxCell,
+          label: SuperTableExampleLocalization.of(context).codeMaxCell,
           width: 90,
           widthFit: SuperColumnWidthFit.maxCell,
           mono: true,
         ),
         SuperTextColumn(
           key: 'description',
-          label: ExampleL10n.current.descriptionMaxCell,
+          label: SuperTableExampleLocalization.of(context).descriptionMaxCell,
           width: 120,
           widthFit: SuperColumnWidthFit.maxCell,
         ),
         SuperTextColumn(
           key: 'note',
-          label: ExampleL10n.current.noteMaxCell,
+          label: SuperTableExampleLocalization.of(context).noteMaxCell,
           width: 100,
           widthFit: SuperColumnWidthFit.maxCell,
         ),
@@ -177,20 +180,20 @@ class _ColumnWidthFitExampleState extends State<ColumnWidthFitExample> {
       columns: [
         SuperTextColumn(
           key: 'code',
-          label: ExampleL10n.current.fixed120Px,
+          label: SuperTableExampleLocalization.of(context).fixed120Px,
           width: 120,
           widthFit: SuperColumnWidthFit.none,
           mono: true,
         ),
         SuperTextColumn(
           key: 'name',
-          label: ExampleL10n.current.fitABase150,
+          label: SuperTableExampleLocalization.of(context).fitABase150,
           width: 150,
           widthFit: SuperColumnWidthFit.fit,
         ),
         SuperTextColumn(
           key: 'notes',
-          label: ExampleL10n.current.fitBBase150,
+          label: SuperTableExampleLocalization.of(context).fitBBase150,
           width: 150,
           widthFit: SuperColumnWidthFit.fit,
         ),
@@ -230,35 +233,35 @@ class _ColumnWidthFitExampleState extends State<ColumnWidthFitExample> {
       appBar: AppBar(
         backgroundColor: theme.surface,
         foregroundColor: theme.fg1,
-        title: Text(ExampleL10n.current.columnWidthFit),
+        title: Text(SuperTableExampleLocalization.of(context).columnWidthFit),
       ),
       body: SafeArea(
         child: ListView(
           padding: EdgeInsets.all(spacing.space6),
           children: [
             Text(
-              ExampleL10n.current.sUPERCOLUMNWIDTHFITTwoEightZero,
+              SuperTableExampleLocalization.of(context).sUPERCOLUMNWIDTHFITTwoEightZero,
               style: context.superTextTheme.eyebrow.copyWith(
                 color: colorScheme.primary,
               ),
             ),
             SizedBox(height: spacing.space2),
             Text(
-              ExampleL10n.current.fourWaysToSizeTableColumns,
+              SuperTableExampleLocalization.of(context).fourWaysToSizeTableColumns,
               style: context.superTextTheme.h1.copyWith(color: theme.fg1),
             ),
             SizedBox(height: spacing.space2),
             Text(
-              ExampleL10n.current.resizeThisWindowWhileViewingTheAutoAndFitSectionsTheTablesResolvf66f1f9,
+              SuperTableExampleLocalization.of(context).resizeThisWindowWhileViewingTheAutoAndFitSectionsTheTablesResolvf66f1f9,
               style: context.superTextTheme.body.copyWith(color: theme.fg3),
             ),
             SizedBox(height: spacing.space6),
             _modeCard(
               context,
-              mode: ExampleL10n.current.superColumnWidthFitNone,
-              title: ExampleL10n.current.oneNoneFixedWidth,
+              mode: SuperTableExampleLocalization.of(context).superColumnWidthFitNone,
+              title: SuperTableExampleLocalization.of(context).oneNoneFixedWidth,
               description:
-                  ExampleL10n.current.usesTheColumnWidthExactlyAsDeclaredIfWidthIsNotSpecifiedTheTyped1d19a8c,
+                  SuperTableExampleLocalization.of(context).usesTheColumnWidthExactlyAsDeclaredIfWidthIsNotSpecifiedTheTyped1d19a8c,
               rules: const [
                 'Declared width is authoritative.',
                 'Does not consume or share spare viewport width.',
@@ -269,10 +272,10 @@ class _ColumnWidthFitExampleState extends State<ColumnWidthFitExample> {
             SizedBox(height: spacing.space6),
             _modeCard(
               context,
-              mode: ExampleL10n.current.superColumnWidthFitAuto,
-              title: ExampleL10n.current.twoAutoEqualResponsiveWidth,
+              mode: SuperTableExampleLocalization.of(context).superColumnWidthFitAuto,
+              title: SuperTableExampleLocalization.of(context).twoAutoEqualResponsiveWidth,
               description:
-                  ExampleL10n.current.allAutoColumnsReceiveTheSameWidthFromTheHorizontalSpaceLeftAfterc1a55d1,
+                  SuperTableExampleLocalization.of(context).allAutoColumnsReceiveTheSameWidthFromTheHorizontalSpaceLeftAfterc1a55d1,
               rules: const [
                 'Every auto column receives the same resolved width.',
                 'Declared widths do not control the final auto share.',
@@ -283,10 +286,10 @@ class _ColumnWidthFitExampleState extends State<ColumnWidthFitExample> {
             SizedBox(height: spacing.space6),
             _modeCard(
               context,
-              mode: ExampleL10n.current.superColumnWidthFitMaxCell,
-              title: ExampleL10n.current.threeMaxCellIntrinsicContentWidth,
+              mode: SuperTableExampleLocalization.of(context).superColumnWidthFitMaxCell,
+              title: SuperTableExampleLocalization.of(context).threeMaxCellIntrinsicContentWidth,
               description:
-                  ExampleL10n.current.measuresRenderedRowTextAndUsesTheWidestVisibleCellContentPlusNor8947460,
+                  SuperTableExampleLocalization.of(context).measuresRenderedRowTextAndUsesTheWidestVisibleCellContentPlusNor8947460,
               rules: const [
                 'A longer cell makes that column wider.',
                 'Each maxCell column is measured independently.',
@@ -297,10 +300,10 @@ class _ColumnWidthFitExampleState extends State<ColumnWidthFitExample> {
             SizedBox(height: spacing.space6),
             _modeCard(
               context,
-              mode: ExampleL10n.current.superColumnWidthFitFit,
-              title: ExampleL10n.current.fourFitFillOtherwiseEmptySpace,
+              mode: SuperTableExampleLocalization.of(context).superColumnWidthFitFit,
+              title: SuperTableExampleLocalization.of(context).fourFitFillOtherwiseEmptySpace,
               description:
-                  ExampleL10n.current.startsFromTheDeclaredBaseWidthAnyViewportWidthStillUnusedAfterAl2e61e70,
+                  SuperTableExampleLocalization.of(context).startsFromTheDeclaredBaseWidthAnyViewportWidthStillUnusedAfterAl2e61e70,
               rules: const [
                 'The declared width is the minimum/base width.',
                 'Multiple fit columns share only the remaining empty space.',
@@ -438,14 +441,14 @@ class _ColumnWidthFitExampleState extends State<ColumnWidthFitExample> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  ExampleL10n.current.manualWidthOverride,
+                  SuperTableExampleLocalization.of(context).manualWidthOverride,
                   style: context.superTextTheme.heading.copyWith(
                     color: theme.fg1,
                   ),
                 ),
                 SizedBox(height: spacing.space1),
                 Text(
-                  ExampleL10n.current.controllerSetWidthKeyPxAlwaysWinsOverWidthFitCallControllerReset0192e51,
+                  SuperTableExampleLocalization.of(context).controllerSetWidthKeyPxAlwaysWinsOverWidthFitCallControllerReset0192e51,
                   style: context.superTextTheme.body.copyWith(color: theme.fg2),
                 ),
               ],

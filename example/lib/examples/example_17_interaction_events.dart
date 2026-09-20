@@ -17,8 +17,7 @@
 import 'package:flutter/material.dart';
 import 'package:super_table_field/super_table_field.dart';
 import 'package:super_core/super_core.dart';
-import 'package:super_table_field_example/localizations/example_l10n.dart';
-
+import 'package:super_table_field_example/localizations/generated/l10n.dart';
 class InteractionEventsExample extends StatefulWidget {
   const InteractionEventsExample({super.key});
   @override
@@ -27,23 +26,27 @@ class InteractionEventsExample extends StatefulWidget {
 }
 
 class _InteractionEventsExampleState extends State<InteractionEventsExample> {
+  bool _exampleDependenciesInitialized = false;
+
   late final SuperTableController<Map<String, dynamic>> _c;
   final List<String> _log = [];
   Map<String, dynamic>? _openOrder;
   String _selection = 'Nothing selected';
 
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_exampleDependenciesInitialized) return;
+    _exampleDependenciesInitialized = true;
     _c = SuperTableController<Map<String, dynamic>>(
       mode: SuperTableMode.readable,
       selectionMode: SuperSelectionMode.multiCells,
       columns: [
-        SuperTextColumn(key: 'no', label: ExampleL10n.current.orderNumber, width: 120, mono: true),
-        SuperTextColumn(key: 'customer', label: ExampleL10n.current.customer, width: 210),
+        SuperTextColumn(key: 'no', label: SuperTableExampleLocalization.of(context).orderNumber, width: 120, mono: true),
+        SuperTextColumn(key: 'customer', label: SuperTableExampleLocalization.of(context).customer, width: 210),
         SuperEnumerationColumn<String>(
           key: 'status',
-          label: ExampleL10n.current.status,
+          label: SuperTableExampleLocalization.of(context).status,
           width: 130,
           values: const ['Paid', 'Pending', 'Overdue'],
           tones: {
@@ -52,14 +55,14 @@ class _InteractionEventsExampleState extends State<InteractionEventsExample> {
             'Overdue': const Color(0xFFEF4444),
           },
         ),
-        SuperTextColumn(key: 'region', label: ExampleL10n.current.region, width: 130),
+        SuperTextColumn(key: 'region', label: SuperTableExampleLocalization.of(context).region, width: 130),
         SuperCurrencyColumn(
           key: 'total',
-          label: ExampleL10n.current.total,
+          label: SuperTableExampleLocalization.of(context).total,
           width: 130,
           agg: SuperAgg.sum,
         ),
-        SuperDateColumn(key: 'due', label: ExampleL10n.current.due, width: 130),
+        SuperDateColumn(key: 'due', label: SuperTableExampleLocalization.of(context).due, width: 130),
       ],
       rows: [
         SuperRow.map({
@@ -136,7 +139,7 @@ class _InteractionEventsExampleState extends State<InteractionEventsExample> {
     return Scaffold(
       backgroundColor: t.bg,
       appBar: AppBar(
-        title: Text(ExampleL10n.current.interactionEvents),
+        title: Text(SuperTableExampleLocalization.of(context).interactionEvents),
         backgroundColor: t.surface,
       ),
       body: Padding(
@@ -147,7 +150,7 @@ class _InteractionEventsExampleState extends State<InteractionEventsExample> {
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: Text(
-                ExampleL10n.current.doubleClickARowOrSelectPlusEnterToOpenItClickCellsRightClickDrag4ff3c2c,
+                SuperTableExampleLocalization.of(context).doubleClickARowOrSelectPlusEnterToOpenItClickCellsRightClickDrag4ff3c2c,
                 style: TextStyle(color: t.fg3),
               ),
             ),
@@ -156,7 +159,7 @@ class _InteractionEventsExampleState extends State<InteractionEventsExample> {
                 OutlinedButton.icon(
                   onPressed: () => _c.sortBy(_c.colByKey('total')!, false),
                   icon: const Icon(Icons.sort_rounded, size: 16),
-                  label: Text(ExampleL10n.current.sortByTotalProgrammatic),
+                  label: Text(SuperTableExampleLocalization.of(context).sortByTotalProgrammatic),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: t.fg1,
                     side: BorderSide(color: t.borderStrong),
@@ -166,7 +169,7 @@ class _InteractionEventsExampleState extends State<InteractionEventsExample> {
                 OutlinedButton.icon(
                   onPressed: () => _c.clearSort(),
                   icon: const Icon(Icons.clear_rounded, size: 16),
-                  label: Text(ExampleL10n.current.clearSort),
+                  label: Text(SuperTableExampleLocalization.of(context).clearSort),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: t.fg1,
                     side: BorderSide(color: t.borderStrong),
@@ -240,7 +243,7 @@ class _InteractionEventsExampleState extends State<InteractionEventsExample> {
           const SizedBox(height: 14),
         ],
         Text(
-          ExampleL10n.current.eVENTLOG,
+          SuperTableExampleLocalization.of(context).eVENTLOG,
           style: TextStyle(
             fontSize: 10.5,
             fontWeight: FontWeight.w700,
@@ -260,7 +263,7 @@ class _InteractionEventsExampleState extends State<InteractionEventsExample> {
             child: _log.isEmpty
                 ? Center(
                     child: Text(
-                      ExampleL10n.current.interactWithTheGrid,
+                      SuperTableExampleLocalization.of(context).interactWithTheGrid,
                       style: TextStyle(color: t.fg4, fontSize: 12.5),
                     ),
                   )
@@ -333,7 +336,7 @@ class _DetailCard extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  ExampleL10n.current.order(order['no']),
+                  SuperTableExampleLocalization.of(context).order(order['no']),
                   style: TextStyle(
                     fontFamily: context.superTextTheme.h1.fontFamily,
                     fontWeight: FontWeight.w800,

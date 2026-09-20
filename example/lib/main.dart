@@ -15,7 +15,6 @@ import 'package:super_auto_suggestion_box/super_auto_suggestion_box.dart'
 import 'package:super_form_field/super_form_field.dart';
 import 'package:super_table_field/super_table_field.dart';
 import 'package:super_core/super_core.dart';
-import 'package:super_table_field_example/localizations/example_l10n.dart';
 import 'package:super_table_field_example/localizations/generated/l10n.dart';
 
 import 'examples/example_1_readonly_report.dart';
@@ -96,8 +95,7 @@ class _ExampleAppState extends State<ExampleApp> {
       ],
       supportedLocales: SuperTableExampleLocalization.supportedLocales,
       builder: (context, child) {
-        ExampleL10n.bind(context);
-        // return Directionality(textDirection: _dir, child: child!);
+// return Directionality(textDirection: _dir, child: child!);
         return child!;
       },
       home: _Launcher(
@@ -131,153 +129,150 @@ class _Launcher extends StatelessWidget {
   final VoidCallback onToggleTheme;
   final VoidCallback onToggleDir;
 
-  static final List<_Demo> _demos = [
+  List<_Demo> _demos(BuildContext context) => [
     _Demo(
-      ExampleL10n.current.superTable,
-      ExampleL10n.current.superTableDescription,
+      SuperTableExampleLocalization.of(context).superTable,
+      SuperTableExampleLocalization.of(context).superTableDescription,
       Icons.grid_on_outlined,
       (_) => const SuperTableDemo(),
     ),
     _Demo(
-      ExampleL10n.current.oneReadOnlyReport,
-      ExampleL10n.current.readOnlyReportDescription,
+      SuperTableExampleLocalization.of(context).oneReadOnlyReport,
+      SuperTableExampleLocalization.of(context).readOnlyReportDescription,
       Icons.assessment_outlined,
       (_) => const ReadonlyReportExample(),
     ),
     _Demo(
-      ExampleL10n.current.twoEditableJournal,
-      ExampleL10n.current.validatorPlusOnChangeCtrlPlusEnterInsertLiveBalance,
+      SuperTableExampleLocalization.of(context).twoEditableJournal,
+      SuperTableExampleLocalization.of(context).validatorPlusOnChangeCtrlPlusEnterInsertLiveBalance,
       Icons.edit_note_outlined,
       (_) => const EditableJournalExample(),
     ),
     _Demo(
-      ExampleL10n.current.threeAsyncCombo,
-      ExampleL10n.current.asyncComboDescription,
+      SuperTableExampleLocalization.of(context).threeAsyncCombo,
+      SuperTableExampleLocalization.of(context).asyncComboDescription,
       Icons.cloud_sync_outlined,
       (_) => const AsyncComboExample(),
     ),
     _Demo(
-      ExampleL10n.current.fourControllerDriven,
-      ExampleL10n.current.controllerDrivenDescription,
+      SuperTableExampleLocalization.of(context).fourControllerDriven,
+      SuperTableExampleLocalization.of(context).controllerDrivenDescription,
       Icons.tune_outlined,
       (_) => const ControllerDrivenExample(),
     ),
     _Demo(
-      ExampleL10n.current.fiveStylingAndFilters,
-      ExampleL10n.current.stylingAndFiltersDescription,
+      SuperTableExampleLocalization.of(context).fiveStylingAndFilters,
+      SuperTableExampleLocalization.of(context).stylingAndFiltersDescription,
       Icons.palette_outlined,
       (_) => const StylingAndFiltersExample(),
     ),
     _Demo(
-      ExampleL10n.current.sixPlayground,
-      ExampleL10n.current.playgroundDescription,
+      SuperTableExampleLocalization.of(context).sixPlayground,
+      SuperTableExampleLocalization.of(context).playgroundDescription,
       Icons.dashboard_customize_outlined,
       (_) => const PlaygroundExample(),
     ),
     _Demo(
-      ExampleL10n.current.sevenChangeTracking,
-      ExampleL10n.current.changeTrackingDescription,
+      SuperTableExampleLocalization.of(context).sevenChangeTracking,
+      SuperTableExampleLocalization.of(context).changeTrackingDescription,
       Icons.fact_check_outlined,
       (_) => const ChangeTrackingExample(),
     ),
     _Demo(
-      ExampleL10n.current.eightSelectionStatistics,
-      ExampleL10n.current.selectionStatisticsDescription,
+      SuperTableExampleLocalization.of(context).eightSelectionStatistics,
+      SuperTableExampleLocalization.of(context).selectionStatisticsDescription,
       Icons.functions_outlined,
       (_) => const SelectionStatsExample(),
     ),
     _Demo(
-      ExampleL10n.current.nineExport,
-      ExampleL10n.current.exportDescription,
+      SuperTableExampleLocalization.of(context).nineExport,
+      SuperTableExampleLocalization.of(context).exportDescription,
       Icons.file_download_outlined,
       (_) => const ExportExample(),
     ),
     _Demo(
-      ExampleL10n.current.tenAggregations,
-      ExampleL10n.current.aggregationsDescription,
+      SuperTableExampleLocalization.of(context).tenAggregations,
+      SuperTableExampleLocalization.of(context).aggregationsDescription,
       Icons.summarize_outlined,
       (_) => const AggregationsExample(),
     ),
     _Demo(
-      ExampleL10n.current.elevenCellLocking,
-      ExampleL10n.current.cellLockingDescription,
+      SuperTableExampleLocalization.of(context).elevenCellLocking,
+      SuperTableExampleLocalization.of(context).cellLockingDescription,
       Icons.lock_outline,
       (_) => const CellLockingExample(),
     ),
     _Demo(
-      ExampleL10n.current.twelveRowReordering,
-      ExampleL10n.current.rowReorderingDescription,
+      SuperTableExampleLocalization.of(context).twelveRowReordering,
+      SuperTableExampleLocalization.of(context).rowReorderingDescription,
       Icons.swap_vert_outlined,
       (_) => const RowReorderExample(),
     ),
     _Demo(
-      ExampleL10n.current.thirteenGroupAggregatesHiddenColumns,
-      ExampleL10n.current.groupAggregatesDescription,
+      SuperTableExampleLocalization.of(context).thirteenGroupAggregatesHiddenColumns,
+      SuperTableExampleLocalization.of(context).groupAggregatesDescription,
       Icons.account_tree_outlined,
       (_) => const GroupAggregatesExample(),
     ),
     _Demo(
-      ExampleL10n.current.fourteenExpandableRows,
-      ExampleL10n.current.expandableRowsDescription,
+      SuperTableExampleLocalization.of(context).fourteenExpandableRows,
+      SuperTableExampleLocalization.of(context).expandableRowsDescription,
       Icons.unfold_more_outlined,
       (_) => const ExpandableRowsExample(),
     ),
     _Demo(
-      ExampleL10n.current.fifteenValidationSavedViews,
-      ExampleL10n.current.validationAndSavedViewsDescription,
+      SuperTableExampleLocalization.of(context).fifteenValidationSavedViews,
+      SuperTableExampleLocalization.of(context).validationAndSavedViewsDescription,
       Icons.rule_outlined,
       (_) => const ValidationViewsExample(),
     ),
     _Demo(
-      ExampleL10n.current.sixteenFillGroupFootersRevert,
-      ExampleL10n.current.fillAndGroupFootersDescription,
+      SuperTableExampleLocalization.of(context).sixteenFillGroupFootersRevert,
+      SuperTableExampleLocalization.of(context).fillAndGroupFootersDescription,
       Icons.south_outlined,
       (_) => const FillAndFootersExample(),
     ),
     _Demo(
-      ExampleL10n.current.seventeenInteractionEvents,
-      ExampleL10n.current.interactionEventsDescription,
+      SuperTableExampleLocalization.of(context).seventeenInteractionEvents,
+      SuperTableExampleLocalization.of(context).interactionEventsDescription,
       Icons.ads_click_outlined,
       (_) => const InteractionEventsExample(),
     ),
     _Demo(
-      ExampleL10n.current.eighteenColumnConfig,
-      ExampleL10n.current.columnConfigDescription,
+      SuperTableExampleLocalization.of(context).eighteenColumnConfig,
+      SuperTableExampleLocalization.of(context).columnConfigDescription,
       Icons.view_column_outlined,
       (_) => const ColumnConfigExample(),
     ),
     _Demo(
-      ExampleL10n.current.nineteenShowcase,
-      ExampleL10n
-          .current
+      SuperTableExampleLocalization.of(context).nineteenShowcase,
+      SuperTableExampleLocalization.of(context)
           .interactionsPlusColumnManagerPlusGroupingPlusTotalsPlusTrackingPc4d7ca8,
       Icons.dashboard_outlined,
       (_) => const ShowcaseExample(),
     ),
     _Demo(
-      ExampleL10n.current.twentyTableStyles,
-      ExampleL10n
-          .current
+      SuperTableExampleLocalization.of(context).twentyTableStyles,
+      SuperTableExampleLocalization.of(context)
           .optionalSuperTableStylePresetsBandingGroupFootersTotals,
       Icons.table_chart_outlined,
       (_) => const TableStylesExample(),
     ),
     _Demo(
-      ExampleL10n.current.twentyOneColumnWidthFit,
-      ExampleL10n.current.noneAutoMaxCellFitResponsiveViewportSizing,
+      SuperTableExampleLocalization.of(context).twentyOneColumnWidthFit,
+      SuperTableExampleLocalization.of(context).noneAutoMaxCellFitResponsiveViewportSizing,
       Icons.width_normal_outlined,
       (_) => const ColumnWidthFitExample(),
     ),
     _Demo(
-      ExampleL10n.current.twentyTwoBigDataLoadMore,
-      ExampleL10n.current.message1k5k10kRowsPerLoad100kMaxPerformanceCounters,
+      SuperTableExampleLocalization.of(context).twentyTwoBigDataLoadMore,
+      SuperTableExampleLocalization.of(context).message1k5k10kRowsPerLoad100kMaxPerformanceCounters,
       Icons.speed_rounded,
       (_) => const BigDataLoadMoreExample(),
     ),
     _Demo(
-      ExampleL10n.current.twentyThreeEnumerationSelect,
-      ExampleL10n
-          .current
+      SuperTableExampleLocalization.of(context).twentyThreeEnumerationSelect,
+      SuperTableExampleLocalization.of(context)
           .superEnumerationColumnSuperSelectFormFieldRowAwareSources,
       Icons.list_alt_outlined,
       (_) => const EnumerationSelectExample(),
@@ -298,8 +293,8 @@ class _Launcher extends StatelessWidget {
         actions: [
           IconButton(
             tooltip: mode == ThemeMode.dark
-                ? ExampleL10n.current.lightTheme
-                : ExampleL10n.current.darkTheme,
+                ? SuperTableExampleLocalization.of(context).lightTheme
+                : SuperTableExampleLocalization.of(context).darkTheme,
             onPressed: onToggleTheme,
             icon: Icon(
               mode == ThemeMode.dark
@@ -309,8 +304,8 @@ class _Launcher extends StatelessWidget {
           ),
           IconButton(
             tooltip: dir == TextDirection.ltr
-                ? ExampleL10n.current.switchToArabic
-                : ExampleL10n.current.switchToEnglish,
+                ? SuperTableExampleLocalization.of(context).switchToArabic
+                : SuperTableExampleLocalization.of(context).switchToEnglish,
             onPressed: onToggleDir,
             icon: const Icon(Icons.language_rounded),
           ),
@@ -324,18 +319,18 @@ class _Launcher extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  ExampleL10n.current.galleryEyebrow,
+                  SuperTableExampleLocalization.of(context).galleryEyebrow,
                   style: context.superTextTheme.eyebrow.copyWith(
                     color: colorScheme.primary,
                   ),
                 ),
                 SizedBox(height: spacing.space2),
                 Text(
-                  ExampleL10n.current.componentDemoseb5e41,
+                  SuperTableExampleLocalization.of(context).componentDemoseb5e41,
                   style: context.superTextTheme.h1.copyWith(color: theme.fg1),
                 ),
                 SizedBox(height: spacing.space8),
-                for (final demo in _demos) ...[
+                for (final demo in _demos(context)) ...[
                   _DemoCard(demo: demo),
                   SizedBox(height: spacing.section),
                 ],

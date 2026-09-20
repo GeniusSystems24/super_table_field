@@ -18,8 +18,7 @@
 import 'package:flutter/material.dart';
 import 'package:super_table_field/super_table_field.dart';
 import 'package:super_core/super_core.dart';
-import 'package:super_table_field_example/localizations/example_l10n.dart';
-
+import 'package:super_table_field_example/localizations/generated/l10n.dart';
 class GroupAggregatesExample extends StatefulWidget {
   const GroupAggregatesExample({super.key});
 
@@ -28,38 +27,42 @@ class GroupAggregatesExample extends StatefulWidget {
 }
 
 class _GroupAggregatesExampleState extends State<GroupAggregatesExample> {
+  bool _exampleDependenciesInitialized = false;
+
   late final SuperTableController<Map<String, dynamic>> _c;
   String? _activeRegion;
 
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_exampleDependenciesInitialized) return;
+    _exampleDependenciesInitialized = true;
     _c = SuperTableController<Map<String, dynamic>>(
       mode: SuperTableMode.readable,
       selectionMode: SuperSelectionMode.singleRow,
       columns: [
-        SuperTextColumn(key: 'sku', label: ExampleL10n.current.sKU, width: 130, mono: true),
+        SuperTextColumn(key: 'sku', label: SuperTableExampleLocalization.of(context).sKU, width: 130, mono: true),
         SuperEnumerationColumn<String>(
           key: 'category',
-          label: ExampleL10n.current.category,
+          label: SuperTableExampleLocalization.of(context).category,
           width: 150,
           values: const ['Raw Material', 'Finished Good', 'Consumable'],
         ),
         SuperNumberColumn<int>(
           key: 'qty',
-          label: ExampleL10n.current.qty,
+          label: SuperTableExampleLocalization.of(context).qty,
           width: 100,
           agg: SuperAgg.sum,
           formatter: (value, row) => '${(value as num?)?.toInt() ?? 0} u',
         ),
         SuperCurrencyColumn(
           key: 'value',
-          label: ExampleL10n.current.stockValue,
+          label: SuperTableExampleLocalization.of(context).stockValue,
           width: 150,
           agg: SuperAgg.sum,
         ),
-        SuperTextColumn(key: 'region', label: ExampleL10n.current.region, hidden: true),
-        SuperTextColumn(key: 'supplier', label: ExampleL10n.current.supplier, hidden: true),
+        SuperTextColumn(key: 'region', label: SuperTableExampleLocalization.of(context).region, hidden: true),
+        SuperTextColumn(key: 'supplier', label: SuperTableExampleLocalization.of(context).supplier, hidden: true),
       ],
       rows: [
         SuperRow.map({
@@ -166,7 +169,7 @@ class _GroupAggregatesExampleState extends State<GroupAggregatesExample> {
     return Scaffold(
       backgroundColor: t.bg,
       appBar: AppBar(
-        title: Text(ExampleL10n.current.groupAggregatesHiddenColumns),
+        title: Text(SuperTableExampleLocalization.of(context).groupAggregatesHiddenColumns),
         backgroundColor: t.surface,
       ),
       body: LayoutBuilder(
@@ -221,7 +224,7 @@ class _GroupAggregatesExampleState extends State<GroupAggregatesExample> {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              ExampleL10n.current.regionAndSupplierAreHiddenColumnsTheGridNeverRendersThemButTheCh9d8dca7,
+              SuperTableExampleLocalization.of(context).regionAndSupplierAreHiddenColumnsTheGridNeverRendersThemButTheCh9d8dca7,
               style: TextStyle(color: t.fg3, height: 1.45),
             ),
           ),
@@ -242,20 +245,20 @@ class _GroupAggregatesExampleState extends State<GroupAggregatesExample> {
       spacing: 10,
       runSpacing: 10,
       children: [
-        _metric(t, ExampleL10n.current.visibleRows, '$rowCount', Icons.table_rows_outlined),
+        _metric(t, SuperTableExampleLocalization.of(context).visibleRows, '$rowCount', Icons.table_rows_outlined),
         _metric(
           t,
-          ExampleL10n.current.visibleRegions,
+          SuperTableExampleLocalization.of(context).visibleRegions,
           '${regions.length}',
           Icons.public_outlined,
         ),
         _metric(
           t,
-          ExampleL10n.current.totalQty,
-          _count(totals[ExampleL10n.current.qty77e74d]),
+          SuperTableExampleLocalization.of(context).totalQty,
+          _count(totals[SuperTableExampleLocalization.of(context).qty77e74d]),
           Icons.inventory_2_outlined,
         ),
-        _metric(t, ExampleL10n.current.stockValuefdb1ac, _money(totals[ExampleL10n.current.value]), Icons.paid_outlined),
+        _metric(t, SuperTableExampleLocalization.of(context).stockValuefdb1ac, _money(totals[SuperTableExampleLocalization.of(context).value]), Icons.paid_outlined),
       ],
     );
   }
@@ -320,7 +323,7 @@ class _GroupAggregatesExampleState extends State<GroupAggregatesExample> {
       runSpacing: 8,
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
-        _chip(t, ExampleL10n.current.allRegions, null),
+        _chip(t, SuperTableExampleLocalization.of(context).allRegions, null),
         for (final region in regions) _chip(t, region, region),
       ],
     );
@@ -426,7 +429,7 @@ class _GroupAggregatesExampleState extends State<GroupAggregatesExample> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      ExampleL10n.current.pROGRAMMATICROLLUP,
+                      SuperTableExampleLocalization.of(context).pROGRAMMATICROLLUP,
                       style: TextStyle(
                         color: t.fg2,
                         fontWeight: FontWeight.w800,
@@ -436,7 +439,7 @@ class _GroupAggregatesExampleState extends State<GroupAggregatesExample> {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      ExampleL10n.current.groupAggregatesRegionCategory,
+                      SuperTableExampleLocalization.of(context).groupAggregatesRegionCategory,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(color: t.fg4, fontSize: 11),
@@ -451,7 +454,7 @@ class _GroupAggregatesExampleState extends State<GroupAggregatesExample> {
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 16),
               child: Text(
-                ExampleL10n.current.noRowsMatchTheCurrentFilter,
+                SuperTableExampleLocalization.of(context).noRowsMatchTheCurrentFilter,
                 style: TextStyle(color: t.fg4),
               ),
             )
@@ -461,7 +464,7 @@ class _GroupAggregatesExampleState extends State<GroupAggregatesExample> {
                 t,
                 label: region.value,
                 count: region.count,
-                qty: region.aggregate(ExampleL10n.current.qty77e74d),
+                qty: region.aggregate(SuperTableExampleLocalization.of(context).qty77e74d),
                 value: region.aggregate('value'),
                 bold: true,
               ),
@@ -470,7 +473,7 @@ class _GroupAggregatesExampleState extends State<GroupAggregatesExample> {
                   t,
                   label: category.value,
                   count: category.count,
-                  qty: category.aggregate(ExampleL10n.current.qty77e74d),
+                  qty: category.aggregate(SuperTableExampleLocalization.of(context).qty77e74d),
                   value: category.aggregate('value'),
                   indent: true,
                 ),
@@ -478,10 +481,10 @@ class _GroupAggregatesExampleState extends State<GroupAggregatesExample> {
           Divider(color: t.borderStrong, height: 28),
           _rollupRow(
             t,
-            label: ExampleL10n.current.grandTotal,
+            label: SuperTableExampleLocalization.of(context).grandTotal,
             count: null,
-            qty: totals[ExampleL10n.current.qty77e74d],
-            value: totals[ExampleL10n.current.value],
+            qty: totals[SuperTableExampleLocalization.of(context).qty77e74d],
+            value: totals[SuperTableExampleLocalization.of(context).value],
             bold: true,
             accent: true,
           ),

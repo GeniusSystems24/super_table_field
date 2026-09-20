@@ -19,8 +19,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:super_table_field/super_table_field.dart';
 import 'package:super_core/super_core.dart';
-import 'package:super_table_field_example/localizations/example_l10n.dart';
-
+import 'package:super_table_field_example/localizations/generated/l10n.dart';
 class ColumnConfigExample extends StatefulWidget {
   const ColumnConfigExample({super.key});
   @override
@@ -28,47 +27,51 @@ class ColumnConfigExample extends StatefulWidget {
 }
 
 class _ColumnConfigExampleState extends State<ColumnConfigExample> {
+  bool _exampleDependenciesInitialized = false;
+
   late final SuperTableController<Map<String, dynamic>> _c;
   String? _savedView;
   String _status = '';
 
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_exampleDependenciesInitialized) return;
+    _exampleDependenciesInitialized = true;
     _c = SuperTableController<Map<String, dynamic>>(
       mode: SuperTableMode.readable,
       selectionMode: SuperSelectionMode.singleCell,
       columns: [
         SuperTextColumn(
           key: 'code',
-          label: ExampleL10n.current.account,
+          label: SuperTableExampleLocalization.of(context).account,
           width: 120,
           mono: true,
           pin: SuperPin.start,
         ),
-        SuperTextColumn(key: 'name', label: ExampleL10n.current.accountName, width: 230),
+        SuperTextColumn(key: 'name', label: SuperTableExampleLocalization.of(context).accountName, width: 230),
         SuperEnumerationColumn<String>(
           key: 'type',
-          label: ExampleL10n.current.type,
+          label: SuperTableExampleLocalization.of(context).type,
           width: 130,
           values: const ['Asset', 'Liability', 'Equity', 'Revenue', 'Expense'],
         ),
-        SuperTextColumn(key: 'region', label: ExampleL10n.current.costCentre, width: 150),
+        SuperTextColumn(key: 'region', label: SuperTableExampleLocalization.of(context).costCentre, width: 150),
         SuperCurrencyColumn(
           key: 'debit',
-          label: ExampleL10n.current.debit,
+          label: SuperTableExampleLocalization.of(context).debit,
           width: 130,
           agg: SuperAgg.sum,
         ),
         SuperCurrencyColumn(
           key: 'credit',
-          label: ExampleL10n.current.credit,
+          label: SuperTableExampleLocalization.of(context).credit,
           width: 130,
           agg: SuperAgg.sum,
         ),
         SuperComputedColumn<num>(
           key: 'balance',
-          label: ExampleL10n.current.balance,
+          label: SuperTableExampleLocalization.of(context).balance,
           width: 140,
           align: SuperAlign.end,
           agg: SuperAgg.sum,
@@ -79,7 +82,7 @@ class _ColumnConfigExampleState extends State<ColumnConfigExample> {
         ),
         SuperEnumerationColumn<String>(
           key: 'status',
-          label: ExampleL10n.current.status,
+          label: SuperTableExampleLocalization.of(context).status,
           width: 120,
           values: const ['Open', 'Locked'],
           tones: {
@@ -87,7 +90,7 @@ class _ColumnConfigExampleState extends State<ColumnConfigExample> {
             'Locked': const Color(0xFF8D90A0),
           },
         ),
-        SuperDateColumn(key: 'updated', label: ExampleL10n.current.updated, width: 130),
+        SuperDateColumn(key: 'updated', label: SuperTableExampleLocalization.of(context).updated, width: 130),
       ],
       rows: [for (final r in _seed) SuperRow.map(r)],
     );
@@ -104,7 +107,7 @@ class _ColumnConfigExampleState extends State<ColumnConfigExample> {
     _savedView = jsonEncode(_c.viewStateJson());
     setState(
       () => _status =
-          ExampleL10n.current.viewSavedOrderWidthsVisibilityANDPinsChars(_savedView!.length),
+          SuperTableExampleLocalization.of(context).viewSavedOrderWidthsVisibilityANDPinsChars(_savedView!.length),
     );
   }
 
@@ -112,7 +115,7 @@ class _ColumnConfigExampleState extends State<ColumnConfigExample> {
     if (_savedView == null) return;
     _c.applyViewJson(jsonDecode(_savedView!) as Map<String, dynamic>);
     setState(
-      () => _status = ExampleL10n.current.viewRestoredColumnsAreBackWhereYouLeftThem,
+      () => _status = SuperTableExampleLocalization.of(context).viewRestoredColumnsAreBackWhereYouLeftThem,
     );
   }
 
@@ -122,7 +125,7 @@ class _ColumnConfigExampleState extends State<ColumnConfigExample> {
     return Scaffold(
       backgroundColor: t.bg,
       appBar: AppBar(
-        title: Text(ExampleL10n.current.columnConfig),
+        title: Text(SuperTableExampleLocalization.of(context).columnConfig),
         backgroundColor: t.surface,
       ),
       body: Padding(
@@ -133,7 +136,7 @@ class _ColumnConfigExampleState extends State<ColumnConfigExample> {
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: Text(
-                ExampleL10n.current.reshapeTheGridOpenColumnsDragRowsToReorderClickTheEyeToHideAndPi4f6b1e8,
+                SuperTableExampleLocalization.of(context).reshapeTheGridOpenColumnsDragRowsToReorderClickTheEyeToHideAndPi4f6b1e8,
                 style: TextStyle(color: t.fg3),
               ),
             ),
@@ -144,33 +147,33 @@ class _ColumnConfigExampleState extends State<ColumnConfigExample> {
                 _btn(
                   t,
                   Icons.view_column_rounded,
-                  ExampleL10n.current.columns,
+                  SuperTableExampleLocalization.of(context).columns,
                   () => showSuperColumnManager(context, _c),
                   filled: true,
                 ),
                 _btn(
                   t,
                   Icons.push_pin_rounded,
-                  ExampleL10n.current.pinBalanceRight,
+                  SuperTableExampleLocalization.of(context).pinBalanceRight,
                   () => _c.setColumnPin('balance', SuperPin.end),
                 ),
                 _btn(
                   t,
                   Icons.visibility_off_rounded,
-                  ExampleL10n.current.toggleCostCentre,
+                  SuperTableExampleLocalization.of(context).toggleCostCentre,
                   () => _c.toggleColumnVisible('region'),
                 ),
-                _btn(t, Icons.bookmark_add_outlined, ExampleL10n.current.saveView, _saveView),
+                _btn(t, Icons.bookmark_add_outlined, SuperTableExampleLocalization.of(context).saveView, _saveView),
                 _btn(
                   t,
                   Icons.bookmark_outlined,
-                  ExampleL10n.current.restoreView,
+                  SuperTableExampleLocalization.of(context).restoreView,
                   _savedView == null ? null : _restoreView,
                 ),
                 _btn(
                   t,
                   Icons.restart_alt_rounded,
-                  ExampleL10n.current.reset,
+                  SuperTableExampleLocalization.of(context).reset,
                   () => _c.resetViewState(clearFilters: false),
                 ),
               ],
