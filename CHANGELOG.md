@@ -3,6 +3,23 @@
 All notable changes to **super_table_field** are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/); versioning is [SemVer](https://semver.org/).
 
+## [3.2.1] - 2026-09-24
+
+### Added
+
+- Added `SuperComboColumn.debounce` and `SuperComboColumn.minResult` and pass
+  both values through to the embedded `SuperAutoSuggestionsBox`.
+
+### Changed
+
+- Raised `super_auto_suggestion_box` to `>=1.7.0 <2.0.0`.
+- Migrated async suggestion-source callbacks to the 1.7.0 context-aware
+  `(BuildContext context, String query)` signature.
+- Updated README, SKILL guidance, tests, and the async-combo example for the
+  1.7.0 local-first/debounce behavior.
+- Combo editors now inherit the upstream desktop/web focus-traversal fix, where
+  `SuperAutoSuggestionsBox` behaves as a single normal `Tab` stop.
+
 ## [3.2.0] - 2026-09-21
 
 ### Changed

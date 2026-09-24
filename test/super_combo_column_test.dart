@@ -65,4 +65,17 @@ void main() {
     expect(suggestion.titleText, 'Cash');
     expect(suggestion.descriptionText, '1010');
   });
+
+  testWidgets('combo exposes 1.7.0 remote scheduling options', (tester) async {
+    final column = SuperComboColumn<String>(
+      key: 'account',
+      label: 'Account',
+      debounce: const Duration(milliseconds: 275),
+      minResult: 2,
+    );
+
+    expect(column.debounce, const Duration(milliseconds: 275));
+    expect(column.minResult, 2);
+  });
+
 }

@@ -407,6 +407,14 @@ class SuperComboColumn<T> extends SuperColumn<T> {
   final void Function(dynamic value)? _onSelectedAny;
   final bool allowFreeText;
 
+  /// Delay applied by SuperAutoSuggestionsBox before external fetch work starts.
+  /// Local matching remains immediate with super_auto_suggestion_box 1.7.0+.
+  final Duration debounce;
+
+  /// Inclusive threshold for local-first sources. Remote fetching is allowed
+  /// when the immediate local result count is <= this value.
+  final int minResult;
+
   // ── rebuildable options (per row, re-created on fingerPrint change) ──
   final SuperAutoSuggestionsSource<T> Function(
     BuildContext context,
@@ -469,6 +477,8 @@ class SuperComboColumn<T> extends SuperColumn<T> {
     this.clearButton = false,
     this.onSelected,
     this.allowFreeText = true,
+    this.debounce = const Duration(milliseconds: 500),
+    this.minResult = 0,
     this.sourceController,
     this.cellController,
     super.filterItems,

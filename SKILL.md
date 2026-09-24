@@ -45,7 +45,7 @@ come for free.
 
 ```yaml
 dependencies:
-  super_table_field: ^3.2.0
+  super_table_field: ^3.2.1
 ```
 
 ```dart
@@ -213,13 +213,17 @@ builders — `sourceController` / `cellController` — which are re-invoked when
 cell takes edit-focus **and** the row's `fingerPrint` changed (so suggestions can
 depend on the rest of the row). Reach a cell's live box via
 `controller.comboControllerFor(row, key)` / `comboSourceFor(row, key)`.
-With `super_auto_suggestion_box 1.6.0`, `source` remains a widget concern: keep
+With `super_auto_suggestion_box 1.7.0`, `source` remains a widget concern: keep
 row-dependent data in `sourceController` and return only controller state from
-`cellController`. The table passes the resolved source to
-`SuperAutoSuggestionsBox` and keeps `suggestionBuilder` on the widget boundary.
+`cellController`. Remote source callbacks are context-aware: use
+`(context, query)` for `async` / `hybrid` / `remoteFallback` and
+`(context, query, page)` for `paged`. The table passes the resolved source plus
+`SuperComboColumn.debounce` and `SuperComboColumn.minResult` to
+`SuperAutoSuggestionsBox`, and keeps `suggestionBuilder` on the widget boundary.
 Suggestion builders use `SuperAutoSuggestionBuilder<T>` and receive
 `(context, items, index, element)`, so inherited presentation values may be read
-from the active `BuildContext`.
+from the active `BuildContext`. Local matching is immediate; debounce applies
+only to external fetch work.
 
 Keyboard model inside the editor:
 
@@ -516,7 +520,7 @@ SuperAutoSuggestionsBox<String>(
 );
 ```
 
-In `super_auto_suggestion_box 1.6.0`, do not generate `onChanged`, `onSelected`,
+In `super_auto_suggestion_box 1.7.0`, do not generate `onChanged`, `onSelected`,
 `onSubmitted`, `onFieldSubmitted`, `onEditingComplete`, `onSave`, or
 `onValidity` arguments on the suggestion box. Query text comes from
 `controller.text`; selection comes from `onSelectionChanged` or controller
@@ -524,14 +528,18 @@ selection state. Validators receive the selected raw `T?` and participate in
 Flutter's `FormField<T>` lifecycle.
 
 Suggestion sources: `SuperAutoSuggestionSources.list(...)` / `.strings(...)` (static),
-`.fuzzy(...)` (fuzzy-ranked), `.async(...)` (debounced remote), and
-`.remoteFallback(...)` (local-first progressive). Prefer **`remoteFallback`** for
-“mostly local, occasionally remote” data: it shows local matches instantly and
-only calls `fetch` when local matches ≤ `remoteThreshold`, merging remote rows
-in behind a *loading more* indicator (`controller.isLoadingMore`). Use `.async`
-for purely-remote search.
+`.fuzzy(...)` (fuzzy-ranked), `.async(...)` (remote), `.hybrid(...)`, and
+`.remoteFallback(...)` (local-first progressive). Remote callbacks receive the
+active `BuildContext`. For local-first sources, configure the widget/column
+`minResult` threshold; local matches are produced immediately and only the
+external fetch is delayed by `debounce`. Use `.async` for purely remote search.
 
 More behaviour to know:
+- **Remote scheduling**: `minResult` decides whether local-first sources need more
+  remote data; `debounce` decides when that external fetch begins. Waiting for
+  debounce is not reported as active loading.
+- **Desktop/web focus**: the box is one normal `Tab` stop; internal prefix/suffix
+  actions do not require an extra `Tab` press.
 - **Advanced search**: use `mode: SuperAutoSuggestionsMode.both` for the text
   box plus Advanced Search View, or `SuperAutoSuggestionsMode.advanceView` for
   the larger search surface only (override it with `advancedSearchBuilder`).

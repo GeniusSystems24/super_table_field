@@ -561,6 +561,8 @@ class _SuperComboEditorState extends State<_SuperComboEditor> {
             openOnFocus: true,
             scrollOnFocus: false,
             clearButton: col?.clearButton ?? false,
+            debounce: col?.debounce ?? const Duration(milliseconds: 500),
+            minResult: col?.minResult ?? 0,
             fieldHeight: fieldHeight,
             maxVisibleRows: col?.maxVisibleRows ?? 7,
             highlightMatches: col?.highlightMatch ?? true,

@@ -4,9 +4,10 @@
 // EXAMPLE 3 — An async combo backed by a "remote" source.
 //
 // Demonstrates: SuperComboColumn with a per-cell `sourceController` that returns
-// an ASYNC SuperAutoSuggestionsSource (here, a fake network call), and a `fingerPrint`
-// rebuild: changing the "Warehouse" cell bumps the row's fingerPrint so the
-// "Bin" combo rebuilds its source scoped to the chosen warehouse.
+// an ASYNC SuperAutoSuggestionsSource (here, a fake network call), the 1.7.0
+// context-aware fetch callback, and remote-only debounce. Changing the "Warehouse"
+// cell bumps the row's fingerPrint so the "Bin" combo rebuilds its source scoped
+// to the chosen warehouse.
 // ============================================================
 
 import 'package:flutter/material.dart';
@@ -70,12 +71,14 @@ class _AsyncComboExampleState extends State<AsyncComboExample> {
         label: SuperTableExampleLocalization.of(context).bin,
         width: 160,
         hintText: SuperTableExampleLocalization.of(context).searchBins,
+        // In 1.7.0 debounce delays only the external fetch itself.
+        debounce: const Duration(milliseconds: 350),
         // Rebuilt whenever the row's fingerPrint changes (i.e. after a warehouse
         // change) — scoped to the row's current warehouse.
         sourceController: (ctx, c, row, cell) {
           final wh = '${row['warehouse']}';
           return SuperAutoSuggestionSources.async<String>(
-            (q) => _fetchBins(wh, q),
+            (context, q) => _fetchBins(wh, q),
           );
         },
       ),

@@ -45,7 +45,7 @@ import 'package:super_table_field/super_table_field.dart';
 | Dart SDK | `3.8.0` |
 | Flutter SDK | `3.32.0` |
 | `super_core` | `3.6.0` |
-| `super_auto_suggestion_box` | `1.6.0` |
+| `super_auto_suggestion_box` | `1.7.0` |
 | `super_form_field` | `1.12.0` |
 
 ## Installation
@@ -54,7 +54,7 @@ Add the package to `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  super_table_field: ^3.2.0
+  super_table_field: ^3.2.1
 ```
 
 Then install the dependency:
@@ -79,7 +79,7 @@ The table package keeps its public barrel focused on table-owned APIs. When your
 ```yaml
 dependencies:
   super_core: ">=3.6.0 <4.0.0"
-  super_auto_suggestion_box: ">=1.6.0 <2.0.0"
+  super_auto_suggestion_box: ">=1.7.0 <2.0.0"
   super_form_field: ">=1.12.0 <2.0.0"
 ```
 
@@ -994,7 +994,7 @@ SuperComboColumn<String>(
 );
 ```
 
-`SuperComboColumn` follows `super_auto_suggestion_box` 1.6.0: suggestion data
+`SuperComboColumn` follows `super_auto_suggestion_box` 1.7.0: suggestion data
 and row-scoped sources use raw `T` values. Metadata is derived from optional
 `suggestionBuilder`, then the column's `display` callback. The builder signature
 is `(BuildContext context, List<T> items, int index, T element)`, so suggestion
@@ -1002,14 +1002,21 @@ metadata may safely read Theme, localization, MediaQuery, and other inherited
 values. Custom rows can read the built `SuperAutoSuggestionsItem<T>` from
 `itemBuilder`.
 
-The 1.6.0 suggestion box exposes selection through `onSelectionChanged` and
-observes query text through `SuperAutoSuggestionsController.text`. The table
-adapts these APIs internally while preserving `SuperComboColumn`'s table-level
-selection/free-text behavior. `SuperComboColumn.advancedSearch` remains a
-table-level convenience flag and is mapped internally to
-`SuperAutoSuggestionsMode.both`; `leading` is mapped to
+Remote source callbacks are context-aware in 1.7.0. Use `(context, query)` for
+`SuperAutoSuggestionSources.async`, `hybrid`, and `remoteFallback`, and
+`(context, query, page)` for `paged`. Local matching happens immediately;
+`debounce` delays only external fetch work. `SuperComboColumn.minResult` is the
+inclusive local-result threshold (`localResults.length <= minResult`) that
+decides whether local-first sources should continue to the remote fetch step.
+The default is `0`.
+
+The table passes `debounce` and `minResult` to the embedded suggestion box while
+preserving `SuperComboColumn`'s table-level selection/free-text behavior.
+`SuperComboColumn.advancedSearch` remains a table-level convenience flag and is
+mapped internally to `SuperAutoSuggestionsMode.both`; `leading` is mapped to
 `InputDecoration.prefixIcon`. Sources stay bound to `SuperAutoSuggestionsBox`,
-while controller instances own field state.
+while controller instances own field state. The upstream 1.7.0 focus fix also
+keeps the suggestion box to one normal desktop/web `Tab` stop.
 
 ```dart
 import 'package:super_auto_suggestion_box/super_auto_suggestion_box.dart';
@@ -1027,6 +1034,28 @@ SuperComboColumn<String>(
   ),
 );
 ```
+
+For local-first remote data, configure the fetch callback with `BuildContext` and
+set `minResult` / `debounce` on the column:
+
+```dart
+SuperComboColumn<String>(
+  key: 'account',
+  label: 'Account',
+  minResult: 2,
+  debounce: const Duration(milliseconds: 300),
+  sourceController: (ctx, controller, row, cell) {
+    return SuperAutoSuggestionSources.hybrid<String>(
+      initialItems: cachedAccounts,
+      fetch: (context, query) => repository.searchAccounts(query),
+    );
+  },
+);
+```
+
+Cached matches are shown immediately. If there are `2` or fewer local matches,
+the remote fetch may start after the `300ms` debounce interval (subject to the
+source's other remote conditions).
 
 For suggestions that depend on the current row, provide `sourceController` or `cellController`. Update `row.fingerPrint` when dependent row data changes so the per-cell resources are rebuilt the next time the cell enters edit mode:
 
